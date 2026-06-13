@@ -10,6 +10,8 @@
 
 {% macro total(value, max) %}{{ _self.pts(value) }}/{{ _self.pts(max) }}<br><small class="text-muted fw-normal">{{ max > 0 ? (value / max * 100)|round : 0 }}%</small>{% endmacro %}
 
+{% macro medal(rank) %}{% if rank == 1 %}medal-gold{% elseif rank == 2 %}medal-silver{% elseif rank == 3 %}medal-bronze{% endif %}{% endmacro %}
+
 {% block title %}{{ 'lb.title'|trans }} — Trepiedi{% endblock %}
 
 {% block body %}
@@ -71,7 +73,7 @@
                     <tbody>
                         {% for entry in entries %}
                             <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
-                                <td class="fw-bold">{{ entry.rank }} {{ _self.arrow(entry.change('points')) }}</td>
+                                <td class="fw-bold {{ _self.medal(entry.rank) }}">{{ entry.rank }} {{ _self.arrow(entry.change('points')) }}</td>
                                 <td>{{ m.player(entry.user) }}</td>
                                 {% for round in rounds %}
                                     {% set played = finishedPerRound[round.id] ?? 0 %}
@@ -114,7 +116,7 @@
                         {% for entry in byScore %}
                             {% if prev is null or entry.scorePoints != prev %}{% set rank = loop.index %}{% set prev = entry.scorePoints %}{% endif %}
                             <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
-                                <td class="fw-bold">{{ rank }} {{ _self.arrow(entry.change('score')) }}</td>
+                                <td class="fw-bold {{ _self.medal(rank) }}">{{ rank }} {{ _self.arrow(entry.change('score')) }}</td>
                                 <td>{{ m.player(entry.user) }}</td>
                                 {% for round in rounds %}
                                     {% set played = finishedPerRound[round.id] ?? 0 %}
@@ -152,7 +154,7 @@
                         {% for entry in byWinners %}
                             {% if prev is null or entry.advanceCount != prev %}{% set rank = loop.index %}{% set prev = entry.advanceCount %}{% endif %}
                             <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
-                                <td class="fw-bold">{{ rank }} {{ _self.arrow(entry.change('winners')) }}</td>
+                                <td class="fw-bold {{ _self.medal(rank) }}">{{ rank }} {{ _self.arrow(entry.change('winners')) }}</td>
                                 <td>{{ m.player(entry.user) }}</td>
                                 {% for round in rounds %}
                                     {% set played = finishedPerRound[round.id] ?? 0 %}
@@ -193,7 +195,7 @@
                         {% for entry in byLantern %}
                             {% if prev is null or entry.lanternPoints != prev %}{% set rank = loop.index %}{% set prev = entry.lanternPoints %}{% endif %}
                             <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
-                                <td class="fw-bold">{{ rank }}</td>
+                                <td class="fw-bold {{ _self.medal(rank) }}">{{ rank }}</td>
                                 <td>{{ m.player(entry.user) }}</td>
                                 {% for round in rounds %}
                                     {% set played = finishedPerRound[round.id] ?? 0 %}
@@ -231,7 +233,7 @@
                         {% for entry in byInconsistent %}
                             {% if prev is null or entry.inconsistentCount != prev %}{% set rank = loop.index %}{% set prev = entry.inconsistentCount %}{% endif %}
                             <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
-                                <td class="fw-bold">{{ rank }}</td>
+                                <td class="fw-bold {{ _self.medal(rank) }}">{{ rank }}</td>
                                 <td>{{ m.player(entry.user) }}</td>
                                 {% for round in rounds %}
                                     {% set played = finishedPerRound[round.id] ?? 0 %}

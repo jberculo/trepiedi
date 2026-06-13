@@ -20,6 +20,7 @@ common:
     cancel: Cancel
     edit: Edit
     delete: Delete
+    saved: Saved
 account:
     title: My account
     heading: Account settings

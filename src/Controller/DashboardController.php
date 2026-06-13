@@ -12,6 +12,7 @@ use App\Scoring\ScoringService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -62,17 +63,14 @@ class DashboardController extends AbstractController
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
+        $ajax = $request->isXmlHttpRequest();
 
         if (!$match->isActive()) {
-            $this->addFlash('error', 'dash.not_available_flash');
-
-            return $this->redirectToRoute('app_dashboard', ['_fragment' => 'match-' . $match->getId()]);
+            return $this->saveError($ajax, $match, 'dash.not_available_flash', $translator);
         }
 
         if ($match->isLocked()) {
-            $this->addFlash('error', 'dash.locked_flash');
-
-            return $this->redirectToRoute('app_dashboard', ['_fragment' => 'match-' . $match->getId()]);
+            return $this->saveError($ajax, $match, 'dash.locked_flash', $translator);
         }
 
         $prediction = $predictionRepository->findOneForUserAndMatch($user, $match) ?? new Prediction();
@@ -86,12 +84,51 @@ class DashboardController extends AbstractController
             $em->persist($prediction);
             $em->flush();
 
-            $this->addFlash('success', $translator->trans('dash.saved_flash', ['%match%' => (string) $match]));
-        } else {
-            foreach ($form->getErrors(true) as $error) {
-                $this->addFlash('error', $error->getMessage());
+            if ($ajax) {
+                return new JsonResponse([
+                    'ok' => true,
+                    'message' => $translator->trans('common.saved'),
+                    'updatedAt' => $prediction->getUpdatedAt()->format('d-m H:i'),
+                ]);
             }
+
+            $this->addFlash('success', $translator->trans('dash.saved_flash', ['%match%' => (string) $match]));
+
+            return $this->redirectToRoute('app_dashboard', ['_fragment' => 'match-' . $match->getId()]);
         }
+
+        $messages = [];
+        foreach ($form->getErrors(true) as $error) {
+            $messages[] = $error->getMessage();
+        }
+
+        if ($ajax) {
+            return new JsonResponse([
+                'ok' => false,
+                'message' => $messages !== [] ? implode(' ', $messages) : $translator->trans('dash.not_available_flash'),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        foreach ($messages as $message) {
+            $this->addFlash('error', $message);
+        }
+
+        return $this->redirectToRoute('app_dashboard', ['_fragment' => 'match-' . $match->getId()]);
+    }
+
+    /**
+     * Foutmelding voor een geblokkeerde/inactieve wedstrijd: JSON bij AJAX, anders flash + redirect.
+     */
+    private function saveError(bool $ajax, FootballMatch $match, string $key, TranslatorInterface $translator): Response
+    {
+        if ($ajax) {
+            return new JsonResponse(
+                ['ok' => false, 'message' => $translator->trans($key)],
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+            );
+        }
+
+        $this->addFlash('error', $key);
 
         return $this->redirectToRoute('app_dashboard', ['_fragment' => 'match-' . $match->getId()]);
     }

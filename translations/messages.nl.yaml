@@ -20,6 +20,7 @@ common:
     cancel: Annuleren
     edit: Bewerken
     delete: Verwijderen
+    saved: Opgeslagen
 account:
     title: Mijn account
     heading: Account-instellingen

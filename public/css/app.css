@@ -164,9 +164,10 @@ h1, .h1 { text-transform: uppercase; }
 .rise { color: #21a05a !important; } /* groen "gestegen", los van het blauwe thema */
 .col-rank { width: 4rem; }
 .lb-table tbody td:first-child { font-family: 'Oswald', sans-serif; font-size: 1.15rem; }
-.lb-table tbody tr:nth-child(1) td:first-child { color: var(--gold); }
-.lb-table tbody tr:nth-child(2) td:first-child { color: var(--silver); }
-.lb-table tbody tr:nth-child(3) td:first-child { color: var(--bronze); }
+/* Medaillekleur op rangnummer (niet op rijpositie): gedeelde plekken delen de kleur. */
+.lb-table tbody td.medal-gold { color: var(--gold); }
+.lb-table tbody td.medal-silver { color: var(--silver); }
+.lb-table tbody td.medal-bronze { color: var(--bronze); }
 
 .brand-logo-lg { height: 44px; }
 .table-fixed { table-layout: fixed; }

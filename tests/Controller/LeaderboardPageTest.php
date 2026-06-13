@@ -70,6 +70,20 @@ class LeaderboardPageTest extends FixturesWebTestCase
         $this->assertStringContainsString('9', $top->text());
     }
 
+    public function testTiedRanksShareMedalColour(): void
+    {
+        $crawler = $this->client->request('GET', '/');
+        $this->assertResponseIsSuccessful();
+        $html = $crawler->filter('table.lb-table')->first()->html();
+
+        // Anne staat met 72 punten alleen op 1 → één keer goud.
+        $this->assertSame(1, substr_count($html, 'medal-gold'));
+        // Bram en Diana delen plek 2 (allebei 48) → twee keer zilver.
+        $this->assertSame(2, substr_count($html, 'medal-silver'));
+        // Door de gedeelde 2 staat niemand op 3, dus geen brons.
+        $this->assertSame(0, substr_count($html, 'medal-bronze'));
+    }
+
     public function testAnimationTabHasTimelineData(): void
     {
         $crawler = $this->client->request('GET', '/animatie');

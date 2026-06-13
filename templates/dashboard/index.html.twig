@@ -46,7 +46,7 @@
                                 {% endif %}
 
                                 {% if item.form %}
-                                    {{ form_start(item.form) }}
+                                    {{ form_start(item.form, {attr: {class: 'js-prediction-form'}}) }}
                                         <div class="row g-2 align-items-end">
                                             <div class="col">
                                                 {{ form_label(item.form.homeScore, null, {label_attr: {class: 'form-label small'}}) }}
@@ -62,10 +62,10 @@
                                             {{ form_label(item.form.advancingTeam, null, {label_attr: {class: 'form-label small'}}) }}
                                             {{ form_widget(item.form.advancingTeam, {attr: {class: 'form-select'}}) }}
                                         </div>
-                                        <button class="btn btn-sm btn-success mt-3">{{ 'common.save'|trans }}</button>
-                                        {% if item.prediction %}
-                                            <span class="text-muted small ms-2">{{ 'dash.last_changed'|trans }}: {{ item.prediction.updatedAt|date('d-m H:i') }}</span>
-                                        {% endif %}
+                                        <div class="d-flex align-items-center gap-2 mt-3">
+                                            <button class="btn btn-sm btn-success">{{ 'common.save'|trans }}</button>
+                                            <span class="save-status small {% if item.prediction %}text-muted{% endif %}">{% if item.prediction %}{{ 'dash.last_changed'|trans }}: {{ item.prediction.updatedAt|date('d-m H:i') }}{% endif %}</span>
+                                        </div>
                                     {{ form_end(item.form) }}
                                 {% else %}
                                     {% if not match.active %}
@@ -95,4 +95,45 @@
     {% else %}
         <div class="alert alert-info">{{ 'dash.nothing_yet'|trans }}</div>
     {% endfor %}
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        document.querySelectorAll('.js-prediction-form').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var status = form.querySelector('.save-status');
+                var btn = form.querySelector('button');
+                if (btn) { btn.disabled = true; }
+                if (status) { status.textContent = '…'; status.className = 'save-status small text-muted'; }
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).then(function (response) {
+                    return response.json().then(function (data) {
+                        return { ok: response.ok, data: data };
+                    });
+                }).then(function (result) {
+                    if (status) {
+                        if (result.ok && result.data.ok) {
+                            status.textContent = '✓ ' + result.data.message;
+                            status.className = 'save-status small rise';
+                        } else {
+                            status.textContent = result.data.message || '⚠';
+                            status.className = 'save-status small text-danger';
+                        }
+                    }
+                }).catch(function () {
+                    if (status) {
+                        status.textContent = '⚠';
+                        status.className = 'save-status small text-danger';
+                    }
+                }).finally(function () {
+                    if (btn) { btn.disabled = false; }
+                });
+            });
+        });
+    </script>
 {% endblock %}

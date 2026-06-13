@@ -111,6 +111,55 @@ class PredictionLockTest extends FixturesWebTestCase
         $this->assertSame(0, $count, 'Zonder winnaar mag er niets worden opgeslagen.');
     }
 
+    public function testPredictionIsSavedViaAjax(): void
+    {
+        $match = $this->openMatch();
+        $matchId = $match->getId();
+        $homeTeamId = $match->getHomeTeam()->getId();
+        $bramId = $this->user('bram@trepiedi.test')->getId();
+
+        $this->client->loginUser($this->user('bram@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/voorspellen');
+        $form = $crawler->filter('form[action$="/voorspelling/' . $matchId . '/opslaan"]')->form([
+            'prediction[homeScore]' => '2',
+            'prediction[awayScore]' => '0',
+            'prediction[advancingTeam]' => (string) $homeTeamId,
+        ]);
+
+        // Versturen als AJAX: verwacht JSON, geen redirect.
+        $this->client->xmlHttpRequest('POST', $form->getUri(), $form->getPhpValues());
+
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('Content-Type', 'application/json');
+        $data = json_decode((string) $this->client->getResponse()->getContent(), true);
+        $this->assertTrue($data['ok']);
+
+        $this->em->clear();
+        $prediction = $this->em->getRepository(Prediction::class)
+            ->findOneBy(['user' => $bramId, 'footballMatch' => $matchId]);
+        $this->assertNotNull($prediction, 'AJAX-voorspelling is niet opgeslagen.');
+        $this->assertSame(2, $prediction->getHomeScore());
+    }
+
+    public function testAjaxPredictionOnStartedMatchReturns422(): void
+    {
+        $match = $this->lockedMatch();
+        $matchId = $match->getId();
+
+        $this->client->loginUser($this->user('bram@trepiedi.test'));
+        $this->client->xmlHttpRequest('POST', '/voorspelling/' . $matchId . '/opslaan', [
+            'prediction' => [
+                'homeScore' => 9,
+                'awayScore' => 9,
+                'advancingTeam' => $match->getHomeTeam()->getId(),
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+        $data = json_decode((string) $this->client->getResponse()->getContent(), true);
+        $this->assertFalse($data['ok']);
+    }
+
     public function testPredictionOnOpenMatchIsSaved(): void
     {
         $match = $this->openMatch();
