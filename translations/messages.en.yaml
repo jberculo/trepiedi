@@ -125,6 +125,8 @@ mv:
     hidden: '🔒 The predictions become visible once the match has started. Predictions so far: %count%.'
     consensus_winner: 'Who does the group think will win?'
     common_scores: Most predicted scores
+footer:
+    tagline: 'Predict. Score. Win.'
 admin:
     title: Admin
     teams: Teams

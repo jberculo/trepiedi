@@ -1,12 +1,27 @@
-/* Huisstijl: logo-blauw als basiskleur (i.p.v. het Bootstrap-groen). */
+/* ============================================================
+   Trepiedi — voetbal look & feel.
+   Logo-blauw blijft het hoofdthema; grasgroen, goud en een
+   stadion-navy geven het de voetbalsfeer. Oswald voor de
+   scoreboard-koppen/getallen, Rubik voor de rest.
+   ============================================================ */
 :root {
     --brand: #005bbf;
-    --brand-dark: #004a9c;
+    --brand-dark: #00418a;
     --bs-success: #005bbf;
     --bs-success-rgb: 0, 91, 191;
     --bs-primary: #005bbf;
+
+    --pitch: #1a8f43;        /* grasgroen */
+    --pitch-dark: #0f6e31;
+    --night: #0a1f3c;        /* stadion-navy */
+    --gold: #e0a400;
+    --silver: #7d8794;
+    --bronze: #b5703a;
+
+    --bs-body-font-family: 'Rubik', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
+/* ---- Thema-kleuren (blauw i.p.v. het Bootstrap-groen) ---- */
 .bg-success { background-color: var(--brand) !important; }
 .text-success { color: var(--brand) !important; }
 .text-bg-success { background-color: var(--brand) !important; color: #fff !important; }
@@ -22,18 +37,150 @@
     --bs-btn-disabled-border-color: var(--brand);
 }
 
-.table-success { --bs-table-bg: #d6e4f7; }
-.navbar-brand img { height: 26px; width: auto; display: block; }
+.btn-outline-success {
+    --bs-btn-color: var(--brand);
+    --bs-btn-border-color: var(--brand);
+    --bs-btn-hover-bg: var(--brand);
+    --bs-btn-hover-border-color: var(--brand);
+    --bs-btn-active-bg: var(--brand);
+    --bs-btn-active-border-color: var(--brand);
+}
+
+.table-success { --bs-table-bg: #dbe7f9; }
 a { color: var(--brand); }
 
-/* Klassement / profiel */
-.rise { color: #198754 !important; } /* groen "gestegen", los van het blauwe thema */
+/* ---- Basis: grasveld met subtiele maaistreepjes ---- */
+body {
+    font-family: var(--bs-body-font-family);
+    color: #15263d;
+    background-color: #eef3ee;
+    background-image: repeating-linear-gradient(
+        90deg,
+        rgba(26, 143, 67, .045) 0,
+        rgba(26, 143, 67, .045) 46px,
+        rgba(26, 143, 67, .085) 46px,
+        rgba(26, 143, 67, .085) 92px
+    );
+    min-height: 100vh;
+}
+
+h1, h2, h3, .h1, .h2, .h3 {
+    font-family: 'Oswald', 'Rubik', sans-serif;
+    letter-spacing: .01em;
+}
+h1, .h1 { text-transform: uppercase; }
+.display-6 { font-family: 'Oswald', sans-serif; color: var(--brand); }
+
+/* ---- Navbar: blauwe spelershelft met een groene zijlijn ---- */
+.navbar.bg-success {
+    background: linear-gradient(120deg, var(--brand-dark), var(--brand)) !important;
+    border-bottom: 4px solid var(--pitch);
+    box-shadow: 0 2px 14px rgba(10, 31, 60, .25);
+}
+.navbar-brand { font-family: 'Oswald', sans-serif; }
+.navbar-brand img { height: 34px; width: auto; display: block; }
+.navbar .nav-link { font-weight: 500; letter-spacing: .02em; }
+.navbar .nav-link:hover,
+.navbar .nav-link:focus { color: var(--gold) !important; }
+
+/* ---- Kaarten: scoreboard-panelen met een groene streep ---- */
+.card {
+    border: none;
+    border-top: 3px solid var(--pitch);
+    border-radius: 1rem;
+    box-shadow: 0 .5rem 1.25rem rgba(10, 31, 60, .08);
+    overflow: hidden;
+}
+.list-group-item-action { transition: background-color .15s ease; }
+.list-group-item-action:hover { background-color: rgba(26, 143, 67, .08); }
+
+/* ---- Tabellen als scoreboard ---- */
+.table { --bs-table-hover-bg: rgba(26, 143, 67, .10); }
+.table > thead th {
+    background-color: var(--night) !important;
+    color: #fff;
+    text-transform: uppercase;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 500;
+    font-size: .74rem;
+    letter-spacing: .04em;
+    border-bottom: none;
+    vertical-align: middle;
+}
+.table > thead th .text-muted { color: rgba(255, 255, 255, .7) !important; }
+.table > thead th .form-check-input { border-color: rgba(255, 255, 255, .6); }
+
+/* ---- Pill-knoppen en -badges ---- */
+.btn { border-radius: 50rem; font-weight: 500; }
+.btn-link { border-radius: 0; }
+.badge { border-radius: 50rem; font-weight: 600; letter-spacing: .02em; }
+
+/* ---- Formulieren ---- */
+.form-control, .form-select { border-radius: .6rem; }
+.form-control:focus, .form-select:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 .2rem rgba(0, 91, 191, .2);
+}
+
+/* ---- Meldingen ---- */
+.alert { border: none; border-left: 5px solid #9aa3af; border-radius: .6rem; }
+.alert-success { border-left-color: var(--pitch); }
+.alert-info { border-left-color: var(--brand); }
+.alert-danger { border-left-color: #d6333f; }
+
+/* ---- Tabbladen als shirt-chips ---- */
+.nav-tabs { border-bottom: 2px solid rgba(10, 31, 60, .12); gap: .25rem; }
+.nav-tabs .nav-link {
+    border: none;
+    border-radius: .7rem .7rem 0 0;
+    color: var(--night);
+    font-weight: 500;
+}
+.nav-tabs .nav-link:hover { background-color: rgba(26, 143, 67, .10); }
+.nav-tabs .nav-link.active {
+    color: #fff;
+    background-color: var(--brand);
+    border-bottom: 3px solid var(--pitch);
+}
+
+/* ---- Klassement-hero ---- */
+.lb-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem;
+    padding: 1.1rem 1.3rem;
+    border-radius: 1rem;
+    border-left: 5px solid var(--pitch);
+    background: linear-gradient(120deg, var(--brand-dark), var(--brand));
+    color: #fff;
+    box-shadow: 0 .5rem 1.25rem rgba(10, 31, 60, .18);
+}
+.lb-hero h1 { color: #fff; margin: 0; }
+.lb-hero .lb-hero-max { color: rgba(255, 255, 255, .85); }
+
+/* ---- Shirtnummers: top 3 in goud / zilver / brons ---- */
+.rise { color: #21a05a !important; } /* groen "gestegen", los van het blauwe thema */
 .col-rank { width: 4rem; }
+.lb-table tbody td:first-child { font-family: 'Oswald', sans-serif; font-size: 1.15rem; }
+.lb-table tbody tr:nth-child(1) td:first-child { color: var(--gold); }
+.lb-table tbody tr:nth-child(2) td:first-child { color: var(--silver); }
+.lb-table tbody tr:nth-child(3) td:first-child { color: var(--bronze); }
+
 .brand-logo-lg { height: 44px; }
 .table-fixed { table-layout: fixed; }
 .col-eq-5 { width: 20%; }
 
-/* Animatie-klassement */
+/* ---- Footer ---- */
+.site-footer {
+    background: var(--night);
+    color: rgba(255, 255, 255, .8);
+    border-top: 4px solid var(--pitch);
+}
+.site-footer .footer-brand { font-family: 'Oswald', sans-serif; letter-spacing: .03em; }
+
+/* ===================== Animatie-klassement ===================== */
 .anim-board { position: relative; }
 .anim-row {
     position: absolute;
@@ -46,14 +193,14 @@ a { color: var(--brand); }
     gap: .75rem;
     transition: transform .9s cubic-bezier(.4, 0, .2, 1);
 }
-.anim-rank { width: 2rem; text-align: right; font-weight: 700; }
+.anim-rank { width: 2rem; text-align: right; font-weight: 700; font-family: 'Oswald', sans-serif; }
 .anim-name { width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.anim-bar { flex: 1; height: 1rem; background: #eef1f5; border-radius: .25rem; overflow: hidden; }
-.anim-bar-fill { display: block; height: 100%; background: var(--brand); } /* breedte via JS (rAF) */
-.anim-score { width: 5.5rem; text-align: right; font-weight: 700; }
+.anim-bar { flex: 1; height: 1rem; background: rgba(10, 31, 60, .08); border-radius: 50rem; overflow: hidden; }
+.anim-bar-fill { display: block; height: 100%; background: linear-gradient(90deg, var(--pitch), var(--brand)); } /* breedte via JS (rAF) */
+.anim-score { width: 5.5rem; text-align: right; font-weight: 700; font-family: 'Oswald', sans-serif; }
 
-/* Profielfoto's */
-.avatar-lg { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; }
+/* ===================== Profielfoto's ===================== */
+.avatar-lg { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 0 0 2px var(--pitch); }
 .avatar-sm { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
 .avatar-empty {
     display: inline-flex;
@@ -82,6 +229,7 @@ a { color: var(--brand); }
     .lb-table > :not(caption) > * > * { padding: .4rem .35rem; }
     .lb-table .avatar-sm { width: 22px; height: 22px; }
     .col-rank { width: 2.5rem; }
+    .lb-hero { padding: .9rem 1rem; }
 
     /* Animatie: smallere kolommen op kleine schermen. */
     .anim-row { gap: .5rem; }

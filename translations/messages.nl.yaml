@@ -125,6 +125,8 @@ mv:
     hidden: '🔒 De voorspellingen worden zichtbaar zodra de wedstrijd is begonnen. Aantal voorspellingen tot nu toe: %count%.'
     consensus_winner: 'Wie wint volgens de groep?'
     common_scores: Meest voorspelde uitslagen
+footer:
+    tagline: 'Voorspel. Scoor. Win.'
 admin:
     title: Beheer
     teams: Teams
