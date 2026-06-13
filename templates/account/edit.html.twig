@@ -30,6 +30,12 @@
                             {{ form_errors(form.avatar) }}
                         </div>
 
+                        <div class="mb-3">
+                            {{ form_label(form.locale, null, {label_attr: {class: 'form-label'}}) }}
+                            {{ form_widget(form.locale, {attr: {class: 'form-select'}}) }}
+                            {{ form_errors(form.locale) }}
+                        </div>
+
                         <button class="btn btn-success">{{ 'common.save'|trans }}</button>
                     {{ form_end(form) }}
                 </div>

@@ -197,7 +197,7 @@ h1, .h1 { text-transform: uppercase; }
 .anim-rank { width: 2rem; text-align: right; font-weight: 700; font-family: 'Oswald', sans-serif; }
 .anim-name { width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .anim-bar { flex: 1; height: 1rem; background: rgba(10, 31, 60, .08); border-radius: 50rem; overflow: hidden; }
-.anim-bar-fill { display: block; height: 100%; background: linear-gradient(90deg, var(--pitch), var(--brand)); } /* breedte via JS (rAF) */
+.anim-bar-fill { display: block; height: 100%; border-radius: 50rem; background: linear-gradient(90deg, var(--pitch), var(--brand)); } /* breedte via JS (rAF) */
 .anim-score { width: 5.5rem; text-align: right; font-weight: 700; font-family: 'Oswald', sans-serif; }
 
 /* ===================== Profielfoto's ===================== */

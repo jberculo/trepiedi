@@ -19,7 +19,9 @@
     {% set maxTour = activeTab in ['points', 'animation'] ? _self.pts(maxTournament) : (activeTab == 'score' ? totalMatches * 3 : (activeTab == 'lantern' ? totalMatches * 3 : totalMatches)) %}
     <div class="lb-hero mb-3">
         <h1 class="h3 mb-0">⚽ {{ 'lb.title'|trans }}</h1>
-        <span class="lb-hero-max small">{{ 'lb.max'|trans({'%now%': maxNow, '%all%': maxTour}) }}</span>
+        {% if activeTab != 'animation' %}
+            <span class="lb-hero-max small">{{ 'lb.max'|trans({'%now%': maxNow, '%all%': maxTour}) }}</span>
+        {% endif %}
     </div>
 
     {% set tabs = [

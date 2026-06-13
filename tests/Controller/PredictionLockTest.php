@@ -18,7 +18,7 @@ class PredictionLockTest extends FixturesWebTestCase
             'prediction' => [
                 'homeScore' => 9,
                 'awayScore' => 9,
-                'advancingTeam' => $match->getHomeTeam()->getId(),
+                'advancingSide' => 'home',
             ],
         ]);
 
@@ -46,7 +46,7 @@ class PredictionLockTest extends FixturesWebTestCase
             'prediction' => [
                 'homeScore' => 1,
                 'awayScore' => 0,
-                'advancingTeam' => $match->getHomeTeam()->getId(),
+                'advancingSide' => 'home',
             ],
         ]);
 
@@ -63,7 +63,6 @@ class PredictionLockTest extends FixturesWebTestCase
     {
         $match = $this->openMatch();
         $matchId = $match->getId();
-        $homeTeamId = $match->getHomeTeam()->getId();
         $bramId = $this->user('bram@trepiedi.test')->getId();
 
         $this->client->loginUser($this->user('bram@trepiedi.test'));
@@ -72,7 +71,7 @@ class PredictionLockTest extends FixturesWebTestCase
         $form = $crawler->filter('form[action$="/voorspelling/' . $matchId . '/opslaan"]')->form([
             'prediction[homeScore]' => '1',
             'prediction[awayScore]' => '1',
-            'prediction[advancingTeam]' => (string) $homeTeamId,
+            'prediction[advancingSide]' => 'home',
         ]);
         $this->client->submit($form);
 
@@ -81,7 +80,7 @@ class PredictionLockTest extends FixturesWebTestCase
         $form = $crawler->filter('form[action$="/voorspelling/' . $matchId . '/opslaan"]')->form([
             'prediction[homeScore]' => '3',
             'prediction[awayScore]' => '2',
-            'prediction[advancingTeam]' => (string) $homeTeamId,
+            'prediction[advancingSide]' => 'home',
         ]);
         $this->client->submit($form);
 
@@ -103,7 +102,7 @@ class PredictionLockTest extends FixturesWebTestCase
         $form = $crawler->filter('form[action$="/voorspelling/' . $matchId . '/opslaan"]')->form();
         $form['prediction[homeScore]'] = '2';
         $form['prediction[awayScore]'] = '1';
-        $form['prediction[advancingTeam]'] = ''; // geen winnaar gekozen
+        $form['prediction[advancingSide]'] = ''; // geen winnaar gekozen
         $this->client->submit($form);
 
         $this->em->clear();
@@ -115,7 +114,6 @@ class PredictionLockTest extends FixturesWebTestCase
     {
         $match = $this->openMatch();
         $matchId = $match->getId();
-        $homeTeamId = $match->getHomeTeam()->getId();
         $bramId = $this->user('bram@trepiedi.test')->getId();
 
         $this->client->loginUser($this->user('bram@trepiedi.test'));
@@ -123,7 +121,7 @@ class PredictionLockTest extends FixturesWebTestCase
         $form = $crawler->filter('form[action$="/voorspelling/' . $matchId . '/opslaan"]')->form([
             'prediction[homeScore]' => '2',
             'prediction[awayScore]' => '0',
-            'prediction[advancingTeam]' => (string) $homeTeamId,
+            'prediction[advancingSide]' => 'home',
         ]);
 
         // Versturen als AJAX: verwacht JSON, geen redirect.
@@ -151,7 +149,7 @@ class PredictionLockTest extends FixturesWebTestCase
             'prediction' => [
                 'homeScore' => 9,
                 'awayScore' => 9,
-                'advancingTeam' => $match->getHomeTeam()->getId(),
+                'advancingSide' => 'home',
             ],
         ]);
 
@@ -164,7 +162,6 @@ class PredictionLockTest extends FixturesWebTestCase
     {
         $match = $this->openMatch();
         $matchId = $match->getId();
-        $homeTeamId = $match->getHomeTeam()->getId();
         $bramId = $this->user('bram@trepiedi.test')->getId();
 
         $this->client->loginUser($this->user('bram@trepiedi.test'));
@@ -173,7 +170,7 @@ class PredictionLockTest extends FixturesWebTestCase
         $form = $crawler->filter('form[action$="/voorspelling/' . $matchId . '/opslaan"]')->form([
             'prediction[homeScore]' => '3',
             'prediction[awayScore]' => '1',
-            'prediction[advancingTeam]' => (string) $homeTeamId,
+            'prediction[advancingSide]' => 'home',
         ]);
         $this->client->submit($form);
 

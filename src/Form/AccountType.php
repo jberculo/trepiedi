@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -25,6 +26,14 @@ class AccountType extends AbstractType
                 'constraints' => [
                     new Image(maxSize: '2M'),
                 ],
+            ])
+            ->add('locale', ChoiceType::class, [
+                'label' => 'account.language',
+                'choices' => [
+                    'Nederlands' => 'nl',
+                    'English' => 'en',
+                ],
+                'choice_translation_domain' => false,
             ]);
     }
 

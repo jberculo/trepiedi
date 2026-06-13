@@ -17,7 +17,7 @@ class RoundRepository extends ServiceEntityRepository
     }
 
     /**
-     * Alle ronden in speelvolgorde, met wedstrijden en teams eager geladen.
+     * Alle ronden in speelvolgorde, met wedstrijden eager geladen.
      *
      * @return list<Round>
      */
@@ -25,8 +25,6 @@ class RoundRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('r')
             ->leftJoin('r.matches', 'm')->addSelect('m')
-            ->leftJoin('m.homeTeam', 'h')->addSelect('h')
-            ->leftJoin('m.awayTeam', 'a')->addSelect('a')
             ->orderBy('r.sortOrder', 'DESC')
             ->addOrderBy('m.kickoffAt', 'DESC')
             ->getQuery()

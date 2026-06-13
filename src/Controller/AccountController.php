@@ -46,6 +46,10 @@ class AccountController extends AbstractController
             }
 
             $em->flush();
+
+            // Taalkeuze meteen toepassen.
+            $request->getSession()->set('_locale', $user->getLocale());
+
             $this->addFlash('success', 'account.saved');
 
             return $this->redirectToRoute('app_account');

@@ -5,7 +5,6 @@ namespace App\DataFixtures;
 use App\Entity\FootballMatch;
 use App\Entity\Prediction;
 use App\Entity\Round;
-use App\Entity\Team;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -13,9 +12,6 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
-    /** @var array<string, Team> */
-    private array $teams = [];
-
     public function __construct(private UserPasswordHasherInterface $hasher)
     {
     }
@@ -24,7 +20,6 @@ class AppFixtures extends Fixture
     {
         $now = new \DateTimeImmutable('2026-06-12 12:00:00');
 
-        $this->createTeams($manager);
         $players = $this->createUsers($manager);
 
         $achtste = $this->round($manager, 'Achtste finales', 1);
@@ -32,62 +27,47 @@ class AppFixtures extends Fixture
         $halve = $this->round($manager, 'Halve finales', 3);
         $finale = $this->round($manager, 'Finale', 4);
 
-        // Achtste finales — gespeeld (8 wedstrijden).
+        // Achtste finales — gespeeld (8 wedstrijden). [thuis, uit, thuisdoelpunten, uitdoelpunten, doorgaande kant]
         $achtsteData = [
-            ['NED', 'POL', 2, 1, 'NED'],
-            ['FRA', 'SUI', 1, 1, 'FRA'],
-            ['ESP', 'DEN', 3, 0, 'ESP'],
-            ['ENG', 'JPN', 0, 0, 'JPN'],
-            ['GER', 'MAR', 2, 0, 'GER'],
-            ['POR', 'BRA', 1, 2, 'BRA'],
-            ['BEL', 'ARG', 0, 1, 'ARG'],
-            ['ITA', 'CRO', 2, 2, 'CRO'],
+            ['Nederland', 'Polen', 2, 1, FootballMatch::SIDE_HOME],
+            ['Frankrijk', 'Zwitserland', 1, 1, FootballMatch::SIDE_HOME],
+            ['Spanje', 'Denemarken', 3, 0, FootballMatch::SIDE_HOME],
+            ['Engeland', 'Japan', 0, 0, FootballMatch::SIDE_AWAY],
+            ['Duitsland', 'Marokko', 2, 0, FootballMatch::SIDE_HOME],
+            ['Portugal', 'Brazilië', 1, 2, FootballMatch::SIDE_AWAY],
+            ['België', 'Argentinië', 0, 1, FootballMatch::SIDE_AWAY],
+            ['Italië', 'Kroatië', 2, 2, FootballMatch::SIDE_AWAY],
         ];
         $finishedMatches = [];
         $i = 0;
-        foreach ($achtsteData as [$h, $a, $hs, $as, $adv]) {
+        foreach ($achtsteData as [$h, $a, $hs, $as, $side]) {
             $kickoff = $now->modify(sprintf('-%d days', 10 - intdiv($i, 4)));
-            $finishedMatches[] = $this->finishedMatch($manager, $achtste, $h, $a, $kickoff, $hs, $as, $adv);
+            $finishedMatches[] = $this->finishedMatch($manager, $achtste, $h, $a, $kickoff, $hs, $as, $side);
             ++$i;
         }
 
         // Kwartfinales — gespeeld (4 wedstrijden).
         $kwartData = [
-            ['NED', 'FRA', 1, 2, 'FRA'],
-            ['ESP', 'JPN', 2, 1, 'ESP'],
-            ['GER', 'BRA', 0, 1, 'BRA'],
-            ['ARG', 'CRO', 3, 1, 'ARG'],
+            ['Nederland', 'Frankrijk', 1, 2, FootballMatch::SIDE_AWAY],
+            ['Spanje', 'Japan', 2, 1, FootballMatch::SIDE_HOME],
+            ['Duitsland', 'Brazilië', 0, 1, FootballMatch::SIDE_AWAY],
+            ['Argentinië', 'Kroatië', 3, 1, FootballMatch::SIDE_HOME],
         ];
-        foreach ($kwartData as $j => [$h, $a, $hs, $as, $adv]) {
+        foreach ($kwartData as $j => [$h, $a, $hs, $as, $side]) {
             $kickoff = $now->modify('-5 days')->modify(sprintf('+%d hours', $j * 3));
-            $finishedMatches[] = $this->finishedMatch($manager, $kwart, $h, $a, $kickoff, $hs, $as, $adv);
+            $finishedMatches[] = $this->finishedMatch($manager, $kwart, $h, $a, $kickoff, $hs, $as, $side);
         }
 
         // Halve finales — open (toekomst).
-        $this->openMatch($manager, $halve, 'FRA', 'ESP', $now->modify('+3 days'));
-        $this->openMatch($manager, $halve, 'BRA', 'ARG', $now->modify('+4 days'));
+        $this->openMatch($manager, $halve, 'Frankrijk', 'Spanje', $now->modify('+3 days'));
+        $this->openMatch($manager, $halve, 'Brazilië', 'Argentinië', $now->modify('+4 days'));
 
-        // Finale — open (toekomst). Teams indicatief; admin past aan na de halve finales.
-        $this->openMatch($manager, $finale, 'FRA', 'BRA', $now->modify('+8 days'));
+        // Finale — open (toekomst).
+        $this->openMatch($manager, $finale, 'Frankrijk', 'Brazilië', $now->modify('+8 days'));
 
         $this->createPredictions($manager, $players, $finishedMatches, $now);
 
         $manager->flush();
-    }
-
-    private function createTeams(ObjectManager $manager): void
-    {
-        $teams = [
-            'NED' => 'Nederland', 'POL' => 'Polen', 'FRA' => 'Frankrijk', 'SUI' => 'Zwitserland',
-            'ESP' => 'Spanje', 'DEN' => 'Denemarken', 'ENG' => 'Engeland', 'JPN' => 'Japan',
-            'GER' => 'Duitsland', 'MAR' => 'Marokko', 'POR' => 'Portugal', 'BRA' => 'Brazilië',
-            'BEL' => 'België', 'ARG' => 'Argentinië', 'ITA' => 'Italië', 'CRO' => 'Kroatië',
-        ];
-        foreach ($teams as $code => $name) {
-            $team = (new Team())->setName($name)->setCode($code);
-            $manager->persist($team);
-            $this->teams[$code] = $team;
-        }
     }
 
     /**
@@ -133,16 +113,16 @@ class AppFixtures extends Fixture
         \DateTimeImmutable $kickoff,
         int $homeScore,
         int $awayScore,
-        string $advancing,
+        string $advancingSide,
     ): FootballMatch {
         $match = (new FootballMatch())
             ->setRound($round)
-            ->setHomeTeam($this->teams[$home])
-            ->setAwayTeam($this->teams[$away])
+            ->setHomeTeam($home)
+            ->setAwayTeam($away)
             ->setKickoffAt($kickoff)
             ->setHomeScore($homeScore)
             ->setAwayScore($awayScore)
-            ->setAdvancingTeam($this->teams[$advancing])
+            ->setAdvancingSide($advancingSide)
             ->setFinished(true);
         $manager->persist($match);
 
@@ -158,8 +138,8 @@ class AppFixtures extends Fixture
     ): FootballMatch {
         $match = (new FootballMatch())
             ->setRound($round)
-            ->setHomeTeam($this->teams[$home])
-            ->setAwayTeam($this->teams[$away])
+            ->setHomeTeam($home)
+            ->setAwayTeam($away)
             ->setKickoffAt($kickoff);
         $manager->persist($match);
 
@@ -180,14 +160,14 @@ class AppFixtures extends Fixture
     ): void {
         foreach ($matches as $match) {
             foreach ($players as $index => $player) {
-                [$home, $away, $advancing] = $this->predictedOutcome($match, $index);
+                [$home, $away, $side] = $this->predictedOutcome($match, $index);
 
                 $prediction = (new Prediction())
                     ->setUser($player)
                     ->setFootballMatch($match)
                     ->setHomeScore($home)
                     ->setAwayScore($away)
-                    ->setAdvancingTeam($advancing)
+                    ->setAdvancingSide($side)
                     ->setUpdatedAt($now->modify('-12 days'));
                 $manager->persist($prediction);
             }
@@ -195,27 +175,27 @@ class AppFixtures extends Fixture
     }
 
     /**
-     * @return array{0: int, 1: int, 2: Team}
+     * @return array{0: int, 1: int, 2: string}
      */
     private function predictedOutcome(FootballMatch $match, int $playerIndex): array
     {
         $actualHome = (int) $match->getHomeScore();
         $actualAway = (int) $match->getAwayScore();
-        $winner = $match->getAdvancingTeam() ?? $match->getHomeTeam();
-        $loser = $winner === $match->getHomeTeam() ? $match->getAwayTeam() : $match->getHomeTeam();
+        $winnerSide = $match->getAdvancingSide() ?? FootballMatch::SIDE_HOME;
+        $loserSide = $winnerSide === FootballMatch::SIDE_HOME ? FootballMatch::SIDE_AWAY : FootballMatch::SIDE_HOME;
 
         return match ($playerIndex) {
             // Anne: alles perfect.
-            0 => [$actualHome, $actualAway, $winner],
+            0 => [$actualHome, $actualAway, $winnerSide],
             // Bram: juiste 'voor', mis op 'tegen', juiste winnaar.
-            1 => [$actualHome, $actualAway + 1, $winner],
+            1 => [$actualHome, $actualAway + 1, $winnerSide],
             // Chris: beide scores mis, verkeerde winnaar.
-            2 => [$actualHome + 1, $actualAway + 1, $loser],
+            2 => [$actualHome + 1, $actualAway + 1, $loserSide],
             // Diana: exacte uitslag; vanaf de kwartfinales ook de winnaar goed (stijgt in het klassement).
             default => [
                 $actualHome,
                 $actualAway,
-                $match->getRound()?->getName() === 'Kwartfinales' ? $winner : $loser,
+                $match->getRound()?->getName() === 'Kwartfinales' ? $winnerSide : $loserSide,
             ],
         };
     }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ app.request.locale|default('nl') }}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -27,6 +27,7 @@
                             <li class="nav-item"><a class="nav-link" href="{{ path('app_dashboard') }}">{{ 'nav.predict'|trans }}</a></li>
                         {% endif %}
                         <li class="nav-item"><a class="nav-link" href="{{ path('app_leaderboard') }}">{{ 'nav.leaderboard'|trans }}</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ path('app_matches') }}">{{ 'nav.matches'|trans }}</a></li>
                         {% if is_granted('ROLE_ADMIN') %}
                             <li class="nav-item"><a class="nav-link" href="{{ path('admin_dashboard') }}">{{ 'nav.admin'|trans }}</a></li>
                         {% endif %}

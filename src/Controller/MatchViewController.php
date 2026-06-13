@@ -29,10 +29,9 @@ class MatchViewController extends AbstractController
 
         if ($locked) {
             foreach ($predictions as $prediction) {
-                $advancingId = $prediction->getAdvancingTeam()?->getId();
-                if ($advancingId === $match->getHomeTeam()?->getId()) {
+                if ($prediction->getAdvancingSide() === FootballMatch::SIDE_HOME) {
                     ++$advanceHome;
-                } elseif ($advancingId === $match->getAwayTeam()?->getId()) {
+                } elseif ($prediction->getAdvancingSide() === FootballMatch::SIDE_AWAY) {
                     ++$advanceAway;
                 }
 

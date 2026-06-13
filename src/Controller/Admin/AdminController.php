@@ -4,7 +4,6 @@ namespace App\Controller\Admin;
 
 use App\Repository\FootballMatchRepository;
 use App\Repository\RoundRepository;
-use App\Repository\TeamRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,13 +16,11 @@ class AdminController extends AbstractController
 {
     #[Route('', name: 'admin_dashboard')]
     public function index(
-        TeamRepository $teams,
         RoundRepository $rounds,
         FootballMatchRepository $matches,
         UserRepository $users,
     ): Response {
         return $this->render('admin/dashboard.html.twig', [
-            'teamCount' => count($teams->findAll()),
             'roundCount' => count($rounds->findAll()),
             'matchCount' => count($matches->findAll()),
             'finishedCount' => count($matches->findBy(['finished' => true])),

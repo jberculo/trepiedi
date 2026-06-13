@@ -56,13 +56,28 @@ class PublicAccessTest extends FixturesWebTestCase
         $this->assertResponseRedirects('/login');
     }
 
+    public function testMatchesPageIsPublicAndShowsResults(): void
+    {
+        $crawler = $this->client->request('GET', '/wedstrijden');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorExists('table tbody tr');
+        // Een gespeelde wedstrijd toont een uitslag (Nederland – Polen 2 – 1).
+        $body = $crawler->filter('table')->text();
+        $this->assertStringContainsString('Nederland', $body);
+        $this->assertStringContainsString('2 – 1', $body);
+
+        // Oudste eerst: de eerste rij is een achtste finale (10 dagen geleden gespeeld).
+        $this->assertStringContainsString('Achtste finales', $crawler->filter('tbody tr')->first()->text());
+    }
+
     public function testCannotPredictWhenLoggedOut(): void
     {
         $open = $this->openMatch();
         $matchId = $open->getId();
 
         $this->client->request('POST', '/voorspelling/' . $matchId . '/opslaan', [
-            'prediction' => ['homeScore' => 1, 'awayScore' => 0, 'advancingTeam' => $open->getHomeTeam()->getId()],
+            'prediction' => ['homeScore' => 1, 'awayScore' => 0, 'advancingSide' => 'home'],
         ]);
 
         $this->assertResponseRedirects('/login');

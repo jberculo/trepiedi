@@ -4,7 +4,6 @@ namespace App\Tests\Controller;
 
 use App\Entity\FootballMatch;
 use App\Entity\Round;
-use App\Entity\Team;
 use App\Tests\FixturesWebTestCase;
 
 class AdminCrudTest extends FixturesWebTestCase
@@ -28,55 +27,40 @@ class AdminCrudTest extends FixturesWebTestCase
     public function testAdminCanCreateMatch(): void
     {
         $round = $this->em->getRepository(Round::class)->findOneBy(['name' => 'Achtste finales']);
-        $teams = $this->em->getRepository(Team::class)->findBy([], ['name' => 'ASC']);
         $before = $this->em->getRepository(FootballMatch::class)->count([]);
 
         $this->client->loginUser($this->user('admin@trepiedi.test'));
         $crawler = $this->client->request('GET', '/admin/wedstrijden/nieuw');
 
+        // Ploegen zijn nu vrije tekst, geen team-dropdown.
         $form = $crawler->selectButton('Opslaan')->form();
         $form['football_match[round]'] = (string) $round->getId();
-        $form['football_match[homeTeam]'] = (string) $teams[0]->getId();
-        $form['football_match[awayTeam]'] = (string) $teams[1]->getId();
+        $form['football_match[homeTeam]'] = 'Testland';
+        $form['football_match[awayTeam]'] = 'Andersland';
         $form['football_match[kickoffAt]'] = '2026-07-01T20:00';
         $this->client->submit($form);
 
         $this->assertResponseRedirects('/admin/wedstrijden');
         $this->em->clear();
         $this->assertSame($before + 1, $this->em->getRepository(FootballMatch::class)->count([]));
+        $this->assertNotNull(
+            $this->em->getRepository(FootballMatch::class)->findOneBy(['homeTeam' => 'Testland']),
+            'Wedstrijd met de getypte ploegnaam is niet opgeslagen.'
+        );
     }
 
     public function testRegularUserCannotAccessAdmin(): void
     {
         $this->client->loginUser($this->user('anne@trepiedi.test'));
-        $this->client->request('GET', '/admin/teams');
+        $this->client->request('GET', '/admin/wedstrijden');
 
         $this->assertResponseStatusCodeSame(403);
-    }
-
-    public function testAdminCanCreateTeam(): void
-    {
-        $this->client->loginUser($this->user('admin@trepiedi.test'));
-        $crawler = $this->client->request('GET', '/admin/teams/nieuw');
-
-        $form = $crawler->selectButton('Opslaan')->form([
-            'team[name]' => 'Testland',
-            'team[code]' => 'TST',
-        ]);
-        $this->client->submit($form);
-
-        $this->assertResponseRedirects('/admin/teams');
-        $this->assertNotNull(
-            $this->em->getRepository(Team::class)->findOneBy(['name' => 'Testland']),
-            'Team is niet aangemaakt.'
-        );
     }
 
     public function testAdminCanEnterResult(): void
     {
         $open = $this->openMatch();
         $matchId = $open->getId();
-        $homeTeamId = $open->getHomeTeam()->getId();
 
         $this->client->loginUser($this->user('admin@trepiedi.test'));
         $crawler = $this->client->request('GET', '/admin/wedstrijden/' . $matchId . '/uitslag');
@@ -84,7 +68,7 @@ class AdminCrudTest extends FixturesWebTestCase
         $form = $crawler->selectButton('Opslaan')->form();
         $form['match_result[homeScore]'] = '2';
         $form['match_result[awayScore]'] = '0';
-        $form['match_result[advancingTeam]'] = (string) $homeTeamId;
+        $form['match_result[advancingSide]'] = 'home';
         $form['match_result[finished]']->tick();
         $this->client->submit($form);
 
@@ -95,7 +79,7 @@ class AdminCrudTest extends FixturesWebTestCase
         $this->assertTrue($match->isFinished());
         $this->assertSame(2, $match->getHomeScore());
         $this->assertSame(0, $match->getAwayScore());
-        $this->assertSame($homeTeamId, $match->getAdvancingTeam()->getId());
+        $this->assertSame(FootballMatch::SIDE_HOME, $match->getAdvancingSide());
     }
 
     public function testBulkDeactivateMatches(): void

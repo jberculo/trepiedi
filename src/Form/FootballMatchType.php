@@ -4,11 +4,11 @@ namespace App\Form;
 
 use App\Entity\FootballMatch;
 use App\Entity\Round;
-use App\Entity\Team;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -22,14 +22,10 @@ class FootballMatchType extends AbstractType
                 'choice_label' => 'name',
                 'label' => 'form.match_round',
             ])
-            ->add('homeTeam', EntityType::class, [
-                'class' => Team::class,
-                'choice_label' => 'name',
+            ->add('homeTeam', TextType::class, [
                 'label' => 'form.match_home',
             ])
-            ->add('awayTeam', EntityType::class, [
-                'class' => Team::class,
-                'choice_label' => 'name',
+            ->add('awayTeam', TextType::class, [
                 'label' => 'form.match_away',
             ])
             ->add('kickoffAt', DateTimeType::class, [

@@ -36,11 +36,11 @@ class Prediction
     private ?int $awayScore = null;
 
     /**
-     * Welk team gaat volgens de voorspeller door.
+     * Welke kant gaat volgens de voorspeller door: 'home' of 'away'.
      */
-    #[ORM\ManyToOne(targetEntity: Team::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Team $advancingTeam = null;
+    #[ORM\Column(length: 4, nullable: true)]
+    #[Assert\Choice(choices: [FootballMatch::SIDE_HOME, FootballMatch::SIDE_AWAY])]
+    private ?string $advancingSide = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
@@ -98,16 +98,24 @@ class Prediction
         return $this;
     }
 
-    public function getAdvancingTeam(): ?Team
+    public function getAdvancingSide(): ?string
     {
-        return $this->advancingTeam;
+        return $this->advancingSide;
     }
 
-    public function setAdvancingTeam(?Team $advancingTeam): static
+    public function setAdvancingSide(?string $advancingSide): static
     {
-        $this->advancingTeam = $advancingTeam;
+        $this->advancingSide = $advancingSide;
 
         return $this;
+    }
+
+    /**
+     * De naam van de door de speler gekozen doorgaande ploeg (via de wedstrijd), of null.
+     */
+    public function getAdvancingTeam(): ?string
+    {
+        return $this->footballMatch?->teamForSide($this->advancingSide);
     }
 
     public function getUpdatedAt(): ?\DateTimeImmutable

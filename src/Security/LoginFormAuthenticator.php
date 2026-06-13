@@ -45,6 +45,12 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        // De voorkeurstaal uit het profiel wordt de taal van de sessie.
+        $user = $token->getUser();
+        if ($user instanceof \App\Entity\User) {
+            $request->getSession()->set('_locale', $user->getLocale());
+        }
+
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
             return new RedirectResponse($targetPath);
         }

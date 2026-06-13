@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'matches.title'|trans }} — Trepiedi{% endblock %}
+
+{% block body %}
+    <div class="lb-hero mb-3">
+        <h1 class="h3 mb-0">⚽ {{ 'matches.title'|trans }}</h1>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ 'matches.date'|trans }}</th>
+                        <th>{{ 'matches.round'|trans }}</th>
+                        <th>{{ 'matches.match'|trans }}</th>
+                        <th class="text-end">{{ 'matches.result'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for match in matches %}
+                        <tr>
+                            <td class="text-nowrap small">{{ match.kickoffAt|date('d-m-Y H:i') }}</td>
+                            <td class="small">{{ match.round.name }}</td>
+                            <td>
+                                <a href="{{ path('app_match_view', {id: match.id}) }}">{{ match.homeTeam }} – {{ match.awayTeam }}</a>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                {% if match.finished %}
+                                    <strong>{{ match.homeScore }} – {{ match.awayScore }}</strong>
+                                    {% if match.advancingTeam %}<span class="text-muted small">· {{ match.advancingTeam }}</span>{% endif %}
+                                {% else %}
+                                    <span class="text-muted small">{{ 'matches.not_played'|trans }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-4">{{ 'matches.none'|trans }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

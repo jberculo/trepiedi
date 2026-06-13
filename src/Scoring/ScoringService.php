@@ -5,7 +5,6 @@ namespace App\Scoring;
 use App\Entity\FootballMatch;
 use App\Entity\Prediction;
 use App\Entity\Round;
-use App\Entity\Team;
 use App\Repository\FootballMatchRepository;
 use App\Repository\PredictionRepository;
 use App\Repository\RoundRepository;
@@ -60,8 +59,9 @@ class ScoringService
             ? self::POINTS_PER_GOAL_SIDE : 0;
         $bonus = ($home > 0 && $away > 0) ? self::EXACT_BONUS : 0;
 
-        $advance = ($match->getAdvancingTeam() !== null
-            && $this->sameTeam($prediction->getAdvancingTeam(), $match->getAdvancingTeam()))
+        $advance = ($match->getAdvancingSide() !== null
+            && $prediction->getAdvancingSide() !== null
+            && $prediction->getAdvancingSide() === $match->getAdvancingSide())
             ? self::ADVANCE_POINTS : 0;
 
         return new MatchScore($home, $away, $bonus, $advance);
@@ -178,13 +178,13 @@ class ScoringService
                 $entry->rounds[$roundId]['advance'] = ($entry->rounds[$roundId]['advance'] ?? 0) + 1;
             }
 
-            // Tegenstrijdige voorspelling: de voorspelde uitslag wijst een winnaar aan,
-            // maar de speler laat het andere team doorgaan.
-            $scoreWinner = $this->predictedScoreWinner($prediction);
+            // Tegenstrijdige voorspelling: de voorspelde uitslag wijst een kant als winnaar aan,
+            // maar de speler laat de andere kant doorgaan.
+            $scoreWinner = $this->predictedWinnerSide($prediction);
             if ($match->hasResult()
                 && $scoreWinner !== null
-                && $prediction->getAdvancingTeam() !== null
-                && !$this->sameTeam($prediction->getAdvancingTeam(), $scoreWinner)) {
+                && $prediction->getAdvancingSide() !== null
+                && $prediction->getAdvancingSide() !== $scoreWinner) {
                 ++$entry->inconsistentCount;
                 $entry->rounds[$roundId]['inconsistent'] = ($entry->rounds[$roundId]['inconsistent'] ?? 0) + 1;
             }
@@ -346,10 +346,10 @@ class ScoringService
                 $winners[] = $ms->advancePoints > 0 ? 1 : 0;
                 $lantern[] = $this->lanternPenalty($prediction);
 
-                $scoreWinner = $this->predictedScoreWinner($prediction);
+                $scoreWinner = $this->predictedWinnerSide($prediction);
                 $inconsistent[] = ($scoreWinner !== null
-                    && $prediction->getAdvancingTeam() !== null
-                    && !$this->sameTeam($prediction->getAdvancingTeam(), $scoreWinner)) ? 1 : 0;
+                    && $prediction->getAdvancingSide() !== null
+                    && $prediction->getAdvancingSide() !== $scoreWinner) ? 1 : 0;
             }
 
             $steps[] = [
@@ -426,19 +426,18 @@ class ScoringService
     }
 
     /**
-     * Het team dat volgens de voorspelde uitslag wint (méér doelpunten).
-     * Geeft null bij een gelijke stand of een onvolledige voorspelling.
+     * De kant ('home'/'away') die volgens de voorspelde uitslag wint (méér doelpunten).
+     * Geeft null bij een voorspeld gelijkspel of een onvolledige voorspelling.
      */
-    private function predictedScoreWinner(Prediction $prediction): ?Team
+    private function predictedWinnerSide(Prediction $prediction): ?string
     {
-        $match = $prediction->getFootballMatch();
         $home = $prediction->getHomeScore();
         $away = $prediction->getAwayScore();
-        if ($match === null || $home === null || $away === null || $home === $away) {
+        if ($home === null || $away === null || $home === $away) {
             return null;
         }
 
-        return $home > $away ? $match->getHomeTeam() : $match->getAwayTeam();
+        return $home > $away ? FootballMatch::SIDE_HOME : FootballMatch::SIDE_AWAY;
     }
 
     /**
@@ -471,24 +470,12 @@ class ScoringService
             }
         }
 
-        if ($match->getAdvancingTeam() !== null
-            && $prediction->getAdvancingTeam() !== null
-            && !$this->sameTeam($prediction->getAdvancingTeam(), $match->getAdvancingTeam())) {
+        if ($match->getAdvancingSide() !== null
+            && $prediction->getAdvancingSide() !== null
+            && $prediction->getAdvancingSide() !== $match->getAdvancingSide()) {
             $penalty += 1;
         }
 
         return $penalty;
-    }
-
-    private function sameTeam(?Team $a, ?Team $b): bool
-    {
-        if ($a === null || $b === null) {
-            return false;
-        }
-        if ($a === $b) {
-            return true;
-        }
-
-        return $a->getId() !== null && $a->getId() === $b->getId();
     }
 }

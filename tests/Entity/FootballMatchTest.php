@@ -3,7 +3,6 @@
 namespace App\Tests\Entity;
 
 use App\Entity\FootballMatch;
-use App\Entity\Team;
 use PHPUnit\Framework\TestCase;
 
 class FootballMatchTest extends TestCase
@@ -24,20 +23,18 @@ class FootballMatchTest extends TestCase
 
     public function testHasResult(): void
     {
-        $teamA = (new Team())->setName('A');
-        $teamB = (new Team())->setName('B');
-
-        $open = (new FootballMatch())->setHomeTeam($teamA)->setAwayTeam($teamB);
+        $open = (new FootballMatch())->setHomeTeam('A')->setAwayTeam('B');
         $this->assertFalse($open->hasResult());
 
         $scoredNotFinal = (new FootballMatch())
-            ->setHomeTeam($teamA)->setAwayTeam($teamB)
+            ->setHomeTeam('A')->setAwayTeam('B')
             ->setHomeScore(1)->setAwayScore(0)->setFinished(false);
         $this->assertFalse($scoredNotFinal->hasResult(), 'Niet definitief telt niet als uitslag.');
 
         $final = (new FootballMatch())
-            ->setHomeTeam($teamA)->setAwayTeam($teamB)
-            ->setHomeScore(1)->setAwayScore(0)->setAdvancingTeam($teamA)->setFinished(true);
+            ->setHomeTeam('A')->setAwayTeam('B')
+            ->setHomeScore(1)->setAwayScore(0)->setAdvancingSide(FootballMatch::SIDE_HOME)->setFinished(true);
         $this->assertTrue($final->hasResult());
+        $this->assertSame('A', $final->getAdvancingTeam(), 'Doorgaande ploeg = naam van de thuiskant.');
     }
 }

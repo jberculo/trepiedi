@@ -17,7 +17,7 @@ class FootballMatchRepository extends ServiceEntityRepository
     }
 
     /**
-     * Alle wedstrijden in chronologische volgorde, met ronde en teams.
+     * Alle wedstrijden in chronologische volgorde, met ronde.
      *
      * @return list<FootballMatch>
      */
@@ -25,11 +25,51 @@ class FootballMatchRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('m')
             ->leftJoin('m.round', 'r')->addSelect('r')
-            ->leftJoin('m.homeTeam', 'h')->addSelect('h')
-            ->leftJoin('m.awayTeam', 'a')->addSelect('a')
             ->orderBy('r.sortOrder', 'DESC')
             ->addOrderBy('m.kickoffAt', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Alle wedstrijden chronologisch (oudste eerst), met ronde — voor de publieke uitslagenpagina.
+     *
+     * @return list<FootballMatch>
+     */
+    public function findAllChronological(): array
+    {
+        return $this->createQueryBuilder('m')
+            ->leftJoin('m.round', 'r')->addSelect('r')
+            ->orderBy('m.kickoffAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Alle eerder ingevoerde ploegnamen (thuis + uit), uniek en alfabetisch —
+     * voor autocomplete bij het invoeren van wedstrijden.
+     *
+     * @return list<string>
+     */
+    public function distinctTeamNames(): array
+    {
+        $rows = $this->createQueryBuilder('m')
+            ->select('m.homeTeam AS home, m.awayTeam AS away')
+            ->getQuery()
+            ->getScalarResult();
+
+        $names = [];
+        foreach ($rows as $row) {
+            foreach ([$row['home'], $row['away']] as $name) {
+                if ($name !== null && $name !== '') {
+                    $names[$name] = true;
+                }
+            }
+        }
+
+        $names = array_keys($names);
+        sort($names);
+
+        return $names;
     }
 }

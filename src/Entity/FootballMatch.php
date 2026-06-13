@@ -11,12 +11,16 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * Een knock-outwedstrijd (vanaf de 16e finales).
  * De score betreft de stand na reguliere speeltijd én eventuele verlenging (zonder penalty's);
- * advancingTeam is de winnaar die doorgaat (eventueel na strafschoppen).
+ * advancingSide geeft aan welke kant (thuis/uit) doorgaat (eventueel na strafschoppen).
+ * De ploegen zijn vrije tekst — er is geen aparte teamadministratie.
  */
 #[ORM\Entity(repositoryClass: FootballMatchRepository::class)]
 #[ORM\Table(name: 'football_match')]
 class FootballMatch
 {
+    public const SIDE_HOME = 'home';
+    public const SIDE_AWAY = 'away';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -27,16 +31,14 @@ class FootballMatch
     #[Assert\NotNull]
     private ?Round $round = null;
 
-    #[ORM\ManyToOne(targetEntity: Team::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    #[Assert\NotNull]
-    private ?Team $homeTeam = null;
+    #[ORM\Column(length: 100)]
+    #[Assert\NotBlank]
+    private ?string $homeTeam = null;
 
-    #[ORM\ManyToOne(targetEntity: Team::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    #[Assert\NotNull]
+    #[ORM\Column(length: 100)]
+    #[Assert\NotBlank]
     #[Assert\NotEqualTo(propertyPath: 'homeTeam', message: 'validation.teams_must_differ')]
-    private ?Team $awayTeam = null;
+    private ?string $awayTeam = null;
 
     #[ORM\Column]
     #[Assert\NotNull]
@@ -58,11 +60,11 @@ class FootballMatch
     private ?int $awayScore = null;
 
     /**
-     * De winnaar die doorgaat (na eventuele verlenging/penalty's).
+     * Welke kant gaat door: 'home' of 'away' (na eventuele verlenging/penalty's), null zolang onbekend.
      */
-    #[ORM\ManyToOne(targetEntity: Team::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Team $advancingTeam = null;
+    #[ORM\Column(length: 4, nullable: true)]
+    #[Assert\Choice(choices: [self::SIDE_HOME, self::SIDE_AWAY])]
+    private ?string $advancingSide = null;
 
     #[ORM\Column]
     private bool $finished = false;
@@ -102,24 +104,24 @@ class FootballMatch
         return $this;
     }
 
-    public function getHomeTeam(): ?Team
+    public function getHomeTeam(): ?string
     {
         return $this->homeTeam;
     }
 
-    public function setHomeTeam(?Team $homeTeam): static
+    public function setHomeTeam(?string $homeTeam): static
     {
         $this->homeTeam = $homeTeam;
 
         return $this;
     }
 
-    public function getAwayTeam(): ?Team
+    public function getAwayTeam(): ?string
     {
         return $this->awayTeam;
     }
 
-    public function setAwayTeam(?Team $awayTeam): static
+    public function setAwayTeam(?string $awayTeam): static
     {
         $this->awayTeam = $awayTeam;
 
@@ -162,16 +164,36 @@ class FootballMatch
         return $this;
     }
 
-    public function getAdvancingTeam(): ?Team
+    public function getAdvancingSide(): ?string
     {
-        return $this->advancingTeam;
+        return $this->advancingSide;
     }
 
-    public function setAdvancingTeam(?Team $advancingTeam): static
+    public function setAdvancingSide(?string $advancingSide): static
     {
-        $this->advancingTeam = $advancingTeam;
+        $this->advancingSide = $advancingSide;
 
         return $this;
+    }
+
+    /**
+     * De naam van de ploeg aan een kant ('home'/'away'), of null.
+     */
+    public function teamForSide(?string $side): ?string
+    {
+        return match ($side) {
+            self::SIDE_HOME => $this->homeTeam,
+            self::SIDE_AWAY => $this->awayTeam,
+            default => null,
+        };
+    }
+
+    /**
+     * De naam van de doorgaande ploeg (op basis van advancingSide), of null.
+     */
+    public function getAdvancingTeam(): ?string
+    {
+        return $this->teamForSide($this->advancingSide);
     }
 
     public function isFinished(): bool

@@ -6,22 +6,17 @@
     <h1 class="h3 mb-4">{{ 'admin.title'|trans }}</h1>
 
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card text-center shadow-sm"><div class="card-body">
-                <div class="display-6">{{ teamCount }}</div><div class="text-muted">{{ 'admin.teams'|trans }}</div>
-            </div></div>
-        </div>
-        <div class="col-6 col-md-3">
+        <div class="col-4">
             <div class="card text-center shadow-sm"><div class="card-body">
                 <div class="display-6">{{ roundCount }}</div><div class="text-muted">{{ 'admin.rounds'|trans }}</div>
             </div></div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-4">
             <div class="card text-center shadow-sm"><div class="card-body">
                 <div class="display-6">{{ finishedCount }}/{{ matchCount }}</div><div class="text-muted">{{ 'admin.matches_finished'|trans }}</div>
             </div></div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-4">
             <div class="card text-center shadow-sm"><div class="card-body">
                 <div class="display-6">{{ userCount }}</div><div class="text-muted">{{ 'admin.players'|trans }}</div>
             </div></div>
@@ -31,6 +26,5 @@
     <div class="list-group">
         <a class="list-group-item list-group-item-action" href="{{ path('admin_match_index') }}">{{ 'admin.manage_matches'|trans }}</a>
         <a class="list-group-item list-group-item-action" href="{{ path('admin_round_index') }}">{{ 'admin.manage_rounds'|trans }}</a>
-        <a class="list-group-item list-group-item-action" href="{{ path('admin_team_index') }}">{{ 'admin.manage_teams'|trans }}</a>
     </div>
 {% endblock %}

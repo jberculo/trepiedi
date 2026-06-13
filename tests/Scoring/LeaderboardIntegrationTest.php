@@ -178,7 +178,7 @@ class LeaderboardIntegrationTest extends KernelTestCase
                 // Draai de score om t.o.v. de echte uitslag.
                 $prediction->setHomeScore($m->getAwayScore());
                 $prediction->setAwayScore($m->getHomeScore());
-                $prediction->setAdvancingTeam($m->getAdvancingTeam());
+                $prediction->setAdvancingSide($m->getAdvancingSide());
                 $this->assertSame(2, $scoring->lanternPenalty($prediction), 'Omgekeerde uitslag = 2 strafpunten.');
                 return;
             }

@@ -54,7 +54,7 @@ class PredictionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Alle voorspellingen voor één wedstrijd, met speler en gekozen team.
+     * Alle voorspellingen voor één wedstrijd, met speler.
      *
      * @return list<Prediction>
      */
@@ -62,7 +62,6 @@ class PredictionRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('p')
             ->join('p.user', 'u')->addSelect('u')
-            ->leftJoin('p.advancingTeam', 't')->addSelect('t')
             ->where('p.footballMatch = :match')->setParameter('match', $match)
             ->orderBy('u.displayName', 'ASC')
             ->getQuery()

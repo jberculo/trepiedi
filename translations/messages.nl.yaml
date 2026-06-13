@@ -1,6 +1,7 @@
 nav:
     predict: Voorspellen
     leaderboard: Klassement
+    matches: Wedstrijden
     admin: Beheer
 auth:
     login: Inloggen
@@ -26,6 +27,7 @@ account:
     heading: Account-instellingen
     photo: Profielfoto
     current_photo: Huidige foto
+    language: Taal
     saved: Je gegevens zijn bijgewerkt.
 lb:
     title: Klassement
@@ -91,8 +93,6 @@ form:
     winner: Winnaar
     choose_team: '— kies team —'
     choose_winner: Kies de winnaar.
-    team_name: Naam
-    team_code: 'Code (3 letters, optioneel)'
     round_name: 'Naam (bijv. Achtste finales)'
     round_order: 'Volgorde (laag = eerst)'
     round_weight: 'Gewicht (1.0 = standaard, elke ronde even zwaar)'
@@ -126,17 +126,23 @@ mv:
     hidden: '🔒 De voorspellingen worden zichtbaar zodra de wedstrijd is begonnen. Aantal voorspellingen tot nu toe: %count%.'
     consensus_winner: 'Wie wint volgens de groep?'
     common_scores: Meest voorspelde uitslagen
+matches:
+    title: Wedstrijden
+    date: Datum
+    round: Ronde
+    match: Wedstrijd
+    result: Uitslag
+    not_played: nog niet gespeeld
+    none: Nog geen wedstrijden.
 footer:
     tagline: 'Voorspel. Scoor. Win.'
 admin:
     title: Beheer
-    teams: Teams
     rounds: Ronden
     matches_finished: 'Wedstrijden (afgelopen)'
     players: Spelers
     manage_matches: '⚽ Wedstrijden & uitslagen beheren'
     manage_rounds: '🔢 Ronden beheren'
-    manage_teams: '🏳️ Teams beheren'
     back: '← Terug naar beheer'
     matches: Wedstrijden
     new_match: '+ Nieuwe wedstrijd'
@@ -157,11 +163,7 @@ admin:
     no_matches: Nog geen wedstrijden.
     enter_result: Uitslag invoeren
     result_help: 'Vul de stand na reguliere speeltijd én eventuele verlenging in (zonder penalty''s) en wie de winnaar is. Zet "definitief" aan zodra de uitslag mag meetellen voor de punten.'
-    new_team: '+ Nieuw team'
     name: Naam
-    code: Code
-    confirm_delete_team: Team verwijderen?
-    no_teams: Nog geen teams.
     new_round: '+ Nieuwe ronde'
     order: Volgorde
     weight: Gewicht

@@ -50,9 +50,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $avatar = null;
 
+    /**
+     * Voorkeurstaal van de gebruiker (bepaalt de taal van de site na inloggen).
+     */
+    #[ORM\Column(length: 5, options: ['default' => 'nl'])]
+    #[Assert\Choice(choices: ['nl', 'en'])]
+    private string $locale = 'nl';
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getLocale(): string
+    {
+        return $this->locale;
+    }
+
+    public function setLocale(string $locale): static
+    {
+        $this->locale = $locale;
+
+        return $this;
     }
 
     public function getSlug(): ?string

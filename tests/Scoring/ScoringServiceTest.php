@@ -4,7 +4,6 @@ namespace App\Tests\Scoring;
 
 use App\Entity\FootballMatch;
 use App\Entity\Prediction;
-use App\Entity\Team;
 use App\Repository\FootballMatchRepository;
 use App\Repository\PredictionRepository;
 use App\Repository\RoundRepository;
@@ -14,9 +13,10 @@ use PHPUnit\Framework\TestCase;
 
 class ScoringServiceTest extends TestCase
 {
+    private const HOME = FootballMatch::SIDE_HOME;
+    private const AWAY = FootballMatch::SIDE_AWAY;
+
     private ScoringService $service;
-    private Team $home;
-    private Team $away;
 
     protected function setUp(): void
     {
@@ -26,35 +26,32 @@ class ScoringServiceTest extends TestCase
             $this->createMock(RoundRepository::class),
             $this->createMock(UserRepository::class),
         );
-
-        $this->home = (new Team())->setName('Thuis');
-        $this->away = (new Team())->setName('Uit');
     }
 
-    private function match(int $homeScore, int $awayScore, ?Team $advancing): FootballMatch
+    private function match(int $homeScore, int $awayScore, ?string $advancingSide): FootballMatch
     {
         return (new FootballMatch())
-            ->setHomeTeam($this->home)
-            ->setAwayTeam($this->away)
+            ->setHomeTeam('Thuis')
+            ->setAwayTeam('Uit')
             ->setHomeScore($homeScore)
             ->setAwayScore($awayScore)
-            ->setAdvancingTeam($advancing)
+            ->setAdvancingSide($advancingSide)
             ->setFinished(true);
     }
 
-    private function prediction(FootballMatch $match, int $home, int $away, ?Team $advancing): Prediction
+    private function prediction(FootballMatch $match, int $home, int $away, ?string $advancingSide): Prediction
     {
         return (new Prediction())
             ->setFootballMatch($match)
             ->setHomeScore($home)
             ->setAwayScore($away)
-            ->setAdvancingTeam($advancing);
+            ->setAdvancingSide($advancingSide);
     }
 
     public function testExactResultAndCorrectAdvanceGivesMaximum(): void
     {
-        $match = $this->match(2, 1, $this->home);
-        $score = $this->service->scorePrediction($this->prediction($match, 2, 1, $this->home));
+        $match = $this->match(2, 1, self::HOME);
+        $score = $this->service->scorePrediction($this->prediction($match, 2, 1, self::HOME));
 
         $this->assertSame(1, $score->homeGoalsPoint);
         $this->assertSame(1, $score->awayGoalsPoint);
@@ -66,8 +63,8 @@ class ScoringServiceTest extends TestCase
 
     public function testOnlyHomeGoalsCorrectGivesOnePoint(): void
     {
-        $match = $this->match(2, 1, $this->home);
-        $score = $this->service->scorePrediction($this->prediction($match, 2, 3, $this->home));
+        $match = $this->match(2, 1, self::HOME);
+        $score = $this->service->scorePrediction($this->prediction($match, 2, 3, self::HOME));
 
         // 1 punt voor 'voor', geen bonus; wel 3 voor de winnaar.
         $this->assertSame(1, $score->homeGoalsPoint);
@@ -79,8 +76,8 @@ class ScoringServiceTest extends TestCase
 
     public function testOnlyAwayGoalsCorrectGivesOnePoint(): void
     {
-        $match = $this->match(2, 1, $this->home);
-        $score = $this->service->scorePrediction($this->prediction($match, 5, 1, $this->away));
+        $match = $this->match(2, 1, self::HOME);
+        $score = $this->service->scorePrediction($this->prediction($match, 5, 1, self::AWAY));
 
         $this->assertSame(0, $score->homeGoalsPoint);
         $this->assertSame(1, $score->awayGoalsPoint);
@@ -91,8 +88,8 @@ class ScoringServiceTest extends TestCase
 
     public function testExactResultButWrongAdvanceGivesThree(): void
     {
-        $match = $this->match(2, 1, $this->home);
-        $score = $this->service->scorePrediction($this->prediction($match, 2, 1, $this->away));
+        $match = $this->match(2, 1, self::HOME);
+        $score = $this->service->scorePrediction($this->prediction($match, 2, 1, self::AWAY));
 
         $this->assertSame(3, $score->homeGoalsPoint + $score->awayGoalsPoint + $score->exactBonusPoint);
         $this->assertSame(0, $score->advancePoints);
@@ -101,9 +98,9 @@ class ScoringServiceTest extends TestCase
 
     public function testCorrectAdvanceWithWrongScore(): void
     {
-        $match = $this->match(0, 0, $this->away);
+        $match = $this->match(0, 0, self::AWAY);
         // Gelijkspel na verlenging; uitploeg wint na strafschoppen.
-        $score = $this->service->scorePrediction($this->prediction($match, 1, 1, $this->away));
+        $score = $this->service->scorePrediction($this->prediction($match, 1, 1, self::AWAY));
 
         $this->assertSame(0, $score->homeGoalsPoint);
         $this->assertSame(0, $score->awayGoalsPoint);
@@ -113,8 +110,8 @@ class ScoringServiceTest extends TestCase
 
     public function testNothingCorrectGivesZero(): void
     {
-        $match = $this->match(2, 1, $this->home);
-        $score = $this->service->scorePrediction($this->prediction($match, 0, 0, $this->away));
+        $match = $this->match(2, 1, self::HOME);
+        $score = $this->service->scorePrediction($this->prediction($match, 0, 0, self::AWAY));
 
         $this->assertSame(0, $score->total());
     }
@@ -122,22 +119,22 @@ class ScoringServiceTest extends TestCase
     public function testUnfinishedMatchGivesZero(): void
     {
         $match = (new FootballMatch())
-            ->setHomeTeam($this->home)
-            ->setAwayTeam($this->away)
+            ->setHomeTeam('Thuis')
+            ->setAwayTeam('Uit')
             ->setHomeScore(2)
             ->setAwayScore(1)
-            ->setAdvancingTeam($this->home)
+            ->setAdvancingSide(self::HOME)
             ->setFinished(false);
 
-        $score = $this->service->scorePrediction($this->prediction($match, 2, 1, $this->home));
+        $score = $this->service->scorePrediction($this->prediction($match, 2, 1, self::HOME));
 
         $this->assertSame(0, $score->total());
     }
 
-    public function testNoAdvancingTeamSetGivesNoAdvancePoints(): void
+    public function testNoAdvancingSideSetGivesNoAdvancePoints(): void
     {
         $match = $this->match(2, 1, null);
-        $score = $this->service->scorePrediction($this->prediction($match, 2, 1, $this->home));
+        $score = $this->service->scorePrediction($this->prediction($match, 2, 1, self::HOME));
 
         $this->assertSame(3, $score->total(), 'Wel exacte uitslag (3), geen winnaar-punten.');
     }

@@ -14,7 +14,7 @@ class MatchViewTest extends FixturesWebTestCase
             ->setFootballMatch($match)
             ->setHomeScore(2)
             ->setAwayScore(1)
-            ->setAdvancingTeam($match->getHomeTeam())
+            ->setAdvancingSide(\App\Entity\FootballMatch::SIDE_HOME)
             ->setUpdatedAt(new \DateTimeImmutable());
         $this->em->persist($prediction);
         $this->em->flush();

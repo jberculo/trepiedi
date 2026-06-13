@@ -1,6 +1,7 @@
 nav:
     predict: Predictions
     leaderboard: Standings
+    matches: Matches
     admin: Admin
 auth:
     login: Log in
@@ -26,6 +27,7 @@ account:
     heading: Account settings
     photo: Profile photo
     current_photo: Current photo
+    language: Language
     saved: Your details have been updated.
 lb:
     title: Standings
@@ -91,8 +93,6 @@ form:
     winner: Winner
     choose_team: '— choose team —'
     choose_winner: Choose the winner.
-    team_name: Name
-    team_code: 'Code (3 letters, optional)'
     round_name: 'Name (e.g. Round of 16)'
     round_order: 'Order (low = first)'
     round_weight: 'Weight (1.0 = default, every round counts equally)'
@@ -126,17 +126,23 @@ mv:
     hidden: '🔒 The predictions become visible once the match has started. Predictions so far: %count%.'
     consensus_winner: 'Who does the group think will win?'
     common_scores: Most predicted scores
+matches:
+    title: Matches
+    date: Date
+    round: Round
+    match: Match
+    result: Result
+    not_played: not played yet
+    none: No matches yet.
 footer:
     tagline: 'Predict. Score. Win.'
 admin:
     title: Admin
-    teams: Teams
     rounds: Rounds
     matches_finished: 'Matches (finished)'
     players: Players
     manage_matches: '⚽ Manage matches & results'
     manage_rounds: '🔢 Manage rounds'
-    manage_teams: '🏳️ Manage teams'
     back: '← Back to admin'
     matches: Matches
     new_match: '+ New match'
@@ -157,11 +163,7 @@ admin:
     no_matches: No matches yet.
     enter_result: Enter result
     result_help: 'Enter the score after regular time and any extra time (excluding penalties) and who the winner is. Switch on "final" once the result may count towards the points.'
-    new_team: '+ New team'
     name: Name
-    code: Code
-    confirm_delete_team: Delete team?
-    no_teams: No teams yet.
     new_round: '+ New round'
     order: Order
     weight: Weight

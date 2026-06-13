@@ -4,9 +4,8 @@ namespace App\Form;
 
 use App\Entity\FootballMatch;
 use App\Entity\Prediction;
-use App\Entity\Team;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -28,12 +27,13 @@ class PredictionType extends AbstractType
                 'label' => $match->getAwayTeam(),
                 'attr' => ['min' => 0, 'max' => 99],
             ])
-            ->add('advancingTeam', EntityType::class, [
-                'class' => Team::class,
-                'choices' => [$match->getHomeTeam(), $match->getAwayTeam()],
-                'choice_label' => 'name',
+            ->add('advancingSide', ChoiceType::class, [
                 'label' => 'form.winner',
                 'placeholder' => 'form.choose_team',
+                'choices' => [
+                    (string) $match->getHomeTeam() => FootballMatch::SIDE_HOME,
+                    (string) $match->getAwayTeam() => FootballMatch::SIDE_AWAY,
+                ],
                 'constraints' => [new NotNull(message: 'validation.choose_winner')],
             ]);
     }
