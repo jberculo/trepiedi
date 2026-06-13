@@ -1,0 +1,186 @@
+nav:
+    predict: Predictions
+    leaderboard: Standings
+    admin: Admin
+auth:
+    login: Log in
+    register: Register
+    logout: Log out
+    email: Email address
+    password: Password
+    remember_me: Stay logged in
+    no_account: 'No account yet?'
+    have_account: 'Already have an account?'
+    create_account: Create account
+    display_name: Display name
+    password_min: 'Your password must be at least {limit} characters.'
+    password_required: Please enter a password.
+common:
+    save: Save
+    cancel: Cancel
+    edit: Edit
+    delete: Delete
+account:
+    title: My account
+    heading: Account settings
+    photo: Profile photo
+    current_photo: Current photo
+    saved: Your details have been updated.
+lb:
+    title: Standings
+    max: 'Max. now possible: %now% · whole tournament: %all%'
+    tab_general: '🟡 General standings'
+    tab_balls: '⚽ Goals jersey'
+    tab_oracle: '🔮 The crystal ball'
+    tab_lantern: '🔴 The round lantern'
+    tab_inconsistent: '🤔 Contradictory'
+    tab_animation: '🎬 Animation'
+    movement_legend: position change since the previous matchday.
+    player: Player
+    total: Total
+    no_participants: No participants yet.
+    home: home
+    away: away
+    exact: exact
+    winner: winner
+    components: 'home · away · complete'
+    general_intro: 'Total score. Every match counts equally by default (max 6 points: 1 home, 1 away, 1 bonus, 3 winner). The round weight (× in the header) determines how much a round counts: the score is points × round weight.'
+    balls_intro: 'Correctly predicted goals and final scores: 1 point per part (home, away, exact final score), max 3 per match. The round weight does not count here. Per round: home · away · complete.'
+    oracle_intro: 'Correctly predicted winners: 1 point per correct winner (no round weight), so at most the number of matches played. Per round: number correct out of matches played, with percentage.'
+    anim_intro: 'Plays the standings match by match, 1 second per match. The bar is relative to the maximum achievable score so far (a perfect player is therefore at 100%).'
+    choose_ranking: Choose ranking
+    play: '▶ Play'
+    restart: '↺ Restart'
+    rose: up
+    fell: down
+    equal: equal
+    anim_match: 'Match %n%/%total%: %label%'
+    anim_done: 'Done — final standings'
+    anim_ready: 'Ready to play (%count% matches)'
+    anim_none: No matches played yet
+    anim_general: '🟡 General'
+    anim_lantern: '🔴 Lantern'
+    lantern_intro: 'The round lantern: penalty points for bad predictions on matches that have been played. +1 if you predicted a draw and it turned out otherwise, +2 if you predicted the result reversed (e.g. 3–1 while it became 1–2) and +1 if you named the wrong team as the winner. Matches you did not fill in do not count. Whoever was furthest off is on top. Per round: penalty points.'
+    inconsistent_intro: 'Contradictory predictions: your predicted score points to one team as the winner, but you pick the other to advance (e.g. 2–1 for the home team, yet the away team goes through). Whoever has the most contradictions is on top. Per round: number contradictory.'
+    pause: '⏸ Pause'
+dash:
+    title: Predictions
+    heading: My predictions
+    no_matches_round: No matches in this round yet.
+    status_soon: Soon
+    status_finished: Finished
+    status_started: Started
+    status_open: Open
+    kickoff: Kick-off
+    predictions_link: predictions
+    result: 'Result (incl. extra time, excl. penalties):'
+    winner: winner
+    last_changed: Last changed
+    not_available: '🔒 Not available to predict yet.'
+    your_prediction: Your prediction
+    points_suffix: points
+    breakdown: 'home %home%, away %away%, exact %exact%, winner %winner%'
+    breakdown_round: ' · round × %weight%'
+    no_prediction: No prediction entered.
+    nothing_yet: No rounds or matches have been entered yet.
+    not_available_flash: 'This match cannot be predicted yet.'
+    locked_flash: 'This match has started; your prediction can no longer be changed.'
+    saved_flash: 'Prediction for %match% saved.'
+form:
+    winner: Winner
+    choose_team: '— choose team —'
+    choose_winner: Choose the winner.
+    team_name: Name
+    team_code: 'Code (3 letters, optional)'
+    round_name: 'Name (e.g. Round of 16)'
+    round_order: 'Order (low = first)'
+    round_weight: 'Weight (1.0 = default, every round counts equally)'
+    match_round: Round
+    match_home: Home team
+    match_away: Away team
+    match_kickoff: Kick-off
+    match_active: 'Active (open for players)'
+    match_active_help: 'Inactive matches cannot be predicted yet, but do count towards the tournament max.'
+    goals_for: '%team% (goals incl. extra time, excl. penalties)'
+    result_final: 'Result final (counts towards points)'
+prof:
+    you: you
+    no_points: No points yet
+    stats: 'Position %rank% · %home%× home · %away%× away · %exact%× exact · %winner%× winner correct'
+    points_raw: 'points (%raw% raw)'
+    match: Match
+    prediction: Prediction
+    winner: Winner
+    result: Result
+    points: Points
+    hidden: '🔒 visible after kick-off'
+    no_prediction: no prediction
+    no_result: no result yet
+    no_matches: No matches yet.
+mv:
+    back: '← Back'
+    kickoff: kick-off
+    winner: winner
+    no_predictions: No predictions have been made for this match.
+    hidden: '🔒 The predictions become visible once the match has started. Predictions so far: %count%.'
+    consensus_winner: 'Who does the group think will win?'
+    common_scores: Most predicted scores
+admin:
+    title: Admin
+    teams: Teams
+    rounds: Rounds
+    matches_finished: 'Matches (finished)'
+    players: Players
+    manage_matches: '⚽ Manage matches & results'
+    manage_rounds: '🔢 Manage rounds'
+    manage_teams: '🏳️ Manage teams'
+    back: '← Back to admin'
+    matches: Matches
+    new_match: '+ New match'
+    selected: 'Selected matches:'
+    activate: Activate
+    deactivate: Deactivate
+    select_all: Select all
+    round: Round
+    kickoff: Kick-off
+    match: Match
+    result: Result
+    winner: Winner
+    status: Status
+    actions: Actions
+    inactive: inactive
+    final: final
+    confirm_delete_match: Delete match?
+    no_matches: No matches yet.
+    enter_result: Enter result
+    result_help: 'Enter the score after regular time and any extra time (excluding penalties) and who the winner is. Switch on "final" once the result may count towards the points.'
+    new_team: '+ New team'
+    name: Name
+    code: Code
+    confirm_delete_team: Delete team?
+    no_teams: No teams yet.
+    new_round: '+ New round'
+    order: Order
+    weight: Weight
+    match_count: Matches
+    confirm_delete_round: Delete round and its matches?
+    no_rounds: No rounds yet.
+    team_new: New team
+    team_edit: Edit team
+    round_new: New round
+    round_edit: Edit round
+    match_new: New match
+    match_edit: Edit match
+    team_added: Team added.
+    team_updated: Team updated.
+    team_deleted: Team deleted.
+    round_added: Round added.
+    round_updated: Round updated.
+    round_deleted: Round deleted.
+    match_added: Match added.
+    match_updated: Match updated.
+    match_deleted: Match deleted.
+    result_saved: 'Result of %match% saved.'
+    bulk_activated: '%count% match(es) activated.'
+    bulk_deactivated: '%count% match(es) deactivated.'
+    result_incomplete: 'A final result requires both scores and the winner to be filled in.'

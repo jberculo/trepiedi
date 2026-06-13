@@ -1,0 +1,98 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'dash.title'|trans }} — Trepiedi{% endblock %}
+
+{% block body %}
+    <h1 class="h3 mb-4">{{ 'dash.heading'|trans }}</h1>
+
+    {% for group in rounds %}
+        <section class="mb-4">
+            <h2 class="h5 text-success border-bottom pb-2">
+                {{ group.round.name }} <span class="text-muted fw-normal small">(× {{ group.round.weight }})</span>
+            </h2>
+
+            {% if group.matches is empty %}
+                <p class="text-muted">{{ 'dash.no_matches_round'|trans }}</p>
+            {% endif %}
+
+            <div class="row g-3">
+                {% for item in group.matches %}
+                    {% set match = item.match %}
+                    <div class="col-md-6" id="match-{{ match.id }}">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <strong>{{ match.homeTeam }} – {{ match.awayTeam }}</strong>
+                                    {% if not match.active %}
+                                        <span class="badge text-bg-light text-dark border">{{ 'dash.status_soon'|trans }}</span>
+                                    {% elseif match.finished %}
+                                        <span class="badge text-bg-secondary">{{ 'dash.status_finished'|trans }}</span>
+                                    {% elseif item.locked %}
+                                        <span class="badge text-bg-warning">{{ 'dash.status_started'|trans }}</span>
+                                    {% else %}
+                                        <span class="badge text-bg-success">{{ 'dash.status_open'|trans }}</span>
+                                    {% endif %}
+                                </div>
+                                <p class="text-muted small mb-3">
+                                    {{ 'dash.kickoff'|trans }}: {{ match.kickoffAt|date('d-m-Y H:i') }}
+                                    {% if match.active %} · <a href="{{ path('app_match_view', {id: match.id}) }}">{{ 'dash.predictions_link'|trans }}</a>{% endif %}
+                                </p>
+
+                                {% if match.finished %}
+                                    <p class="mb-2">
+                                        {{ 'dash.result'|trans }} <strong>{{ match.homeScore }} – {{ match.awayScore }}</strong>
+                                        · {{ 'dash.winner'|trans }}: <strong>{{ match.advancingTeam }}</strong>
+                                    </p>
+                                {% endif %}
+
+                                {% if item.form %}
+                                    {{ form_start(item.form) }}
+                                        <div class="row g-2 align-items-end">
+                                            <div class="col">
+                                                {{ form_label(item.form.homeScore, null, {label_attr: {class: 'form-label small'}}) }}
+                                                {{ form_widget(item.form.homeScore, {attr: {class: 'form-control'}}) }}
+                                            </div>
+                                            <div class="col-auto pb-2">–</div>
+                                            <div class="col">
+                                                {{ form_label(item.form.awayScore, null, {label_attr: {class: 'form-label small'}}) }}
+                                                {{ form_widget(item.form.awayScore, {attr: {class: 'form-control'}}) }}
+                                            </div>
+                                        </div>
+                                        <div class="mt-2">
+                                            {{ form_label(item.form.advancingTeam, null, {label_attr: {class: 'form-label small'}}) }}
+                                            {{ form_widget(item.form.advancingTeam, {attr: {class: 'form-select'}}) }}
+                                        </div>
+                                        <button class="btn btn-sm btn-success mt-3">{{ 'common.save'|trans }}</button>
+                                        {% if item.prediction %}
+                                            <span class="text-muted small ms-2">{{ 'dash.last_changed'|trans }}: {{ item.prediction.updatedAt|date('d-m H:i') }}</span>
+                                        {% endif %}
+                                    {{ form_end(item.form) }}
+                                {% else %}
+                                    {% if not match.active %}
+                                        <p class="text-muted mb-0">{{ 'dash.not_available'|trans }}</p>
+                                    {% elseif item.prediction %}
+                                        <p class="mb-1">
+                                            {{ 'dash.your_prediction'|trans }}:
+                                            <strong>{{ item.prediction.homeScore }} – {{ item.prediction.awayScore }}</strong>
+                                            · {{ 'dash.winner'|trans }}: <strong>{{ item.prediction.advancingTeam ?? '—' }}</strong>
+                                        </p>
+                                        {% if item.score and match.finished %}
+                                            <span class="badge text-bg-success">+{{ item.score.total * match.round.weight }} {{ 'dash.points_suffix'|trans }}</span>
+                                            <span class="text-muted small">
+                                                ({{ 'dash.breakdown'|trans({'%home%': item.score.homeGoalsPoint, '%away%': item.score.awayGoalsPoint, '%exact%': item.score.exactBonusPoint, '%winner%': item.score.advancePoints}) }}{% if match.round.weight != 1 %}{{ 'dash.breakdown_round'|trans({'%weight%': match.round.weight}) }}{% endif %})
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="text-muted mb-0">{{ 'dash.no_prediction'|trans }}</p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% else %}
+        <div class="alert alert-info">{{ 'dash.nothing_yet'|trans }}</div>
+    {% endfor %}
+{% endblock %}

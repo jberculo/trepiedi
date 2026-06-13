@@ -1,0 +1,36 @@
+# Symfony front-controller rewrite (handmatig toegevoegd; werkt ook in subdirectory).
+DirectoryIndex index.php
+
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Bepaal de RewriteBase automatisch, ook als de app in een submap draait
+    # (bijv. /trepiedi/public).
+    RewriteCond %{REQUEST_URI}::$0 ^(/.+)/(.*)::\2$
+    RewriteRule .* - [E=BASE:%1]
+
+    # Stuur Authorization-header door (nodig voor o.a. API-tokens).
+    RewriteCond %{HTTP:Authorization} .+
+    RewriteRule ^ - [E=HTTP_AUTHORIZATION:%0]
+
+    # Verwijder een eventuele trailing slash bij niet-bestaande paden.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^(.+)/$ %{ENV:BASE}/$1 [R=301,L]
+
+    # Bestaande bestanden (css, js, afbeeldingen) direct serveren.
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Al het overige naar de front controller.
+    RewriteRule ^ %{ENV:BASE}/index.php [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    <IfModule mod_alias.c>
+        RedirectMatch 307 ^/$ /index.php/
+    </IfModule>
+</IfModule>

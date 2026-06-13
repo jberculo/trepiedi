@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.rounds'|trans }} — {{ 'admin.title'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">{{ 'admin.rounds'|trans }}</h1>
+        <a class="btn btn-success" href="{{ path('admin_round_new') }}">{{ 'admin.new_round'|trans }}</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr><th>{{ 'admin.order'|trans }}</th><th>{{ 'admin.name'|trans }}</th><th>{{ 'admin.weight'|trans }}</th><th>{{ 'admin.match_count'|trans }}</th><th class="text-end">{{ 'admin.actions'|trans }}</th></tr>
+            </thead>
+            <tbody>
+                {% for round in rounds %}
+                    <tr>
+                        <td>{{ round.sortOrder }}</td>
+                        <td>{{ round.name }}</td>
+                        <td>{{ round.weight|number_format(2, ',', '.') }}</td>
+                        <td>{{ round.matches|length }}</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_round_edit', {id: round.id}) }}">{{ 'common.edit'|trans }}</a>
+                            <form method="post" action="{{ path('admin_round_delete', {id: round.id}) }}" class="d-inline"
+                                  onsubmit="return confirm('{{ 'admin.confirm_delete_round'|trans }}');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete-round-' ~ round.id) }}">
+                                <button class="btn btn-sm btn-outline-danger">{{ 'common.delete'|trans }}</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="5" class="text-center text-muted py-3">{{ 'admin.no_rounds'|trans }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <a class="btn btn-link mt-3" href="{{ path('admin_dashboard') }}">{{ 'admin.back'|trans }}</a>
+{% endblock %}

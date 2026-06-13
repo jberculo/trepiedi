@@ -1,0 +1,7 @@
+validation.email_taken: 'An account with this email address already exists.'
+validation.team_name_taken: 'A team with this name already exists.'
+validation.enter_goals: 'Enter a number of goals.'
+validation.teams_must_differ: 'The two teams must be different.'
+validation.choose_winner: 'Choose the winner.'
+validation.enter_password: 'Enter a password.'
+validation.password_min: 'Your password must be at least {{ limit }} characters.'

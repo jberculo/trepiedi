@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'account.title'|trans }} — Trepiedi{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="h4 mb-3">{{ 'account.heading'|trans }}</h1>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        <div class="mb-3">
+                            {{ form_label(form.displayName, null, {label_attr: {class: 'form-label'}}) }}
+                            {{ form_widget(form.displayName, {attr: {class: 'form-control'}}) }}
+                            {{ form_errors(form.displayName) }}
+                        </div>
+
+                        <div class="mb-3">
+                            <span class="form-label d-block">{{ 'account.current_photo'|trans }}</span>
+                            {% if app.user.avatar %}
+                                <img src="{{ asset('uploads/avatars/' ~ app.user.avatar) }}" alt="" class="avatar-lg">
+                            {% else %}
+                                <span class="avatar-lg avatar-empty">{{ app.user.displayName|first|upper }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_label(form.avatar, null, {label_attr: {class: 'form-label'}}) }}
+                            {{ form_widget(form.avatar, {attr: {class: 'form-control'}}) }}
+                            {{ form_errors(form.avatar) }}
+                        </div>
+
+                        <button class="btn btn-success">{{ 'common.save'|trans }}</button>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

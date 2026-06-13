@@ -1,0 +1,7 @@
+validation.email_taken: 'Er bestaat al een account met dit e-mailadres.'
+validation.team_name_taken: 'Er bestaat al een team met deze naam.'
+validation.enter_goals: 'Vul een aantal doelpunten in.'
+validation.teams_must_differ: 'De twee teams moeten verschillend zijn.'
+validation.choose_winner: 'Kies de winnaar.'
+validation.enter_password: 'Vul een wachtwoord in.'
+validation.password_min: 'Je wachtwoord moet minstens {{ limit }} tekens bevatten.'

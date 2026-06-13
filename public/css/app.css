@@ -1,0 +1,90 @@
+/* Huisstijl: logo-blauw als basiskleur (i.p.v. het Bootstrap-groen). */
+:root {
+    --brand: #005bbf;
+    --brand-dark: #004a9c;
+    --bs-success: #005bbf;
+    --bs-success-rgb: 0, 91, 191;
+    --bs-primary: #005bbf;
+}
+
+.bg-success { background-color: var(--brand) !important; }
+.text-success { color: var(--brand) !important; }
+.text-bg-success { background-color: var(--brand) !important; color: #fff !important; }
+
+.btn-success {
+    --bs-btn-bg: var(--brand);
+    --bs-btn-border-color: var(--brand);
+    --bs-btn-hover-bg: var(--brand-dark);
+    --bs-btn-hover-border-color: var(--brand-dark);
+    --bs-btn-active-bg: var(--brand-dark);
+    --bs-btn-active-border-color: #00417f;
+    --bs-btn-disabled-bg: var(--brand);
+    --bs-btn-disabled-border-color: var(--brand);
+}
+
+.table-success { --bs-table-bg: #d6e4f7; }
+.navbar-brand img { height: 26px; width: auto; display: block; }
+a { color: var(--brand); }
+
+/* Klassement / profiel */
+.rise { color: #198754 !important; } /* groen "gestegen", los van het blauwe thema */
+.col-rank { width: 4rem; }
+.brand-logo-lg { height: 44px; }
+.table-fixed { table-layout: fixed; }
+.col-eq-5 { width: 20%; }
+
+/* Animatie-klassement */
+.anim-board { position: relative; }
+.anim-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    transition: transform .9s cubic-bezier(.4, 0, .2, 1);
+}
+.anim-rank { width: 2rem; text-align: right; font-weight: 700; }
+.anim-name { width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.anim-bar { flex: 1; height: 1rem; background: #eef1f5; border-radius: .25rem; overflow: hidden; }
+.anim-bar-fill { display: block; height: 100%; background: var(--brand); } /* breedte via JS (rAF) */
+.anim-score { width: 5.5rem; text-align: right; font-weight: 700; }
+
+/* Profielfoto's */
+.avatar-lg { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; }
+.avatar-sm { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.avatar-empty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #c9d6e8;
+    color: #1b3a66;
+    font-weight: 700;
+}
+.avatar-sm.avatar-empty { font-size: .8rem; }
+.avatar-lg.avatar-empty { font-size: 2.2rem; }
+
+/* ===================== Mobiel ===================== */
+@media (max-width: 767.98px) {
+    /* Klassement: verberg de rondekolommen, toon alleen rang, speler en totaal.
+       Zo past de tabel zonder horizontaal scrollen. */
+    .lb-table th:not(:first-child):not(:nth-child(2)):not(:last-child),
+    .lb-table td:not(:first-child):not(:nth-child(2)):not(:last-child) {
+        display: none;
+    }
+}
+
+@media (max-width: 575.98px) {
+    /* Compactere cellen zodat er meer past. */
+    .lb-table { font-size: .8rem; }
+    .lb-table > :not(caption) > * > * { padding: .4rem .35rem; }
+    .lb-table .avatar-sm { width: 22px; height: 22px; }
+    .col-rank { width: 2.5rem; }
+
+    /* Animatie: smallere kolommen op kleine schermen. */
+    .anim-row { gap: .5rem; }
+    .anim-name { width: 5rem; }
+    .anim-score { width: 4rem; }
+}

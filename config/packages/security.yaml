@@ -1,0 +1,53 @@
+security:
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_profiler|_wdt|assets|build)/
+            security: false
+        main:
+            lazy: true
+            provider: app_user_provider
+            custom_authenticator: App\Security\LoginFormAuthenticator
+            logout:
+                path: app_logout
+                target: app_login
+            # Beperk brute-force op de loginpagina.
+            login_throttling:
+                max_attempts: 5
+
+    # Alleen de *eerste* matchende regel wordt toegepast.
+    access_control:
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/taal, roles: PUBLIC_ACCESS }
+        - { path: ^/$, roles: PUBLIC_ACCESS }
+        - { path: ^/klassement, roles: PUBLIC_ACCESS }
+        - { path: ^/balletjestrui, roles: PUBLIC_ACCESS }
+        - { path: ^/glazen-bal, roles: PUBLIC_ACCESS }
+        - { path: ^/animatie, roles: PUBLIC_ACCESS }
+        - { path: ^/ronde-lantaarn, roles: PUBLIC_ACCESS }
+        - { path: ^/tegenstrijdig, roles: PUBLIC_ACCESS }
+        - { path: ^/speler, roles: PUBLIC_ACCESS }
+        - { path: ^/wedstrijd, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/, roles: ROLE_USER }
+
+    role_hierarchy:
+        ROLE_ADMIN: ROLE_USER
+
+when@test:
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

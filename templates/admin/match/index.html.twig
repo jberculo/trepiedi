@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.matches'|trans }} — {{ 'admin.title'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">{{ 'admin.matches'|trans }}</h1>
+        <a class="btn btn-success" href="{{ path('admin_match_new') }}">{{ 'admin.new_match'|trans }}</a>
+    </div>
+
+    <form id="bulk-matches" method="post" action="{{ path('admin_match_bulk') }}" class="d-flex align-items-center flex-wrap gap-2 mb-2">
+        <input type="hidden" name="_token" value="{{ csrf_token('bulk-matches') }}">
+        <span class="text-muted small">{{ 'admin.selected'|trans }}</span>
+        <button type="submit" name="active" value="1" class="btn btn-sm btn-success">{{ 'admin.activate'|trans }}</button>
+        <button type="submit" name="active" value="0" class="btn btn-sm btn-outline-secondary">{{ 'admin.deactivate'|trans }}</button>
+    </form>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th><input type="checkbox" id="select-all" class="form-check-input" title="{{ 'admin.select_all'|trans }}"></th>
+                        <th>{{ 'admin.round'|trans }}</th><th>{{ 'admin.kickoff'|trans }}</th><th>{{ 'admin.match'|trans }}</th><th>{{ 'admin.result'|trans }}</th><th>{{ 'admin.winner'|trans }}</th><th>{{ 'admin.status'|trans }}</th>
+                        <th class="text-end">{{ 'admin.actions'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for match in matches %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input" name="ids[]" value="{{ match.id }}" form="bulk-matches">
+                            </td>
+                            <td class="small">{{ match.round.name }}</td>
+                            <td class="small">{{ match.kickoffAt|date('d-m-Y H:i') }}</td>
+                            <td>{{ match.homeTeam }} – {{ match.awayTeam }}</td>
+                            <td>
+                                {% if match.homeScore is not null %}{{ match.homeScore }} – {{ match.awayScore }}{% else %}—{% endif %}
+                            </td>
+                            <td>{{ match.advancingTeam ?? '—' }}</td>
+                            <td class="text-nowrap">
+                                {% if not match.active %}<span class="badge text-bg-light text-dark border">{{ 'admin.inactive'|trans }}</span>{% endif %}
+                                {% if match.finished %}<span class="badge text-bg-secondary">{{ 'admin.final'|trans }}</span>{% endif %}
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-success" href="{{ path('admin_match_result', {id: match.id}) }}">{{ 'admin.result'|trans }}</a>
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_match_edit', {id: match.id}) }}">{{ 'common.edit'|trans }}</a>
+                                <form method="post" action="{{ path('admin_match_delete', {id: match.id}) }}" class="d-inline"
+                                      onsubmit="return confirm('{{ 'admin.confirm_delete_match'|trans }}');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-match-' ~ match.id) }}">
+                                    <button class="btn btn-sm btn-outline-danger">×</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="8" class="text-center text-muted py-3">{{ 'admin.no_matches'|trans }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <a class="btn btn-link mt-3" href="{{ path('admin_dashboard') }}">{{ 'admin.back'|trans }}</a>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        document.getElementById('select-all')?.addEventListener('change', function (e) {
+            document.querySelectorAll('input[name="ids[]"]').forEach(function (cb) {
+                cb.checked = e.target.checked;
+            });
+        });
+    </script>
+{% endblock %}

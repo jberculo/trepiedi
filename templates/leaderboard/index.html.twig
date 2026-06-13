@@ -1,0 +1,299 @@
+{% extends 'base.html.twig' %}
+
+{% import '_macros.html.twig' as m %}
+
+{% macro pts(v) %}{{ v == v|round ? v|number_format(0, ',', '.') : v|number_format(1, ',', '.') }}{% endmacro %}
+
+{% macro arrow(change) %}{% if change is not null %}{% if change > 0 %}<span class="small rise" title="{{ 'lb.rose'|trans }}">▲{{ change }}</span>{% elseif change < 0 %}<span class="text-danger small" title="{{ 'lb.fell'|trans }}">▼{{ -change }}</span>{% else %}<span class="text-muted small" title="{{ 'lb.equal'|trans }}">=</span>{% endif %}{% endif %}{% endmacro %}
+
+{% macro stat(home, away, exact, winner) %}{{ home }}× {{ 'lb.home'|trans }} · {{ away }}× {{ 'lb.away'|trans }} · {{ exact }}× {{ 'lb.exact'|trans }} · {{ winner }}× {{ 'lb.winner'|trans }}{% endmacro %}
+
+{% macro total(value, max) %}{{ _self.pts(value) }}/{{ _self.pts(max) }}<br><small class="text-muted fw-normal">{{ max > 0 ? (value / max * 100)|round : 0 }}%</small>{% endmacro %}
+
+{% block title %}{{ 'lb.title'|trans }} — Trepiedi{% endblock %}
+
+{% block body %}
+    {% set maxNow = activeTab in ['points', 'animation'] ? _self.pts(maxPossible) : (activeTab == 'score' ? totalFinished * 3 : (activeTab == 'lantern' ? totalFinished * 3 : totalFinished)) %}
+    {% set maxTour = activeTab in ['points', 'animation'] ? _self.pts(maxTournament) : (activeTab == 'score' ? totalMatches * 3 : (activeTab == 'lantern' ? totalMatches * 3 : totalMatches)) %}
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h1 class="h3 mb-0">{{ 'lb.title'|trans }}</h1>
+        <span class="text-muted small">{{ 'lb.max'|trans({'%now%': maxNow, '%all%': maxTour}) }}</span>
+    </div>
+
+    {% set tabs = [
+        {tab: 'points',       url: path('app_leaderboard'),              label: 'lb.tab_general'},
+        {tab: 'score',        url: path('app_leaderboard_score'),        label: 'lb.tab_balls'},
+        {tab: 'winners',      url: path('app_leaderboard_winners'),      label: 'lb.tab_oracle'},
+        {tab: 'lantern',      url: path('app_leaderboard_lantern'),      label: 'lb.tab_lantern'},
+        {tab: 'inconsistent', url: path('app_leaderboard_inconsistent'), label: 'lb.tab_inconsistent'},
+        {tab: 'animation',    url: path('app_leaderboard_animation'),    label: 'lb.tab_animation'},
+    ] %}
+
+    {# Mobiel: dropdown. Vanaf md: tabs. #}
+    <div class="d-md-none mb-3">
+        <select class="form-select" aria-label="{{ 'lb.choose_ranking'|trans }}" onchange="if (this.value) window.location.href = this.value;">
+            {% for t in tabs %}
+                <option value="{{ t.url }}" {{ activeTab == t.tab ? 'selected' }}>{{ t.label|trans }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <ul class="nav nav-tabs mb-3 d-none d-md-flex">
+        {% for t in tabs %}
+            <li class="nav-item">
+                <a class="nav-link {{ activeTab == t.tab ? 'active' }}" href="{{ t.url }}">{{ t.label|trans }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if activeTab not in ['animation', 'lantern', 'inconsistent'] %}
+        <p class="text-muted small">
+            <span class="rise">▲</span>/<span class="text-danger">▼</span> = {{ 'lb.movement_legend'|trans }}
+        </p>
+    {% endif %}
+
+    {# ============ Algemeen klassement (punten, gewogen) ============ #}
+    {% if activeTab == 'points' %}
+        <p class="text-muted small">{{ 'lb.general_intro'|trans }}</p>
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 lb-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="col-rank">#</th>
+                            <th>{{ 'lb.player'|trans }}</th>
+                            {% for round in rounds %}
+                                <th class="text-center small">{{ round.name }}<br><span class="fw-normal text-muted">× {{ _self.pts(round.weight) }}</span></th>
+                            {% endfor %}
+                            <th class="text-end">{{ 'lb.total'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                            <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
+                                <td class="fw-bold">{{ entry.rank }} {{ _self.arrow(entry.change('points')) }}</td>
+                                <td>{{ m.player(entry.user) }}</td>
+                                {% for round in rounds %}
+                                    {% set played = finishedPerRound[round.id] ?? 0 %}
+                                    <td class="text-center">
+                                        {% if played > 0 %}
+                                            {{ _self.pts(entry.roundWeighted(round.id)) }}
+                                            <br><small class="text-muted">{{ _self.stat(entry.roundHome(round.id), entry.roundAway(round.id), entry.roundExact(round.id), entry.roundAdvance(round.id)) }}</small>
+                                        {% else %}—{% endif %}
+                                    </td>
+                                {% endfor %}
+                                <td class="text-end fw-bold">{{ _self.total(entry.weightedTotal, maxPossible) }}</td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="{{ rounds|length + 3 }}" class="text-center text-muted py-4">{{ 'lb.no_participants'|trans }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    {# ============ Balletjestrui (score-onderdelen, ongewogen) ============ #}
+    {% if activeTab == 'score' %}
+        <p class="text-muted small">{{ 'lb.balls_intro'|trans }}</p>
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 lb-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="col-rank">#</th>
+                            <th>{{ 'lb.player'|trans }}</th>
+                            {% for round in rounds %}
+                                <th class="text-center small">{{ round.name }}<br><span class="fw-normal text-muted">{{ 'lb.components'|trans }}</span></th>
+                            {% endfor %}
+                            <th class="text-end">{{ 'lb.total'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set prev = null %}{% set rank = 0 %}
+                        {% for entry in byScore %}
+                            {% if prev is null or entry.scorePoints != prev %}{% set rank = loop.index %}{% set prev = entry.scorePoints %}{% endif %}
+                            <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
+                                <td class="fw-bold">{{ rank }} {{ _self.arrow(entry.change('score')) }}</td>
+                                <td>{{ m.player(entry.user) }}</td>
+                                {% for round in rounds %}
+                                    {% set played = finishedPerRound[round.id] ?? 0 %}
+                                    <td class="text-center">{% if played > 0 %}{{ entry.roundHome(round.id) }} · {{ entry.roundAway(round.id) }} · {{ entry.roundExact(round.id) }}{% else %}—{% endif %}</td>
+                                {% endfor %}
+                                <td class="text-end fw-bold">{{ _self.total(entry.scorePoints, totalFinished * 3) }}</td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="{{ rounds|length + 3 }}" class="text-center text-muted py-4">{{ 'lb.no_participants'|trans }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    {# ============ De glazen bal (winnaars, ongewogen) ============ #}
+    {% if activeTab == 'winners' %}
+        <p class="text-muted small">{{ 'lb.oracle_intro'|trans }}</p>
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 lb-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="col-rank">#</th>
+                            <th>{{ 'lb.player'|trans }}</th>
+                            {% for round in rounds %}
+                                <th class="text-center small">{{ round.name }}</th>
+                            {% endfor %}
+                            <th class="text-end">{{ 'lb.total'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set prev = null %}{% set rank = 0 %}
+                        {% for entry in byWinners %}
+                            {% if prev is null or entry.advanceCount != prev %}{% set rank = loop.index %}{% set prev = entry.advanceCount %}{% endif %}
+                            <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
+                                <td class="fw-bold">{{ rank }} {{ _self.arrow(entry.change('winners')) }}</td>
+                                <td>{{ m.player(entry.user) }}</td>
+                                {% for round in rounds %}
+                                    {% set played = finishedPerRound[round.id] ?? 0 %}
+                                    {% set good = entry.roundAdvance(round.id) %}
+                                    <td class="text-center">
+                                        {% if played > 0 %}{{ good }}/{{ played }} <small class="text-muted">({{ (good / played * 100)|round }}%)</small>{% else %}—{% endif %}
+                                    </td>
+                                {% endfor %}
+                                <td class="text-end fw-bold">{{ _self.total(entry.advanceCount, totalFinished) }}</td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="{{ rounds|length + 3 }}" class="text-center text-muted py-4">{{ 'lb.no_participants'|trans }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    {# ============ De rode lantaarn (gemiste voorspellingen) ============ #}
+    {% if activeTab == 'lantern' %}
+        <p class="text-muted small">{{ 'lb.lantern_intro'|trans }}</p>
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 lb-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="col-rank">#</th>
+                            <th>{{ 'lb.player'|trans }}</th>
+                            {% for round in rounds %}
+                                <th class="text-center small">{{ round.name }}</th>
+                            {% endfor %}
+                            <th class="text-end">{{ 'lb.total'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set prev = null %}{% set rank = 0 %}
+                        {% for entry in byLantern %}
+                            {% if prev is null or entry.lanternPoints != prev %}{% set rank = loop.index %}{% set prev = entry.lanternPoints %}{% endif %}
+                            <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
+                                <td class="fw-bold">{{ rank }}</td>
+                                <td>{{ m.player(entry.user) }}</td>
+                                {% for round in rounds %}
+                                    {% set played = finishedPerRound[round.id] ?? 0 %}
+                                    <td class="text-center">{% if played > 0 %}{{ entry.roundLantern(round.id) }}{% else %}—{% endif %}</td>
+                                {% endfor %}
+                                <td class="text-end fw-bold">{{ _self.total(entry.lanternPoints, totalFinished * 3) }}</td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="{{ rounds|length + 3 }}" class="text-center text-muted py-4">{{ 'lb.no_participants'|trans }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    {# ============ Tegenstrijdig (voorspelde winnaar ≠ doorgang) ============ #}
+    {% if activeTab == 'inconsistent' %}
+        <p class="text-muted small">{{ 'lb.inconsistent_intro'|trans }}</p>
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 lb-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="col-rank">#</th>
+                            <th>{{ 'lb.player'|trans }}</th>
+                            {% for round in rounds %}
+                                <th class="text-center small">{{ round.name }}</th>
+                            {% endfor %}
+                            <th class="text-end">{{ 'lb.total'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set prev = null %}{% set rank = 0 %}
+                        {% for entry in byInconsistent %}
+                            {% if prev is null or entry.inconsistentCount != prev %}{% set rank = loop.index %}{% set prev = entry.inconsistentCount %}{% endif %}
+                            <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
+                                <td class="fw-bold">{{ rank }}</td>
+                                <td>{{ m.player(entry.user) }}</td>
+                                {% for round in rounds %}
+                                    {% set played = finishedPerRound[round.id] ?? 0 %}
+                                    <td class="text-center">{% if played > 0 %}{{ entry.roundInconsistent(round.id) }}{% else %}—{% endif %}</td>
+                                {% endfor %}
+                                <td class="text-end fw-bold">{{ _self.total(entry.inconsistentCount, totalFinished) }}</td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="{{ rounds|length + 3 }}" class="text-center text-muted py-4">{{ 'lb.no_participants'|trans }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    {# ============ Animatie ============ #}
+    {% if activeTab == 'animation' %}
+        <p class="text-muted small">{{ 'lb.anim_intro'|trans }}</p>
+        {% set metrics = [
+            {key: 'points',       label: 'lb.anim_general'},
+            {key: 'score',        label: 'lb.tab_balls'},
+            {key: 'winners',      label: 'lb.tab_oracle'},
+            {key: 'lantern',      label: 'lb.anim_lantern'},
+            {key: 'inconsistent', label: 'lb.tab_inconsistent'},
+        ] %}
+
+        {# Mobiel: dropdown. Vanaf md: knoppenrij. #}
+        <div class="d-md-none mb-3">
+            <select class="form-select" id="anim-metric-select" aria-label="{{ 'lb.choose_ranking'|trans }}">
+                {% for mtr in metrics %}
+                    <option value="{{ mtr.key }}">{{ mtr.label|trans }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="btn-group btn-group-sm mb-3 d-none d-md-inline-flex" role="group" aria-label="{{ 'lb.choose_ranking'|trans }}">
+            {% for mtr in metrics %}
+                <button type="button" class="btn btn-outline-success {{ loop.first ? 'active' }}" data-metric="{{ mtr.key }}">{{ mtr.label|trans }}</button>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            <button id="anim-play" class="btn btn-success btn-sm" type="button">{{ 'lb.play'|trans }}</button>
+            <button id="anim-restart" class="btn btn-outline-secondary btn-sm" type="button">{{ 'lb.restart'|trans }}</button>
+            <span id="anim-status" class="ms-2 text-muted small"></span>
+        </div>
+        <div class="card shadow-sm"><div class="card-body">
+            <div id="anim-board" class="anim-board"
+                 data-avatar-base="{{ asset('uploads/avatars/') }}"
+                 data-t-match="{{ 'lb.anim_match'|trans }}"
+                 data-t-done="{{ 'lb.anim_done'|trans }}"
+                 data-t-ready="{{ 'lb.anim_ready'|trans }}"
+                 data-t-none="{{ 'lb.anim_none'|trans }}"
+                 data-t-play="{{ 'lb.play'|trans }}"
+                 data-t-pause="{{ 'lb.pause'|trans }}"></div>
+        </div></div>
+        <script type="application/json" id="anim-data">{{ timeline|json_encode|raw }}</script>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {% if activeTab == 'animation' %}
+        <script src="{{ asset('js/leaderboard-animation.js') }}?v={{ asset_version('js/leaderboard-animation.js') }}"></script>
+    {% endif %}
+{% endblock %}

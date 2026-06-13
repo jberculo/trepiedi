@@ -1,0 +1,186 @@
+nav:
+    predict: Voorspellen
+    leaderboard: Klassement
+    admin: Beheer
+auth:
+    login: Inloggen
+    register: Registreren
+    logout: Uitloggen
+    email: E-mailadres
+    password: Wachtwoord
+    remember_me: Ingelogd blijven
+    no_account: 'Nog geen account?'
+    have_account: 'Al een account?'
+    create_account: Account aanmaken
+    display_name: Weergavenaam
+    password_min: 'Je wachtwoord moet minstens {limit} tekens bevatten.'
+    password_required: Vul een wachtwoord in.
+common:
+    save: Opslaan
+    cancel: Annuleren
+    edit: Bewerken
+    delete: Verwijderen
+account:
+    title: Mijn account
+    heading: Account-instellingen
+    photo: Profielfoto
+    current_photo: Huidige foto
+    saved: Je gegevens zijn bijgewerkt.
+lb:
+    title: Klassement
+    max: 'Max. nu mogelijk: %now% · hele toernooi: %all%'
+    tab_general: '🟡 Algemeen klassement'
+    tab_balls: '⚽ Balletjestrui'
+    tab_oracle: '🔮 De glazen bal'
+    tab_lantern: '🔴 De ronde lantaarn'
+    tab_inconsistent: '🤔 Tegenstrijdig'
+    tab_animation: '🎬 Animatie'
+    movement_legend: positieverandering sinds de vorige speeldag.
+    player: Speler
+    total: Totaal
+    no_participants: Nog geen deelnemers.
+    home: thuis
+    away: uit
+    exact: exact
+    winner: winnaar
+    components: 'thuis · uit · compleet'
+    general_intro: 'Totaalscore. Elke wedstrijd telt standaard even zwaar (max 6 punten: 1 thuis, 1 uit, 1 bonus, 3 winnaar). Het rondegewicht (× in de kop) bepaalt hoe zwaar een ronde meetelt: de score is punten × rondegewicht.'
+    balls_intro: 'Goed voorspelde doelpunten en eindstanden: 1 punt per onderdeel (thuis, uit, exacte eindstand), max 3 per wedstrijd. Het rondegewicht telt hier niet mee. Per ronde: thuis · uit · compleet.'
+    oracle_intro: 'Goed voorspelde winnaars: 1 punt per goede winnaar (zonder rondegewicht), dus maximaal het aantal gespeelde wedstrijden. Per ronde: aantal goed van de gespeelde wedstrijden, met percentage.'
+    anim_intro: 'Speelt de stand wedstrijd-voor-wedstrijd af, 1 seconde per wedstrijd. De balk is t.o.v. de maximaal haalbare score tot dat moment (een perfecte speler staat dus op 100%).'
+    choose_ranking: Kies klassement
+    play: '▶ Afspelen'
+    restart: '↺ Opnieuw'
+    rose: gestegen
+    fell: gedaald
+    equal: gelijk
+    anim_match: 'Wedstrijd %n%/%total%: %label%'
+    anim_done: 'Klaar — eindstand'
+    anim_ready: 'Klaar om af te spelen (%count% wedstrijden)'
+    anim_none: Nog geen gespeelde wedstrijden
+    anim_general: '🟡 Algemeen'
+    anim_lantern: '🔴 Lantaarn'
+    lantern_intro: 'De ronde lantaarn: strafpunten voor slechte voorspellingen op gespeelde wedstrijden. +1 als je een gelijkspel voorspelde en het werd iets anders, +2 als je de uitslag omgekeerd voorspelde (bv. 3–1 terwijl het 1–2 werd) en +1 als je de verkeerde ploeg tot winnaar uitriep. Niet ingevulde wedstrijden tellen niet mee. Bovenaan staat wie er het meest naast zat. Per ronde: strafpunten.'
+    inconsistent_intro: 'Tegenstrijdige voorspellingen: je voorspelde uitslag wijst de ene ploeg als winnaar aan, maar je laat de andere doorgaan (bv. 2–1 voor de thuisploeg, maar de uitploeg gaat door). Bovenaan staat wie de meeste tegenstrijdigheden heeft. Per ronde: aantal tegenstrijdig.'
+    pause: '⏸ Pauze'
+dash:
+    title: Voorspellen
+    heading: Mijn voorspellingen
+    no_matches_round: Nog geen wedstrijden in deze ronde.
+    status_soon: Binnenkort
+    status_finished: Afgelopen
+    status_started: Gestart
+    status_open: Open
+    kickoff: Aftrap
+    predictions_link: voorspellingen
+    result: 'Uitslag (incl. verlenging, zonder penalty''s):'
+    winner: winnaar
+    last_changed: Laatst gewijzigd
+    not_available: '🔒 Nog niet beschikbaar om te voorspellen.'
+    your_prediction: Jouw voorspelling
+    points_suffix: punten
+    breakdown: 'voor %home%, tegen %away%, exact %exact%, winnaar %winner%'
+    breakdown_round: ' · ronde × %weight%'
+    no_prediction: Geen voorspelling ingevuld.
+    nothing_yet: Er zijn nog geen ronden of wedstrijden ingevoerd.
+    not_available_flash: 'Deze wedstrijd is nog niet beschikbaar om te voorspellen.'
+    locked_flash: 'Deze wedstrijd is gestart; je voorspelling kan niet meer worden aangepast.'
+    saved_flash: 'Voorspelling voor %match% opgeslagen.'
+form:
+    winner: Winnaar
+    choose_team: '— kies team —'
+    choose_winner: Kies de winnaar.
+    team_name: Naam
+    team_code: 'Code (3 letters, optioneel)'
+    round_name: 'Naam (bijv. Achtste finales)'
+    round_order: 'Volgorde (laag = eerst)'
+    round_weight: 'Gewicht (1.0 = standaard, elke ronde even zwaar)'
+    match_round: Ronde
+    match_home: Thuisploeg
+    match_away: Uitploeg
+    match_kickoff: Aftrap
+    match_active: 'Actief (invulbaar voor spelers)'
+    match_active_help: 'Inactieve wedstrijden zijn nog niet invulbaar, maar tellen wel mee in de toernooi-max.'
+    goals_for: '%team% (doelpunten incl. verlenging, zonder penalty''s)'
+    result_final: 'Uitslag definitief (telt mee voor punten)'
+prof:
+    you: jij
+    no_points: Nog geen punten
+    stats: 'Positie %rank% · %home%× thuis · %away%× uit · %exact%× exact · %winner%× winnaar goed'
+    points_raw: 'punten (%raw% ruw)'
+    match: Wedstrijd
+    prediction: Voorspelling
+    winner: Winnaar
+    result: Uitslag
+    points: Punten
+    hidden: '🔒 zichtbaar na de aftrap'
+    no_prediction: geen voorspelling
+    no_result: nog geen uitslag
+    no_matches: Nog geen wedstrijden.
+mv:
+    back: '← Terug'
+    kickoff: aftrap
+    winner: winnaar
+    no_predictions: Er zijn geen voorspellingen gedaan voor deze wedstrijd.
+    hidden: '🔒 De voorspellingen worden zichtbaar zodra de wedstrijd is begonnen. Aantal voorspellingen tot nu toe: %count%.'
+    consensus_winner: 'Wie wint volgens de groep?'
+    common_scores: Meest voorspelde uitslagen
+admin:
+    title: Beheer
+    teams: Teams
+    rounds: Ronden
+    matches_finished: 'Wedstrijden (afgelopen)'
+    players: Spelers
+    manage_matches: '⚽ Wedstrijden & uitslagen beheren'
+    manage_rounds: '🔢 Ronden beheren'
+    manage_teams: '🏳️ Teams beheren'
+    back: '← Terug naar beheer'
+    matches: Wedstrijden
+    new_match: '+ Nieuwe wedstrijd'
+    selected: 'Geselecteerde wedstrijden:'
+    activate: Activeer
+    deactivate: Deactiveer
+    select_all: Alles selecteren
+    round: Ronde
+    kickoff: Aftrap
+    match: Wedstrijd
+    result: Uitslag
+    winner: Winnaar
+    status: Status
+    actions: Acties
+    inactive: inactief
+    final: definitief
+    confirm_delete_match: Wedstrijd verwijderen?
+    no_matches: Nog geen wedstrijden.
+    enter_result: Uitslag invoeren
+    result_help: 'Vul de stand na reguliere speeltijd én eventuele verlenging in (zonder penalty''s) en wie de winnaar is. Zet "definitief" aan zodra de uitslag mag meetellen voor de punten.'
+    new_team: '+ Nieuw team'
+    name: Naam
+    code: Code
+    confirm_delete_team: Team verwijderen?
+    no_teams: Nog geen teams.
+    new_round: '+ Nieuwe ronde'
+    order: Volgorde
+    weight: Gewicht
+    match_count: Wedstrijden
+    confirm_delete_round: Ronde én bijbehorende wedstrijden verwijderen?
+    no_rounds: Nog geen ronden.
+    team_new: Nieuw team
+    team_edit: Team bewerken
+    round_new: Nieuwe ronde
+    round_edit: Ronde bewerken
+    match_new: Nieuwe wedstrijd
+    match_edit: Wedstrijd bewerken
+    team_added: Team toegevoegd.
+    team_updated: Team bijgewerkt.
+    team_deleted: Team verwijderd.
+    round_added: Ronde toegevoegd.
+    round_updated: Ronde bijgewerkt.
+    round_deleted: Ronde verwijderd.
+    match_added: Wedstrijd toegevoegd.
+    match_updated: Wedstrijd bijgewerkt.
+    match_deleted: Wedstrijd verwijderd.
+    result_saved: 'Uitslag van %match% opgeslagen.'
+    bulk_activated: '%count% wedstrijd(en) geactiveerd.'
+    bulk_deactivated: '%count% wedstrijd(en) gedeactiveerd.'
+    result_incomplete: 'Voor een definitieve uitslag moeten beide scores en de winnaar zijn ingevuld.'

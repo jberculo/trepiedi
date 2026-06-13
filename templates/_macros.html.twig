@@ -1,0 +1,16 @@
+{# Profielfoto (of initiaal) van een gebruiker. #}
+{% macro avatar(user, size) %}
+    {%- set s = size|default('sm') -%}
+    {%- if user.avatar -%}
+        <img src="{{ asset('uploads/avatars/' ~ user.avatar) }}" alt="" class="avatar-{{ s }}">
+    {%- else -%}
+        <span class="avatar-{{ s }} avatar-empty">{{ user.displayName|first|upper }}</span>
+    {%- endif -%}
+{% endmacro %}
+
+{# Klikbare spelernaam met fotootje ervoor. #}
+{% macro player(user) %}
+    <a class="d-inline-flex align-items-center gap-2 text-decoration-none" href="{{ path('app_user_view', {slug: user.slug}) }}">
+        {{ _self.avatar(user, 'sm') }}<span>{{ user.displayName }}</span>
+    </a>
+{% endmacro %}

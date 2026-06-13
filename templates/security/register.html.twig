@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'auth.register'|trans }} — Trepiedi{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="text-center mb-4">
+                <img src="{{ asset('images/trepiedi-logo.svg') }}" alt="Trepiedi" class="brand-logo-lg">
+            </div>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="h4 mb-3">{{ 'auth.create_account'|trans }}</h1>
+
+                    {{ form_start(registrationForm) }}
+                        <div class="mb-3">
+                            {{ form_label(registrationForm.displayName, null, {label_attr: {class: 'form-label'}}) }}
+                            {{ form_widget(registrationForm.displayName, {attr: {class: 'form-control'}}) }}
+                            {{ form_errors(registrationForm.displayName) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(registrationForm.email, null, {label_attr: {class: 'form-label'}}) }}
+                            {{ form_widget(registrationForm.email, {attr: {class: 'form-control'}}) }}
+                            {{ form_errors(registrationForm.email) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(registrationForm.plainPassword, null, {label_attr: {class: 'form-label'}}) }}
+                            {{ form_widget(registrationForm.plainPassword, {attr: {class: 'form-control'}}) }}
+                            {{ form_errors(registrationForm.plainPassword) }}
+                        </div>
+
+                        <button class="btn btn-success w-100" type="submit">{{ 'auth.register'|trans }}</button>
+                    {{ form_end(registrationForm) }}
+
+                    <p class="text-center mt-3 mb-0">
+                        {{ 'auth.have_account'|trans }} <a href="{{ path('app_login') }}">{{ 'auth.login'|trans }}</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

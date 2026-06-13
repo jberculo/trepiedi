@@ -1,0 +1,17 @@
+# Geen directory-listing van de projectmap (anders is de broncode zichtbaar).
+Options -Indexes
+
+# Het kale projectpad doorsturen naar de applicatie in public/.
+RedirectMatch 302 ^/trepiedi/?$ /trepiedi/public/
+
+# Gevoelige bestanden nooit direct serveren.
+<FilesMatch "^\.env|^composer\.(json|lock)$|\.ya?ml$">
+    Require all denied
+</FilesMatch>
+
+# Directe toegang tot niet-publieke mappen blokkeren (defense-in-depth).
+# Op productie hoort de DocumentRoot sowieso op public/ te staan (zie docs/deployment.md).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(var|src|config|migrations|tests|bin|translations|vendor)(/|$) - [F]
+</IfModule>
