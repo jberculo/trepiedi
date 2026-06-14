@@ -18,7 +18,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th>{{ 'matches.date'|trans }}</th>
-                                <th>{{ 'matches.match'|trans }}</th>
+                                <th colspan="2" class="text-center">{{ 'matches.match'|trans }}</th>
                                 <th class="text-end">{{ 'matches.result'|trans }}</th>
                             </tr>
                         </thead>
@@ -26,12 +26,11 @@
                             {% for match in group.matches %}
                                 <tr>
                                     <td class="text-nowrap small">{{ match.kickoffAt|date('d-m-Y H:i') }}</td>
+                                    <td class="text-end">
+                                        <a class="text-decoration-none" href="{{ path('app_match_view', {id: match.id}) }}">{{ match.homeTeam }} {{ country_flag(match.homeTeam) }}</a>
+                                    </td>
                                     <td>
-                                        <a href="{{ path('app_match_view', {id: match.id}) }}">
-                                            {{ country_flag(match.homeTeam) }}{{ match.homeTeam }}
-                                            <span class="text-muted">–</span>
-                                            {{ country_flag(match.awayTeam) }}{{ match.awayTeam }}
-                                        </a>
+                                        <a class="text-decoration-none" href="{{ path('app_match_view', {id: match.id}) }}">{{ country_flag(match.awayTeam) }}{{ match.awayTeam }}</a>
                                     </td>
                                     <td class="text-end text-nowrap">
                                         {% if match.finished %}
