@@ -30,7 +30,7 @@ class RegistrationFormType extends AbstractType
                 'constraints' => [
                     new NotBlank(message: 'validation.enter_password'),
                     new Length(
-                        min: 6,
+                        min: 8,
                         minMessage: 'validation.password_min',
                         max: 4096,
                     ),
