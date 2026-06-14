@@ -74,7 +74,7 @@ class SeedTournamentCommand extends Command
         ]],
         ['name' => 'Finale & troostfinale', 'weight' => 8.0, 'matches' => [
             ['home' => 'RU101', 'away' => 'RU102', 'kickoff' => '2026-07-18 20:00'],
-            ['home' => 'W101', 'away' => 'W102', 'kickoff' => '2026-07-19 18:00'],
+            ['home' => 'W101', 'away' => 'W102', 'kickoff' => '2026-07-19 19:00'],
         ]],
     ];
 
