@@ -11,7 +11,7 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <h1 class="h4 mb-1">{{ match.homeTeam }} – {{ match.awayTeam }}</h1>
+                    <h1 class="h4 mb-1">{{ country_flag(match.homeTeam) }}{{ match.homeTeam }} – {{ country_flag(match.awayTeam) }}{{ match.awayTeam }}</h1>
                     <p class="text-muted mb-0">
                         {{ match.round.name }} (× {{ match.round.weight }})
                         · {{ 'mv.kickoff'|trans }} {{ match.kickoffAt|date('d-m-Y H:i') }}
@@ -20,7 +20,7 @@
                 {% if match.finished %}
                     <div class="text-end">
                         <div class="h4 mb-0">{{ match.homeScore }} – {{ match.awayScore }}</div>
-                        <small class="text-muted">{{ 'mv.winner'|trans }}: {{ match.advancingTeam }}</small>
+                        <small class="text-muted">{{ 'mv.winner'|trans }}: {{ country_flag(match.advancingTeam) }}{{ match.advancingTeam }}</small>
                     </div>
                 {% endif %}
             </div>
@@ -40,7 +40,7 @@
                     {% set total = advanceHome + advanceAway %}
                     <div class="mb-2">
                         <div class="d-flex justify-content-between small">
-                            <span>{{ match.homeTeam }}</span><span>{{ advanceHome }}</span>
+                            <span>{{ country_flag(match.homeTeam) }}{{ match.homeTeam }}</span><span>{{ advanceHome }}</span>
                         </div>
                         <div class="progress" role="progressbar">
                             <div class="progress-bar bg-success" style="width: {{ total ? (advanceHome / total * 100)|round : 0 }}%"></div>
@@ -48,7 +48,7 @@
                     </div>
                     <div>
                         <div class="d-flex justify-content-between small">
-                            <span>{{ match.awayTeam }}</span><span>{{ advanceAway }}</span>
+                            <span>{{ country_flag(match.awayTeam) }}{{ match.awayTeam }}</span><span>{{ advanceAway }}</span>
                         </div>
                         <div class="progress" role="progressbar">
                             <div class="progress-bar bg-secondary" style="width: {{ total ? (advanceAway / total * 100)|round : 0 }}%"></div>
@@ -89,7 +89,7 @@
                             <tr {% if app.user and p.user.id == app.user.id %}class="table-success"{% endif %}>
                                 <td>{{ m.player(p.user) }}</td>
                                 <td class="text-center"><strong>{{ p.homeScore }} – {{ p.awayScore }}</strong></td>
-                                <td class="text-center">{{ p.advancingTeam ?? '—' }}</td>
+                                <td class="text-center">{% if p.advancingTeam %}{{ country_flag(p.advancingTeam) }}{{ p.advancingTeam }}{% else %}—{% endif %}</td>
                                 {% if match.finished %}
                                     <td class="text-center">
                                         <span class="badge text-bg-success">+{{ row.score.total * match.round.weight }}</span>

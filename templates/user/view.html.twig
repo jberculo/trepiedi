@@ -59,7 +59,7 @@
                             {% set match = item.match %}
                             <tr>
                                 <td>
-                                    <a href="{{ path('app_match_view', {id: match.id}) }}">{{ match.homeTeam }} – {{ match.awayTeam }}</a>
+                                    <a href="{{ path('app_match_view', {id: match.id}) }}">{{ country_flag(match.homeTeam) }}{{ match.homeTeam }} – {{ country_flag(match.awayTeam) }}{{ match.awayTeam }}</a>
                                     <div class="text-muted small">{{ match.kickoffAt|date('d-m H:i') }}</div>
                                 </td>
                                 {% if not item.visible %}
@@ -67,7 +67,7 @@
                                     <td class="text-center text-muted small">🔒</td>
                                 {% elseif item.prediction %}
                                     <td class="text-center"><strong>{{ item.prediction.homeScore }} – {{ item.prediction.awayScore }}</strong></td>
-                                    <td class="text-center">{{ item.prediction.advancingTeam ?? '—' }}</td>
+                                    <td class="text-center">{% if item.prediction.advancingTeam %}{{ country_flag(item.prediction.advancingTeam) }}{{ item.prediction.advancingTeam }}{% else %}—{% endif %}</td>
                                 {% else %}
                                     <td class="text-center text-muted">{{ 'prof.no_prediction'|trans }}</td>
                                     <td class="text-center text-muted">{{ 'prof.no_prediction'|trans }}</td>
@@ -75,7 +75,7 @@
                                 <td>
                                     {% if match.finished %}
                                         {{ match.homeScore }} – {{ match.awayScore }}
-                                        <span class="text-muted small">· {{ match.advancingTeam }}</span>
+                                        <span class="text-muted small">· {{ country_flag(match.advancingTeam) }}{{ match.advancingTeam }}</span>
                                     {% else %}<span class="text-muted small">{{ 'prof.no_result'|trans }}</span>{% endif %}
                                 </td>
                                 <td class="text-center">

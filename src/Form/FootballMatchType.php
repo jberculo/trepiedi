@@ -24,9 +24,11 @@ class FootballMatchType extends AbstractType
             ])
             ->add('homeTeam', TextType::class, [
                 'label' => 'form.match_home',
+                'attr' => ['data-country-autocomplete' => true, 'autocomplete' => 'off'],
             ])
             ->add('awayTeam', TextType::class, [
                 'label' => 'form.match_away',
+                'attr' => ['data-country-autocomplete' => true, 'autocomplete' => 'off'],
             ])
             ->add('kickoffAt', DateTimeType::class, [
                 'label' => 'form.match_kickoff',

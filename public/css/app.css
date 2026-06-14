@@ -237,3 +237,63 @@ h1, .h1 { text-transform: uppercase; }
     .anim-name { width: 5rem; }
     .anim-score { width: 4rem; }
 }
+
+/* ============================================================
+   Vlaggetjes (flag-icons) + onbekend-fallback.
+   ============================================================ */
+.team-flag {
+    display: inline-block;
+    width: 1.33em;
+    height: 1em;
+    margin-right: .35em;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, .12);
+    vertical-align: -0.1em;
+}
+
+/* Onbekend land: grijs vlaggetje met een vraagteken. */
+.team-flag-unknown {
+    background: #d7dbe0;
+    color: #6c757d;
+    font-size: .7em;
+    line-height: 1.45em;
+    text-align: center;
+    font-weight: 700;
+}
+
+/* ============================================================
+   Land-autocomplete bij het invoeren van wedstrijden.
+   ============================================================ */
+.country-autocomplete {
+    position: relative;
+}
+
+.country-autocomplete-list {
+    position: absolute;
+    z-index: 1080;
+    left: 0;
+    right: 0;
+    margin-top: 2px;
+    max-height: 16rem;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: .375rem;
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
+    list-style: none;
+    padding: .25rem 0;
+}
+
+.country-autocomplete-list li {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .35rem .75rem;
+    cursor: pointer;
+}
+
+.country-autocomplete-list li.active,
+.country-autocomplete-list li:hover {
+    background: var(--bs-success);
+    color: #fff;
+}

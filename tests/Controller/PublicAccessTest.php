@@ -67,8 +67,8 @@ class PublicAccessTest extends FixturesWebTestCase
         $this->assertStringContainsString('Nederland', $body);
         $this->assertStringContainsString('2 – 1', $body);
 
-        // Oudste eerst: de eerste rij is een achtste finale (10 dagen geleden gespeeld).
-        $this->assertStringContainsString('Achtste finales', $crawler->filter('tbody tr')->first()->text());
+        // Onderverdeeld per ronde, oudste ronde eerst: de eerste kop is de achtste finales.
+        $this->assertStringContainsString('Achtste finales', $crawler->filter('h2')->first()->text());
     }
 
     public function testCannotPredictWhenLoggedOut(): void

@@ -18,3 +18,7 @@
         </div>
     </div>
 {% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('js/country-autocomplete.js') }}?v={{ asset_version('js/country-autocomplete.js') }}" defer></script>
+{% endblock %}

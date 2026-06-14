@@ -10,13 +10,30 @@ use Symfony\Component\Routing\Attribute\Route;
 class MatchListController extends AbstractController
 {
     /**
-     * Publiek overzicht van alle wedstrijden (oudste eerst), met uitslag indien bekend.
+     * Publiek overzicht van alle wedstrijden, onderverdeeld per ronde (oudste ronde
+     * eerst, en binnen een ronde oudste wedstrijd eerst), met uitslag indien bekend.
      */
     #[Route('/wedstrijden', name: 'app_matches')]
     public function index(FootballMatchRepository $matches): Response
     {
+        // findAllChronological levert al op aftrap (oplopend); we bucketen per ronde.
+        $groups = [];
+        foreach ($matches->findAllChronological() as $match) {
+            $round = $match->getRound();
+            $key = $round->getId();
+            if (!isset($groups[$key])) {
+                $groups[$key] = ['round' => $round, 'matches' => []];
+            }
+            $groups[$key]['matches'][] = $match;
+        }
+
+        usort(
+            $groups,
+            static fn (array $a, array $b): int => $a['round']->getSortOrder() <=> $b['round']->getSortOrder()
+        );
+
         return $this->render('match/list.html.twig', [
-            'matches' => $matches->findAllChronological(),
+            'groups' => $groups,
         ]);
     }
 }

@@ -33,11 +33,11 @@
                             </td>
                             <td class="small">{{ match.round.name }}</td>
                             <td class="small">{{ match.kickoffAt|date('d-m-Y H:i') }}</td>
-                            <td>{{ match.homeTeam }} – {{ match.awayTeam }}</td>
+                            <td>{{ country_flag(match.homeTeam) }}{{ match.homeTeam }} – {{ country_flag(match.awayTeam) }}{{ match.awayTeam }}</td>
                             <td>
                                 {% if match.homeScore is not null %}{{ match.homeScore }} – {{ match.awayScore }}{% else %}—{% endif %}
                             </td>
-                            <td>{{ match.advancingTeam ?? '—' }}</td>
+                            <td>{% if match.advancingTeam %}{{ country_flag(match.advancingTeam) }}{{ match.advancingTeam }}{% else %}—{% endif %}</td>
                             <td class="text-nowrap">
                                 {% if not match.active %}<span class="badge text-bg-light text-dark border">{{ 'admin.inactive'|trans }}</span>{% endif %}
                                 {% if match.finished %}<span class="badge text-bg-secondary">{{ 'admin.final'|trans }}</span>{% endif %}
