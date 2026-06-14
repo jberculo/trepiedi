@@ -102,6 +102,11 @@ form:
     match_kickoff: Aftrap
     match_active: 'Actief (invulbaar voor spelers)'
     match_active_help: 'Inactieve wedstrijden zijn nog niet invulbaar, maar tellen wel mee in de toernooi-max.'
+    pool_name: Naam
+    pool_code: 'Inschrijfcode (in de uitnodigings-URL)'
+    pool_code_help: 'Korte code zonder spaties, bijv. "kantoor". Moet uniek zijn.'
+    pool_default: Standaardpoule
+    pool_default_help: 'Nieuwe spelers zonder code komen in de standaardpoule. Er kan er maar één zijn.'
     goals_for: '%team% (doelpunten incl. verlenging, zonder penalty''s)'
     result_final: 'Uitslag definitief (telt mee voor punten)'
 prof:
@@ -195,3 +200,24 @@ admin:
     bulk_activated: '%count% wedstrijd(en) geactiveerd.'
     bulk_deactivated: '%count% wedstrijd(en) gedeactiveerd.'
     result_incomplete: 'Voor een definitieve uitslag moeten beide scores en de winnaar zijn ingevuld.'
+    pools: Poules
+    manage_pools: '🏆 Poules beheren'
+    new_pool: '+ Nieuwe poule'
+    pool_new: Nieuwe poule
+    pool_edit: Poule bewerken
+    pool_code: Code
+    join_url: Inschrijf-URL
+    member_count: Leden
+    members: Leden
+    pool_is_default: standaard
+    confirm_delete_pool: Poule verwijderen?
+    cannot_delete_default: 'De standaardpoule kan niet worden verwijderd. Maak eerst een andere poule standaard.'
+    pool_added: Poule toegevoegd.
+    pool_updated: Poule bijgewerkt.
+    pool_deleted: Poule verwijderd.
+    no_pools: Nog geen poules.
+    remove_member: Verwijderen
+    confirm_remove_member: 'Speler uit deze poule verwijderen?'
+    member_removed: Speler uit de poule verwijderd.
+    no_members: Nog geen leden.
+    back_to_pools: '← Terug naar poules'

@@ -6,6 +6,7 @@ use App\Repository\PoolRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -15,6 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ORM\Entity(repositoryClass: PoolRepository::class)]
 #[ORM\Table(name: 'pool')]
+#[UniqueEntity(fields: ['code'], message: 'validation.pool_code_taken')]
 class Pool
 {
     #[ORM\Id]

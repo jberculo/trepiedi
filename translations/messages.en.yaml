@@ -102,6 +102,11 @@ form:
     match_kickoff: Kick-off
     match_active: 'Active (open for players)'
     match_active_help: 'Inactive matches cannot be predicted yet, but do count towards the tournament max.'
+    pool_name: Name
+    pool_code: 'Registration code (in the invite URL)'
+    pool_code_help: 'Short code without spaces, e.g. "office". Must be unique.'
+    pool_default: Default pool
+    pool_default_help: 'New players without a code join the default pool. There can be only one.'
     goals_for: '%team% (goals incl. extra time, excl. penalties)'
     result_final: 'Result final (counts towards points)'
 prof:
@@ -195,3 +200,24 @@ admin:
     bulk_activated: '%count% match(es) activated.'
     bulk_deactivated: '%count% match(es) deactivated.'
     result_incomplete: 'A final result requires both scores and the winner to be filled in.'
+    pools: Pools
+    manage_pools: '🏆 Manage pools'
+    new_pool: '+ New pool'
+    pool_new: New pool
+    pool_edit: Edit pool
+    pool_code: Code
+    join_url: Join URL
+    member_count: Members
+    members: Members
+    pool_is_default: default
+    confirm_delete_pool: Delete pool?
+    cannot_delete_default: 'The default pool cannot be deleted. Make another pool the default first.'
+    pool_added: Pool added.
+    pool_updated: Pool updated.
+    pool_deleted: Pool deleted.
+    no_pools: No pools yet.
+    remove_member: Remove
+    confirm_remove_member: 'Remove this player from the pool?'
+    member_removed: Player removed from the pool.
+    no_members: No members yet.
+    back_to_pools: '← Back to pools'

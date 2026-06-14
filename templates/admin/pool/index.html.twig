@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.pools'|trans }} — {{ 'admin.title'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">{{ 'admin.pools'|trans }}</h1>
+        <a class="btn btn-success" href="{{ path('admin_pool_new') }}">{{ 'admin.new_pool'|trans }}</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ 'admin.name'|trans }}</th>
+                        <th>{{ 'admin.pool_code'|trans }}</th>
+                        <th>{{ 'admin.join_url'|trans }}</th>
+                        <th>{{ 'admin.member_count'|trans }}</th>
+                        <th class="text-end">{{ 'admin.actions'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pool in pools %}
+                        <tr>
+                            <td>
+                                {{ pool.name }}
+                                {% if pool.default %}<span class="badge text-bg-primary">{{ 'admin.pool_is_default'|trans }}</span>{% endif %}
+                            </td>
+                            <td><code>{{ pool.code }}</code></td>
+                            <td class="small text-muted">{{ url('app_pool_join', {code: pool.code}) }}</td>
+                            <td>
+                                <a href="{{ path('admin_pool_members', {id: pool.id}) }}">{{ pool.members|length }}</a>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_pool_members', {id: pool.id}) }}">{{ 'admin.members'|trans }}</a>
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_pool_edit', {id: pool.id}) }}">{{ 'common.edit'|trans }}</a>
+                                {% if not pool.default %}
+                                    <form method="post" action="{{ path('admin_pool_delete', {id: pool.id}) }}" class="d-inline"
+                                          onsubmit="return confirm('{{ 'admin.confirm_delete_pool'|trans }}');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete-pool-' ~ pool.id) }}">
+                                        <button class="btn btn-sm btn-outline-danger">{{ 'common.delete'|trans }}</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">{{ 'admin.no_pools'|trans }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <a class="btn btn-link mt-3" href="{{ path('admin_dashboard') }}">{{ 'admin.back'|trans }}</a>
+{% endblock %}
