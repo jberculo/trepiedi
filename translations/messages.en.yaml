@@ -132,6 +132,7 @@ matches:
     round: Round
     match: Match
     result: Result
+    advances: Advances
     not_played: not played yet
     none: No matches yet.
 footer:

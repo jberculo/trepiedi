@@ -132,6 +132,7 @@ matches:
     round: Ronde
     match: Wedstrijd
     result: Uitslag
+    advances: Gaat door
     not_played: nog niet gespeeld
     none: Nog geen wedstrijden.
 footer:
