@@ -34,13 +34,16 @@
                         {% endif %}
                     </ul>
                     <ul class="navbar-nav align-items-end align-items-lg-center mt-2 mt-lg-0">
-                        <li class="nav-item">
-                            <span class="navbar-text small me-2">
-                                <a class="link-light text-decoration-none {{ app.request.locale == 'nl' ? 'fw-bold' }}" href="{{ path('app_locale', {_locale: 'nl'}) }}">NL</a>
-                                <span class="text-white-50">·</span>
-                                <a class="link-light text-decoration-none {{ app.request.locale == 'en' ? 'fw-bold' }}" href="{{ path('app_locale', {_locale: 'en'}) }}">EN</a>
-                            </span>
-                        </li>
+                        {% if not app.user %}
+                            {# Ingelogde gebruikers wisselen taal via hun profiel; uitgelogde bezoekers hier. #}
+                            <li class="nav-item">
+                                <span class="navbar-text small me-2">
+                                    <a class="link-light text-decoration-none {{ app.request.locale == 'nl' ? 'fw-bold' }}" href="{{ path('app_locale', {_locale: 'nl'}) }}"><span class="fi fi-nl team-flag"></span>NL</a>
+                                    <span class="text-white-50">·</span>
+                                    <a class="link-light text-decoration-none {{ app.request.locale == 'en' ? 'fw-bold' }}" href="{{ path('app_locale', {_locale: 'en'}) }}"><span class="fi fi-gb team-flag"></span>EN</a>
+                                </span>
+                            </li>
+                        {% endif %}
                         {% if app.user %}
                             <li class="nav-item">
                                 <a class="nav-link d-flex align-items-center gap-2" href="{{ path('app_account') }}">

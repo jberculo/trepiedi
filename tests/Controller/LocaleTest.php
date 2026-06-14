@@ -33,14 +33,13 @@ class LocaleTest extends FixturesWebTestCase
         $this->assertSelectorTextContains('.navbar', 'Standings');
     }
 
-    public function testAccountLanguageChangePersistsAndApplies(): void
+    public function testAccountPageLanguageSwitcherPersistsAndApplies(): void
     {
         $this->client->loginUser($this->user('bram@trepiedi.test'));
 
         $crawler = $this->client->request('GET', '/account');
-        $form = $crawler->selectButton('Opslaan')->form();
-        $form['account[locale]'] = 'en';
-        $this->client->submit($form);
+        // De taalschakelaar op de accountpagina (vlag-link) wisselt naar Engels.
+        $this->client->click($crawler->filter('a[href="/taal/en"]')->link());
         $this->client->followRedirect();
 
         // Direct toegepast …

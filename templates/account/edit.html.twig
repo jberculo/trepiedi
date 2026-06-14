@@ -30,14 +30,20 @@
                             {{ form_errors(form.avatar) }}
                         </div>
 
-                        <div class="mb-3">
-                            {{ form_label(form.locale, null, {label_attr: {class: 'form-label'}}) }}
-                            {{ form_widget(form.locale, {attr: {class: 'form-select'}}) }}
-                            {{ form_errors(form.locale) }}
-                        </div>
-
                         <button class="btn btn-success">{{ 'common.save'|trans }}</button>
                     {{ form_end(form) }}
+
+                    <hr class="my-4">
+
+                    <span class="form-label d-block">{{ 'account.language'|trans }}</span>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-sm d-flex align-items-center {{ app.request.locale == 'nl' ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_locale', {_locale: 'nl'}) }}">
+                            <span class="fi fi-nl team-flag"></span>Nederlands
+                        </a>
+                        <a class="btn btn-sm d-flex align-items-center {{ app.request.locale == 'en' ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_locale', {_locale: 'en'}) }}">
+                            <span class="fi fi-gb team-flag"></span>English
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
