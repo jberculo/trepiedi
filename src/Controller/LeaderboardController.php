@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Pool\PoolContext;
 use App\Repository\RoundRepository;
 use App\Scoring\LeaderboardEntry;
 use App\Scoring\ScoringService;
@@ -17,9 +18,11 @@ class LeaderboardController extends AbstractController
     #[Route('/ronde-lantaarn', name: 'app_leaderboard_lantern', defaults: ['tab' => 'lantern'])]
     #[Route('/tegenstrijdig', name: 'app_leaderboard_inconsistent', defaults: ['tab' => 'inconsistent'])]
     #[Route('/animatie', name: 'app_leaderboard_animation', defaults: ['tab' => 'animation'])]
-    public function index(string $tab, ScoringService $scoringService, RoundRepository $roundRepository): Response
+    public function index(string $tab, ScoringService $scoringService, RoundRepository $roundRepository, PoolContext $poolContext): Response
     {
-        $entries = $scoringService->leaderboardWithMovement();
+        // Klassement scopen op de leden van de actieve poule.
+        $memberIds = $poolContext->getMemberIds();
+        $entries = $scoringService->leaderboardWithMovement($memberIds);
 
         // Drie klassementen uit dezelfde data. Balletjestrui en glazen bal tellen
         // ongewogen (zonder rondemultiplier); alleen het algemeen klassement weegt.
@@ -56,7 +59,8 @@ class LeaderboardController extends AbstractController
             'totalMatches' => $scoringService->tournamentMatchCount(),
             'maxPossible' => $scoringService->maxAchievableTotal(),
             'maxTournament' => $scoringService->maxTournamentTotal(),
-            'timeline' => $tab === 'animation' ? $scoringService->matchTimeline() : null,
+            'timeline' => $tab === 'animation' ? $scoringService->matchTimeline($memberIds) : null,
+            'activePool' => $poolContext->getActivePool(),
         ]);
     }
 

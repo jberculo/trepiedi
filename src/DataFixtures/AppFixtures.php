@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\FootballMatch;
+use App\Entity\Pool;
 use App\Entity\Prediction;
 use App\Entity\Round;
 use App\Entity\User;
@@ -20,7 +21,8 @@ class AppFixtures extends Fixture
     {
         $now = new \DateTimeImmutable('2026-06-12 12:00:00');
 
-        $players = $this->createUsers($manager);
+        $pools = $this->createPools($manager);
+        $players = $this->createUsers($manager, $pools);
 
         $achtste = $this->round($manager, 'Achtste finales', 1);
         $kwart = $this->round($manager, 'Kwartfinales', 2);
@@ -71,9 +73,27 @@ class AppFixtures extends Fixture
     }
 
     /**
+     * Standaardpoule "Algemeen" (iedereen) + een tweede poule "Kantoor" met een
+     * deel van de spelers, zodat het scopen van het klassement te testen is.
+     *
+     * @return array{default: Pool, kantoor: Pool}
+     */
+    private function createPools(ObjectManager $manager): array
+    {
+        $default = (new Pool())->setName('Algemeen')->setCode('algemeen')->setDefault(true);
+        $kantoor = (new Pool())->setName('Kantoor')->setCode('kantoor');
+        $manager->persist($default);
+        $manager->persist($kantoor);
+
+        return ['default' => $default, 'kantoor' => $kantoor];
+    }
+
+    /**
+     * @param array{default: Pool, kantoor: Pool} $pools
+     *
      * @return list<User>
      */
-    private function createUsers(ObjectManager $manager): array
+    private function createUsers(ObjectManager $manager, array $pools): array
     {
         $admin = (new User())
             ->setEmail('admin@trepiedi.test')
@@ -81,15 +101,21 @@ class AppFixtures extends Fixture
             ->setSlug(\App\Util\Slug::make('Beheerder'))
             ->setRoles(['ROLE_ADMIN']);
         $admin->setPassword($this->hasher->hashPassword($admin, 'admin'));
+        $admin->addPool($pools['default']);
         $manager->persist($admin);
 
         $players = [];
-        foreach (['Anne', 'Bram', 'Chris', 'Diana'] as $name) {
+        foreach (['Anne', 'Bram', 'Chris', 'Diana'] as $index => $name) {
             $user = (new User())
                 ->setEmail(strtolower($name) . '@trepiedi.test')
                 ->setDisplayName($name)
                 ->setSlug(\App\Util\Slug::make($name));
             $user->setPassword($this->hasher->hashPassword($user, 'test'));
+            $user->addPool($pools['default']);
+            // Anne en Chris zitten óók in de poule "Kantoor".
+            if (in_array($index, [0, 2], true)) {
+                $user->addPool($pools['kantoor']);
+            }
             $manager->persist($user);
             $players[] = $user;
         }

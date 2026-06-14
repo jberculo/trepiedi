@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Pool\PoolContext;
 use App\Repository\PredictionRepository;
 use App\Repository\RoundRepository;
 use App\Scoring\LeaderboardEntry;
@@ -21,6 +22,7 @@ class UserViewController extends AbstractController
         RoundRepository $roundRepository,
         PredictionRepository $predictionRepository,
         ScoringService $scoringService,
+        PoolContext $poolContext,
     ): Response {
         $viewer = $this->getUser();
         $isSelf = $viewer instanceof User && $viewer->getId() === $profile->getId();
@@ -50,14 +52,17 @@ class UserViewController extends AbstractController
         return $this->render('user/view.html.twig', [
             'profile' => $profile,
             'isSelf' => $isSelf,
-            'entry' => $this->leaderboardEntryFor($scoringService, $profile),
+            'entry' => $this->leaderboardEntryFor($scoringService, $profile, $poolContext->getMemberIds()),
             'rounds' => $rounds,
         ]);
     }
 
-    private function leaderboardEntryFor(ScoringService $scoringService, User $profile): ?LeaderboardEntry
+    /**
+     * @param list<int>|null $memberIds
+     */
+    private function leaderboardEntryFor(ScoringService $scoringService, User $profile, ?array $memberIds): ?LeaderboardEntry
     {
-        foreach ($scoringService->buildLeaderboard() as $entry) {
+        foreach ($scoringService->buildLeaderboard(null, $memberIds) as $entry) {
             if ($entry->user->getId() === $profile->getId()) {
                 return $entry;
             }

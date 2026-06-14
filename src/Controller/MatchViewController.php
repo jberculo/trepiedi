@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\FootballMatch;
+use App\Pool\PoolContext;
 use App\Repository\PredictionRepository;
 use App\Scoring\ScoringService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,9 +17,17 @@ class MatchViewController extends AbstractController
         FootballMatch $match,
         PredictionRepository $predictionRepository,
         ScoringService $scoringService,
+        PoolContext $poolContext,
     ): Response {
         $locked = $match->isLocked();
-        $predictions = $predictionRepository->findByMatch($match);
+
+        // Alleen voorspellingen van leden van de actieve poule meetellen.
+        $memberIds = $poolContext->getMemberIds();
+        $allowed = $memberIds === null ? null : array_flip($memberIds);
+        $predictions = array_values(array_filter(
+            $predictionRepository->findByMatch($match),
+            static fn ($p): bool => $allowed === null || isset($allowed[$p->getUser()->getId()]),
+        ));
 
         // Vóór de aftrap blijven andermans voorspellingen verborgen; we tonen
         // alleen het aantal. Daarna pas de details en de consensus.

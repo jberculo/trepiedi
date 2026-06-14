@@ -23,8 +23,10 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     public const LOGIN_ROUTE = 'app_login';
 
-    public function __construct(private UrlGeneratorInterface $urlGenerator)
-    {
+    public function __construct(
+        private UrlGeneratorInterface $urlGenerator,
+        private \App\Pool\PoolEnroller $poolEnroller,
+    ) {
     }
 
     public function authenticate(Request $request): Passport
@@ -49,6 +51,14 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         $user = $token->getUser();
         if ($user instanceof \App\Entity\User) {
             $request->getSession()->set('_locale', $user->getLocale());
+
+            // Een onthouden uitnodigingscode (klik op join-link vóór inloggen) verzilveren.
+            $session = $request->getSession();
+            $code = $session->get(\App\Pool\PoolEnroller::SESSION_KEY);
+            if (is_string($code) && $code !== '') {
+                $session->remove(\App\Pool\PoolEnroller::SESSION_KEY);
+                $this->poolEnroller->enroll($user, $code);
+            }
         }
 
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {

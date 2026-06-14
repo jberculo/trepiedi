@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -57,9 +59,73 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Choice(choices: ['nl', 'en'])]
     private string $locale = 'nl';
 
+    /**
+     * Poules waarvan de speler lid is. Elke poule is een eigen klassement over
+     * dezelfde (gedeelde) voorspellingen.
+     *
+     * @var Collection<int, Pool>
+     */
+    #[ORM\ManyToMany(targetEntity: Pool::class, inversedBy: 'members')]
+    #[ORM\JoinTable(name: 'user_pool')]
+    private Collection $pools;
+
+    /**
+     * De poule die de speler nu bekijkt (welk klassement getoond wordt). Null =
+     * laat PoolContext een keuze maken (standaardpoule of eerste lidmaatschap).
+     */
+    #[ORM\ManyToOne(targetEntity: Pool::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Pool $activePool = null;
+
+    public function __construct()
+    {
+        $this->pools = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return Collection<int, Pool>
+     */
+    public function getPools(): Collection
+    {
+        return $this->pools;
+    }
+
+    public function isInPool(Pool $pool): bool
+    {
+        return $this->pools->contains($pool);
+    }
+
+    public function addPool(Pool $pool): static
+    {
+        if (!$this->pools->contains($pool)) {
+            $this->pools->add($pool);
+        }
+
+        return $this;
+    }
+
+    public function removePool(Pool $pool): static
+    {
+        $this->pools->removeElement($pool);
+
+        return $this;
+    }
+
+    public function getActivePool(): ?Pool
+    {
+        return $this->activePool;
+    }
+
+    public function setActivePool(?Pool $activePool): static
+    {
+        $this->activePool = $activePool;
+
+        return $this;
     }
 
     public function getLocale(): string

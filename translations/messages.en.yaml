@@ -135,6 +135,11 @@ matches:
     advances: Advances
     not_played: not played yet
     none: No matches yet.
+pool:
+    not_found: Unknown pool.
+    login_to_join: 'Log in or register to join this pool.'
+    joined: You have joined this pool.
+    not_member: You are not a member of that pool.
 footer:
     tagline: 'Predict. Score. Win.'
 admin:

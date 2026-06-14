@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\RegistrationFormType;
+use App\Pool\PoolEnroller;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,6 +23,7 @@ class RegistrationController extends AbstractController
         UserRepository $userRepository,
         UserAuthenticatorInterface $userAuthenticator,
         LoginFormAuthenticator $authenticator,
+        PoolEnroller $poolEnroller,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_dashboard');
@@ -37,6 +39,13 @@ class RegistrationController extends AbstractController
             );
             $user->setSlug($userRepository->uniqueSlug($user->getDisplayName()));
             $userRepository->save($user, true);
+
+            // Inschrijven op de poule van een (onthouden) uitnodigingscode, anders
+            // de standaardpoule.
+            $session = $request->getSession();
+            $code = $session->get(PoolEnroller::SESSION_KEY);
+            $session->remove(PoolEnroller::SESSION_KEY);
+            $poolEnroller->enroll($user, is_string($code) ? $code : null);
 
             return $userAuthenticator->authenticateUser($user, $authenticator, $request);
         }

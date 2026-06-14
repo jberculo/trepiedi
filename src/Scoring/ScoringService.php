@@ -114,12 +114,17 @@ class ScoringService
 
     /**
      * Bouwt het volledige klassement, gesorteerd op gewogen totaal (aflopend).
+     * Met $userIds wordt het klassement beperkt tot die spelers (poule-scope);
+     * null = alle spelers.
+     *
+     * @param list<int>|null $userIds
      *
      * @return list<LeaderboardEntry>
      */
-    public function buildLeaderboard(?\DateTimeImmutable $before = null): array
+    public function buildLeaderboard(?\DateTimeImmutable $before = null, ?array $userIds = null): array
     {
         $rounds = $this->roundsById();
+        $allowed = $userIds === null ? null : array_flip($userIds);
 
         // Alleen spelers die daadwerkelijk hebben meegedaan (≥ 1 voorspelling).
         $participantIds = array_flip($this->predictionRepository->userIdsWithPredictions());
@@ -128,6 +133,9 @@ class ScoringService
         $entries = [];
         foreach ($this->userRepository->findAll() as $user) {
             if (!isset($participantIds[$user->getId()])) {
+                continue;
+            }
+            if ($allowed !== null && !isset($allowed[$user->getId()])) {
                 continue;
             }
             $entries[$user->getId()] = new LeaderboardEntry($user);
@@ -221,18 +229,20 @@ class ScoringService
      * Het algemeen klassement met de positieverandering sinds de vorige speeldag
      * (de laatste dag waarop wedstrijden zijn gespeeld) ingevuld per speler.
      *
+     * @param list<int>|null $userIds
+     *
      * @return list<LeaderboardEntry>
      */
-    public function leaderboardWithMovement(): array
+    public function leaderboardWithMovement(?array $userIds = null): array
     {
-        $current = $this->buildLeaderboard();
+        $current = $this->buildLeaderboard(null, $userIds);
 
         $cutoff = $this->lastMatchdayStart();
         if ($cutoff === null) {
             return $current;
         }
 
-        $previous = $this->buildLeaderboard($cutoff);
+        $previous = $this->buildLeaderboard($cutoff, $userIds);
 
         $hasHistory = false;
         foreach ($previous as $entry) {
@@ -298,18 +308,25 @@ class ScoringService
      * die elke speler behaalde, voor elk klassement (algemeen/score/winnaars),
      * plus het maximaal haalbare per wedstrijd per klassement.
      *
+     * @param list<int>|null $userIds
+     *
      * @return array{players: list<array{name: string, slug: ?string}>, steps: list<array<string, mixed>>}
      */
-    public function matchTimeline(): array
+    public function matchTimeline(?array $userIds = null): array
     {
         $rounds = $this->roundsById();
         $participantIds = array_flip($this->predictionRepository->userIdsWithPredictions());
+        $allowed = $userIds === null ? null : array_flip($userIds);
 
         $players = [];
         foreach ($this->userRepository->findAll() as $user) {
-            if (isset($participantIds[$user->getId()])) {
-                $players[$user->getId()] = $user;
+            if (!isset($participantIds[$user->getId()])) {
+                continue;
             }
+            if ($allowed !== null && !isset($allowed[$user->getId()])) {
+                continue;
+            }
+            $players[$user->getId()] = $user;
         }
 
         // Voorspellingen indexeren op wedstrijd-id en gebruiker-id.

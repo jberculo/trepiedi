@@ -44,6 +44,21 @@
                                 </span>
                             </li>
                         {% endif %}
+                        {% if app.user and app.user.pools|length > 1 %}
+                            {% set current_pool = active_pool() %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    🏆 {{ current_pool ? current_pool.name }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    {% for p in app.user.pools %}
+                                        <li>
+                                            <a class="dropdown-item {{ current_pool and p.id == current_pool.id ? 'active' }}" href="{{ path('app_pool_switch', {code: p.code}) }}">{{ p.name }}</a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endif %}
                         {% if app.user %}
                             <li class="nav-item">
                                 <a class="nav-link d-flex align-items-center gap-2" href="{{ path('app_account') }}">

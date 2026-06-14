@@ -135,6 +135,11 @@ matches:
     advances: Gaat door
     not_played: nog niet gespeeld
     none: Nog geen wedstrijden.
+pool:
+    not_found: Onbekende poule.
+    login_to_join: 'Log in of registreer om lid te worden van deze poule.'
+    joined: Je bent nu lid van deze poule.
+    not_member: Je bent geen lid van die poule.
 footer:
     tagline: 'Voorspel. Scoor. Win.'
 admin:
