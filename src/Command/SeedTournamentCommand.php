@@ -19,8 +19,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * uit een van die groepen). Alles staat inactief: pas wanneer de echte ploegen
  * zijn ingevoerd en de wedstrijd wordt geactiveerd, kan er worden voorspeld.
  *
- * Bron: worldcupmatchtime.com (matchUrl's verwijzen naar fifa.com). De tijden zijn
- * omgerekend naar Nederlandse zomertijd (CEST / UTC+2).
+ * Speeldata en aanvangstijden in Nederlandse tijd (CET/CEST), bron: ESPN.nl
+ * (WK 2026 volledig speelschema).
  *
  * Rondegewicht: 1, 2, 4, 8 en — op verzoek — de finale + troostfinale samen op 8.
  */
@@ -36,45 +36,45 @@ class SeedTournamentCommand extends Command
     private const ROUNDS = [
         ['name' => '16e finales', 'weight' => 1.0, 'matches' => [
             ['home' => '2A', 'away' => '2B', 'kickoff' => '2026-06-28 21:00'],
-            ['home' => '1C', 'away' => '2F', 'kickoff' => '2026-06-29 17:00'],
-            ['home' => '1E', 'away' => '3ABCDF', 'kickoff' => '2026-06-29 19:30'],
-            ['home' => '1F', 'away' => '2C', 'kickoff' => '2026-06-30 02:00'],
-            ['home' => '2E', 'away' => '2I', 'kickoff' => '2026-06-30 17:00'],
-            ['home' => '1I', 'away' => '3CDFGH', 'kickoff' => '2026-06-30 20:00'],
-            ['home' => '1A', 'away' => '3CEFHI', 'kickoff' => '2026-07-01 02:00'],
-            ['home' => '1L', 'away' => '3EHIJK', 'kickoff' => '2026-07-01 15:00'],
+            ['home' => '1C', 'away' => '2F', 'kickoff' => '2026-06-29 19:00'],
+            ['home' => '1E', 'away' => '3ABCDF', 'kickoff' => '2026-06-29 22:30'],
+            ['home' => '1F', 'away' => '2C', 'kickoff' => '2026-06-30 03:00'],
+            ['home' => '2E', 'away' => '2I', 'kickoff' => '2026-06-30 19:00'],
+            ['home' => '1I', 'away' => '3CDFGH', 'kickoff' => '2026-06-30 23:00'],
+            ['home' => '1A', 'away' => '3CEFHI', 'kickoff' => '2026-07-01 03:00'],
+            ['home' => '1L', 'away' => '3EHIJK', 'kickoff' => '2026-07-01 18:00'],
             ['home' => '1G', 'away' => '3AEHIJ', 'kickoff' => '2026-07-01 22:00'],
             ['home' => '1D', 'away' => '3BEFIJ', 'kickoff' => '2026-07-02 02:00'],
             ['home' => '1H', 'away' => '2J', 'kickoff' => '2026-07-02 21:00'],
-            ['home' => '2K', 'away' => '2L', 'kickoff' => '2026-07-02 22:00'],
+            ['home' => '2K', 'away' => '2L', 'kickoff' => '2026-07-03 01:00'],
             ['home' => '1B', 'away' => '3EFGIJ', 'kickoff' => '2026-07-03 05:00'],
-            ['home' => '2D', 'away' => '2G', 'kickoff' => '2026-07-03 18:00'],
-            ['home' => '1J', 'away' => '2H', 'kickoff' => '2026-07-03 21:00'],
-            ['home' => '1K', 'away' => '3DEIJL', 'kickoff' => '2026-07-04 01:30'],
+            ['home' => '2D', 'away' => '2G', 'kickoff' => '2026-07-03 20:00'],
+            ['home' => '1J', 'away' => '2H', 'kickoff' => '2026-07-04 00:00'],
+            ['home' => '1K', 'away' => '3DEIJL', 'kickoff' => '2026-07-04 03:30'],
         ]],
         ['name' => 'Achtste finales', 'weight' => 2.0, 'matches' => [
-            ['home' => 'W73', 'away' => 'W75', 'kickoff' => '2026-07-04 17:00'],
-            ['home' => 'W74', 'away' => 'W77', 'kickoff' => '2026-07-04 20:00'],
-            ['home' => 'W76', 'away' => 'W78', 'kickoff' => '2026-07-05 19:00'],
-            ['home' => 'W79', 'away' => 'W80', 'kickoff' => '2026-07-06 01:00'],
-            ['home' => 'W83', 'away' => 'W84', 'kickoff' => '2026-07-06 19:00'],
+            ['home' => 'W73', 'away' => 'W75', 'kickoff' => '2026-07-04 19:00'],
+            ['home' => 'W74', 'away' => 'W77', 'kickoff' => '2026-07-04 23:00'],
+            ['home' => 'W76', 'away' => 'W78', 'kickoff' => '2026-07-05 22:00'],
+            ['home' => 'W79', 'away' => 'W80', 'kickoff' => '2026-07-06 02:00'],
+            ['home' => 'W83', 'away' => 'W84', 'kickoff' => '2026-07-06 21:00'],
             ['home' => 'W81', 'away' => 'W82', 'kickoff' => '2026-07-07 02:00'],
-            ['home' => 'W86', 'away' => 'W88', 'kickoff' => '2026-07-07 15:00'],
+            ['home' => 'W86', 'away' => 'W88', 'kickoff' => '2026-07-07 18:00'],
             ['home' => 'W85', 'away' => 'W87', 'kickoff' => '2026-07-07 22:00'],
         ]],
         ['name' => 'Kwartfinales', 'weight' => 4.0, 'matches' => [
-            ['home' => 'W89', 'away' => 'W90', 'kickoff' => '2026-07-09 19:00'],
+            ['home' => 'W89', 'away' => 'W90', 'kickoff' => '2026-07-09 22:00'],
             ['home' => 'W93', 'away' => 'W94', 'kickoff' => '2026-07-10 21:00'],
-            ['home' => 'W91', 'away' => 'W92', 'kickoff' => '2026-07-11 20:00'],
-            ['home' => 'W95', 'away' => 'W96', 'kickoff' => '2026-07-12 01:00'],
+            ['home' => 'W91', 'away' => 'W92', 'kickoff' => '2026-07-11 23:00'],
+            ['home' => 'W95', 'away' => 'W96', 'kickoff' => '2026-07-12 03:00'],
         ]],
         ['name' => 'Halve finales', 'weight' => 8.0, 'matches' => [
-            ['home' => 'W97', 'away' => 'W98', 'kickoff' => '2026-07-14 19:00'],
-            ['home' => 'W99', 'away' => 'W100', 'kickoff' => '2026-07-15 18:00'],
+            ['home' => 'W97', 'away' => 'W98', 'kickoff' => '2026-07-14 21:00'],
+            ['home' => 'W99', 'away' => 'W100', 'kickoff' => '2026-07-15 21:00'],
         ]],
         ['name' => 'Finale & troostfinale', 'weight' => 8.0, 'matches' => [
-            ['home' => 'RU101', 'away' => 'RU102', 'kickoff' => '2026-07-18 20:00'],
-            ['home' => 'W101', 'away' => 'W102', 'kickoff' => '2026-07-19 19:00'],
+            ['home' => 'RU101', 'away' => 'RU102', 'kickoff' => '2026-07-18 23:00'],
+            ['home' => 'W101', 'away' => 'W102', 'kickoff' => '2026-07-19 21:00'],
         ]],
     ];
 
