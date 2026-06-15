@@ -443,6 +443,7 @@ class ScoringService
     /**
      * Strafpunten voor de ronde lantaarn op één (gespeelde) voorspelling:
      *   +1 als een gelijkspel is voorspeld terwijl het géén gelijkspel werd;
+     *   +1 als winst/verlies is voorspeld terwijl het een gelijkspel werd;
      *   +2 als de uitslag omgekeerd is voorspeld (verkeerde ploeg won);
      *   +1 als de verkeerde ploeg tot winnaar is uitgeroepen.
      * Zonder uitslag (nog niet gespeeld) levert dit nul punten op.
@@ -464,6 +465,9 @@ class ScoringService
             $predDiff = $ph <=> $pa;
             $actualDiff = $ah <=> $aa;
             if ($predDiff === 0 && $actualDiff !== 0) {
+                $penalty += 1;
+            } elseif ($predDiff !== 0 && $actualDiff === 0) {
+                // Winst/verlies voorspeld, maar het werd een gelijkspel.
                 $penalty += 1;
             } elseif ($predDiff !== 0 && $actualDiff !== 0 && $predDiff !== $actualDiff) {
                 $penalty += 2;

@@ -138,4 +138,48 @@ class ScoringServiceTest extends TestCase
 
         $this->assertSame(3, $score->total(), 'Wel exacte uitslag (3), geen winnaar-punten.');
     }
+
+    // ── Ronde lantaarn (strafpunten) ──────────────────────────────────────────
+
+    public function testLanternDrawPredictedButNotDraw(): void
+    {
+        // Gelijkspel voorspeld, werd winst thuis; winnaar wél goed → alleen +1.
+        $match = $this->match(2, 1, self::HOME);
+        $this->assertSame(1, $this->service->lanternPenalty($this->prediction($match, 1, 1, self::HOME)));
+    }
+
+    public function testLanternWinLossPredictedButDraw(): void
+    {
+        // Winst voorspeld (2–1), werd gelijkspel (1–1); winnaar (na strafschoppen) wél goed → +1.
+        $match = $this->match(1, 1, self::HOME);
+        $this->assertSame(1, $this->service->lanternPenalty($this->prediction($match, 2, 1, self::HOME)));
+    }
+
+    public function testLanternWinLossPredictedButDrawWithWrongWinner(): void
+    {
+        // Winst voorspeld, werd gelijkspel, én verkeerde ploeg doorgelaten → +1 +1 = 2.
+        $match = $this->match(1, 1, self::HOME);
+        $this->assertSame(2, $this->service->lanternPenalty($this->prediction($match, 2, 1, self::AWAY)));
+    }
+
+    public function testLanternReversedResult(): void
+    {
+        // 3–1 voorspeld, werd 1–2 (omgekeerd) + verkeerde winnaar → +2 +1 = 3 (maximum).
+        $match = $this->match(1, 2, self::AWAY);
+        $this->assertSame(3, $this->service->lanternPenalty($this->prediction($match, 3, 1, self::HOME)));
+        $this->assertSame(3, ScoringService::MAX_LANTERN_PER_MATCH);
+    }
+
+    public function testLanternCorrectTendencyNoPenalty(): void
+    {
+        // Winst thuis voorspeld, werd winst thuis, winnaar goed → geen strafpunten.
+        $match = $this->match(2, 0, self::HOME);
+        $this->assertSame(0, $this->service->lanternPenalty($this->prediction($match, 1, 0, self::HOME)));
+    }
+
+    public function testLanternUnfinishedMatchGivesZero(): void
+    {
+        $match = (new FootballMatch())->setHomeTeam('A')->setAwayTeam('B');
+        $this->assertSame(0, $this->service->lanternPenalty($this->prediction($match, 2, 1, self::HOME)));
+    }
 }

@@ -153,8 +153,9 @@ class LeaderboardIntegrationTest extends KernelTestCase
 
         // Anne voorspelt elke uitslag exact goed: nooit straf.
         $this->assertSame(0, $this->entryFor($board, 'Anne')->lanternPoints);
-        // Bram voorspelt 2× een gelijkspel dat geen gelijkspel werd (+1 elk), winnaar steeds goed.
-        $this->assertSame(2, $this->entryFor($board, 'Bram')->lanternPoints);
+        // Bram: 2× een gelijkspel voorspeld dat geen gelijkspel werd (+1 elk) en 3× winst/verlies
+        // voorspeld bij een gelijkspel (FRA-SUI, ENG-JPN, ITA-CRO; +1 elk), winnaar steeds goed = 5.
+        $this->assertSame(5, $this->entryFor($board, 'Bram')->lanternPoints);
         // Diana roept in de 8 achtste-duels de verkeerde winnaar uit (+1 elk), uitslag verder goed.
         $this->assertSame(8, $this->entryFor($board, 'Diana')->lanternPoints);
         // Chris roept in alle 12 wedstrijden de verkeerde winnaar uit (+1 elk).

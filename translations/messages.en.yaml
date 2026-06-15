@@ -63,7 +63,7 @@ lb:
     anim_none: No matches played yet
     anim_general: '🟡 General'
     anim_lantern: '🔴 Lantern'
-    lantern_intro: 'The round lantern: penalty points for bad predictions on matches that have been played. +1 if you predicted a draw and it turned out otherwise, +2 if you predicted the result reversed (e.g. 3–1 while it became 1–2) and +1 if you named the wrong team as the winner. Matches you did not fill in do not count. Whoever was furthest off is on top. Per round: penalty points.'
+    lantern_intro: 'The round lantern: penalty points for bad predictions on matches that have been played. +1 if you predicted a draw and it turned out otherwise, +1 if you predicted a win/loss while it ended in a draw, +2 if you predicted the result reversed (e.g. 3–1 while it became 1–2) and +1 if you named the wrong team as the winner. Matches you did not fill in do not count. Whoever was furthest off is on top. Per round: penalty points.'
     inconsistent_intro: 'Contradictory predictions: your predicted score points to one team as the winner, but you pick the other to advance (e.g. 2–1 for the home team, yet the away team goes through). Whoever has the most contradictions is on top. Per round: number contradictory.'
     pause: '⏸ Pause'
 dash:

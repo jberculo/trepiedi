@@ -63,7 +63,7 @@ lb:
     anim_none: Nog geen gespeelde wedstrijden
     anim_general: '🟡 Algemeen'
     anim_lantern: '🔴 Lantaarn'
-    lantern_intro: 'De ronde lantaarn: strafpunten voor slechte voorspellingen op gespeelde wedstrijden. +1 als je een gelijkspel voorspelde en het werd iets anders, +2 als je de uitslag omgekeerd voorspelde (bv. 3–1 terwijl het 1–2 werd) en +1 als je de verkeerde ploeg tot winnaar uitriep. Niet ingevulde wedstrijden tellen niet mee. Bovenaan staat wie er het meest naast zat. Per ronde: strafpunten.'
+    lantern_intro: 'De ronde lantaarn: strafpunten voor slechte voorspellingen op gespeelde wedstrijden. +1 als je een gelijkspel voorspelde en het werd iets anders, +1 als je winst/verlies voorspelde terwijl het een gelijkspel werd, +2 als je de uitslag omgekeerd voorspelde (bv. 3–1 terwijl het 1–2 werd) en +1 als je de verkeerde ploeg tot winnaar uitriep. Niet ingevulde wedstrijden tellen niet mee. Bovenaan staat wie er het meest naast zat. Per ronde: strafpunten.'
     inconsistent_intro: 'Tegenstrijdige voorspellingen: je voorspelde uitslag wijst de ene ploeg als winnaar aan, maar je laat de andere doorgaan (bv. 2–1 voor de thuisploeg, maar de uitploeg gaat door). Bovenaan staat wie de meeste tegenstrijdigheden heeft. Per ronde: aantal tegenstrijdig.'
     pause: '⏸ Pauze'
 dash:
