@@ -27,23 +27,47 @@ class PoolContext
         $user = $this->security->getUser();
         if ($user instanceof User) {
             $active = $user->getActivePool();
-            if ($active !== null && $user->isInPool($active)) {
+            if ($active !== null && !$active->isArchived() && $user->isInPool($active)) {
                 return $active;
             }
 
+            // Standaardpoule onder de niet-gearchiveerde lidmaatschappen.
             foreach ($user->getPools() as $pool) {
-                if ($pool->isDefault()) {
+                if (!$pool->isArchived() && $pool->isDefault()) {
                     return $pool;
                 }
             }
 
-            $first = $user->getPools()->first();
-            if ($first instanceof Pool) {
-                return $first;
+            // Anders het eerste actieve lidmaatschap.
+            foreach ($user->getPools() as $pool) {
+                if (!$pool->isArchived()) {
+                    return $pool;
+                }
             }
+            // Geen enkele actieve poule (wees): val terug op de globale standaardpoule
+            // voor de weergave; de wees-melding wijst de speler erop.
         }
 
         return $this->pools->findDefault();
+    }
+
+    /**
+     * Een ingelogde speler die in geen enkele (niet-gearchiveerde) poule meer zit.
+     */
+    public function currentUserIsOrphan(): bool
+    {
+        $user = $this->security->getUser();
+        if (!$user instanceof User) {
+            return false;
+        }
+
+        foreach ($user->getPools() as $pool) {
+            if (!$pool->isArchived()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

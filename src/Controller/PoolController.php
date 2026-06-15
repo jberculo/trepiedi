@@ -21,7 +21,7 @@ class PoolController extends AbstractController
     #[Route('/poule/inschrijven/{code}', name: 'app_pool_join')]
     public function join(string $code, Request $request, PoolRepository $pools, EntityManagerInterface $em): Response
     {
-        $pool = $pools->findOneByCode($code);
+        $pool = $pools->findOneActiveByCode($code);
         if ($pool === null) {
             $this->addFlash('error', 'pool.not_found');
 
@@ -56,7 +56,7 @@ class PoolController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $pool = $pools->findOneByCode($code);
+        $pool = $pools->findOneActiveByCode($code);
         if ($pool === null || !$user->isInPool($pool)) {
             $this->addFlash('error', 'pool.not_member');
 

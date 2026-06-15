@@ -86,6 +86,10 @@
                 {% endfor %}
             {% endfor %}
 
+            {% if app.user and pool_orphan() %}
+                <div class="alert alert-warning" role="alert">{{ 'pool.orphan_notice'|trans }}</div>
+            {% endif %}
+
             {% block body %}{% endblock %}
         </main>
 

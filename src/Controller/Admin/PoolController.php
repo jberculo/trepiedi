@@ -21,7 +21,7 @@ class PoolController extends AbstractController
     public function index(PoolRepository $repository): Response
     {
         return $this->render('admin/pool/index.html.twig', [
-            'pools' => $repository->findBy([], ['isDefault' => 'DESC', 'name' => 'ASC']),
+            'pools' => $repository->findAllForAdmin(),
         ]);
     }
 
@@ -96,10 +96,14 @@ class PoolController extends AbstractController
         return $this->redirectToRoute('admin_pool_members', ['id' => $pool->getId()]);
     }
 
-    #[Route('/{id}/verwijderen', name: 'admin_pool_delete', methods: ['POST'])]
-    public function delete(Pool $pool, Request $request, EntityManagerInterface $em): Response
+    /**
+     * Soft-delete: de poule wordt gearchiveerd (niet fysiek verwijderd), zodat
+     * leden die zonder poule komen te zitten een melding krijgen.
+     */
+    #[Route('/{id}/archiveren', name: 'admin_pool_delete', methods: ['POST'])]
+    public function archive(Pool $pool, Request $request, EntityManagerInterface $em): Response
     {
-        if (!$this->isCsrfTokenValid('delete-pool-' . $pool->getId(), (string) $request->getPayload()->get('_token'))) {
+        if (!$this->isCsrfTokenValid('archive-pool-' . $pool->getId(), (string) $request->getPayload()->get('_token'))) {
             return $this->redirectToRoute('admin_pool_index');
         }
 
@@ -110,9 +114,27 @@ class PoolController extends AbstractController
             return $this->redirectToRoute('admin_pool_index');
         }
 
-        $em->remove($pool);
+        $pool->archive();
+        // Wie deze poule als actief had, valt terug (PoolContext kiest opnieuw).
+        foreach ($pool->getMembers() as $member) {
+            if ($member->getActivePool() !== null && $member->getActivePool()->getId() === $pool->getId()) {
+                $member->setActivePool(null);
+            }
+        }
         $em->flush();
-        $this->addFlash('success', 'admin.pool_deleted');
+        $this->addFlash('success', 'admin.pool_archived');
+
+        return $this->redirectToRoute('admin_pool_index');
+    }
+
+    #[Route('/{id}/herstellen', name: 'admin_pool_restore', methods: ['POST'])]
+    public function restore(Pool $pool, Request $request, EntityManagerInterface $em): Response
+    {
+        if ($this->isCsrfTokenValid('restore-pool-' . $pool->getId(), (string) $request->getPayload()->get('_token'))) {
+            $pool->restore();
+            $em->flush();
+            $this->addFlash('success', 'admin.pool_restored');
+        }
 
         return $this->redirectToRoute('admin_pool_index');
     }

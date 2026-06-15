@@ -22,10 +22,11 @@
                 </thead>
                 <tbody>
                     {% for pool in pools %}
-                        <tr>
+                        <tr class="{{ pool.archived ? 'text-muted' }}">
                             <td>
                                 {{ pool.name }}
                                 {% if pool.default %}<span class="badge text-bg-primary">{{ 'admin.pool_is_default'|trans }}</span>{% endif %}
+                                {% if pool.archived %}<span class="badge text-bg-secondary">{{ 'admin.pool_archived_badge'|trans }}</span>{% endif %}
                             </td>
                             <td><code>{{ pool.code }}</code></td>
                             <td class="small text-muted">{{ url('app_pool_join', {code: pool.code}) }}</td>
@@ -33,14 +34,21 @@
                                 <a href="{{ path('admin_pool_members', {id: pool.id}) }}">{{ pool.members|length }}</a>
                             </td>
                             <td class="text-end text-nowrap">
-                                <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_pool_members', {id: pool.id}) }}">{{ 'admin.members'|trans }}</a>
-                                <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_pool_edit', {id: pool.id}) }}">{{ 'common.edit'|trans }}</a>
-                                {% if not pool.default %}
-                                    <form method="post" action="{{ path('admin_pool_delete', {id: pool.id}) }}" class="d-inline"
-                                          onsubmit="return confirm('{{ 'admin.confirm_delete_pool'|trans }}');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete-pool-' ~ pool.id) }}">
-                                        <button class="btn btn-sm btn-outline-danger">{{ 'common.delete'|trans }}</button>
+                                {% if pool.archived %}
+                                    <form method="post" action="{{ path('admin_pool_restore', {id: pool.id}) }}" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('restore-pool-' ~ pool.id) }}">
+                                        <button class="btn btn-sm btn-outline-success">{{ 'admin.restore'|trans }}</button>
                                     </form>
+                                {% else %}
+                                    <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_pool_members', {id: pool.id}) }}">{{ 'admin.members'|trans }}</a>
+                                    <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_pool_edit', {id: pool.id}) }}">{{ 'common.edit'|trans }}</a>
+                                    {% if not pool.default %}
+                                        <form method="post" action="{{ path('admin_pool_delete', {id: pool.id}) }}" class="d-inline"
+                                              onsubmit="return confirm('{{ 'admin.confirm_archive_pool'|trans }}');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('archive-pool-' ~ pool.id) }}">
+                                            <button class="btn btn-sm btn-outline-danger">{{ 'admin.archive'|trans }}</button>
+                                        </form>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                         </tr>

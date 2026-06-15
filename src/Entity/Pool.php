@@ -43,6 +43,13 @@ class Pool
     private bool $isDefault = false;
 
     /**
+     * Soft-delete: gezet wanneer de poule is gearchiveerd. Gearchiveerde poules
+     * verdwijnen uit inschrijven/wisselen/klassement, maar blijven bewaard.
+     */
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $archivedAt = null;
+
+    /**
      * @var Collection<int, User>
      */
     #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'pools')]
@@ -90,6 +97,30 @@ class Pool
     public function setDefault(bool $isDefault): static
     {
         $this->isDefault = $isDefault;
+
+        return $this;
+    }
+
+    public function getArchivedAt(): ?\DateTimeImmutable
+    {
+        return $this->archivedAt;
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archivedAt !== null;
+    }
+
+    public function archive(): static
+    {
+        $this->archivedAt ??= new \DateTimeImmutable();
+
+        return $this;
+    }
+
+    public function restore(): static
+    {
+        $this->archivedAt = null;
 
         return $this;
     }

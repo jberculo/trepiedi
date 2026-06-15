@@ -141,10 +141,12 @@ matches:
     not_played: not played yet
     none: No matches yet.
 pool:
-    not_found: Unknown pool.
+    not_found: Unknown or archived pool.
     login_to_join: 'Log in or register to join this pool.'
     joined: You have joined this pool.
     not_member: You are not a member of that pool.
+    invalid_link: 'This invitation link is invalid or expired; you have not been registered.'
+    orphan_notice: 'You are no longer linked to a pool. Ask for an invitation link to join again.'
 footer:
     tagline: 'Predict. Score. Win.'
 admin:
@@ -214,7 +216,12 @@ admin:
     cannot_delete_default: 'The default pool cannot be deleted. Make another pool the default first.'
     pool_added: Pool added.
     pool_updated: Pool updated.
-    pool_deleted: Pool deleted.
+    pool_archived: Pool archived.
+    pool_restored: Pool restored.
+    pool_archived_badge: archived
+    archive: Archive
+    restore: Restore
+    confirm_archive_pool: 'Archive pool? Members without another pool will be notified.'
     no_pools: No pools yet.
     remove_member: Remove
     confirm_remove_member: 'Remove this player from the pool?'

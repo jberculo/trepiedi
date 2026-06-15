@@ -141,10 +141,12 @@ matches:
     not_played: nog niet gespeeld
     none: Nog geen wedstrijden.
 pool:
-    not_found: Onbekende poule.
+    not_found: Onbekende of gearchiveerde poule.
     login_to_join: 'Log in of registreer om lid te worden van deze poule.'
     joined: Je bent nu lid van deze poule.
     not_member: Je bent geen lid van die poule.
+    invalid_link: 'Deze uitnodigingslink is ongeldig of verlopen; je bent niet geregistreerd.'
+    orphan_notice: 'Je bent niet meer aan een poule gekoppeld. Vraag een uitnodigingslink om weer mee te doen.'
 footer:
     tagline: 'Voorspel. Scoor. Win.'
 admin:
@@ -214,7 +216,12 @@ admin:
     cannot_delete_default: 'De standaardpoule kan niet worden verwijderd. Maak eerst een andere poule standaard.'
     pool_added: Poule toegevoegd.
     pool_updated: Poule bijgewerkt.
-    pool_deleted: Poule verwijderd.
+    pool_archived: Poule gearchiveerd.
+    pool_restored: Poule hersteld.
+    pool_archived_badge: gearchiveerd
+    archive: Archiveren
+    restore: Herstellen
+    confirm_archive_pool: 'Poule archiveren? Leden zonder andere poule krijgen een melding.'
     no_pools: Nog geen poules.
     remove_member: Verwijderen
     confirm_remove_member: 'Speler uit deze poule verwijderen?'

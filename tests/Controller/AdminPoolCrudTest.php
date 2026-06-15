@@ -75,7 +75,7 @@ class AdminPoolCrudTest extends FixturesWebTestCase
         $this->assertSame('Het Kantoor', $this->em->getRepository(Pool::class)->findOneBy(['code' => 'kantoor'])->getName());
     }
 
-    public function testDefaultPoolHasNoDeleteButton(): void
+    public function testDefaultPoolHasNoArchiveButton(): void
     {
         $this->client->loginUser($this->user('admin@trepiedi.test'));
         $crawler = $this->client->request('GET', '/admin/poules');
@@ -83,24 +83,26 @@ class AdminPoolCrudTest extends FixturesWebTestCase
         $default = $this->em->getRepository(Pool::class)->findOneBy(['isDefault' => true]);
         $this->assertSame(
             0,
-            $crawler->filter('form[action="/admin/poules/' . $default->getId() . '/verwijderen"]')->count(),
-            'De standaardpoule heeft geen verwijderknop.'
+            $crawler->filter('form[action="/admin/poules/' . $default->getId() . '/archiveren"]')->count(),
+            'De standaardpoule heeft geen archiveerknop.'
         );
     }
 
-    public function testDeleteNonDefaultPool(): void
+    public function testArchiveNonDefaultPool(): void
     {
         $this->client->loginUser($this->user('admin@trepiedi.test'));
         $kantoor = $this->em->getRepository(Pool::class)->findOneBy(['code' => 'kantoor']);
         $id = $kantoor->getId();
 
         $crawler = $this->client->request('GET', '/admin/poules');
-        $form = $crawler->filter('form[action="/admin/poules/' . $id . '/verwijderen"]')->form();
+        $form = $crawler->filter('form[action="/admin/poules/' . $id . '/archiveren"]')->form();
         $this->client->submit($form);
         $this->assertResponseRedirects('/admin/poules');
 
         $this->em->clear();
-        $this->assertNull($this->em->getRepository(Pool::class)->find($id), 'Kantoor is verwijderd.');
+        $kantoor = $this->em->getRepository(Pool::class)->find($id);
+        $this->assertNotNull($kantoor, 'Soft-delete: poule blijft bestaan.');
+        $this->assertTrue($kantoor->isArchived(), 'Poule is gearchiveerd.');
     }
 
     public function testRemoveMember(): void

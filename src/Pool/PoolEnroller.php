@@ -23,13 +23,18 @@ class PoolEnroller
     }
 
     /**
-     * Schrijf in op de poule van de code; valt terug op de standaardpoule als de
-     * code leeg/onbekend is. Maakt de poule actief en bewaart. Geeft de poule terug.
+     * Schrijf in op de actieve poule van de code, of (zonder code) op de
+     * standaardpoule. Een foutieve/gearchiveerde code schrijft NIET stilletjes in
+     * op de standaardpoule maar levert null op. Maakt de poule actief en bewaart.
      */
     public function enroll(User $user, ?string $code): ?\App\Entity\Pool
     {
-        $pool = ($code !== null && $code !== '') ? $this->pools->findOneByCode($code) : null;
-        $pool ??= $this->pools->findDefault();
+        if ($code !== null && $code !== '') {
+            $pool = $this->pools->findOneActiveByCode($code);
+        } else {
+            $pool = $this->pools->findDefault();
+        }
+
         if ($pool === null) {
             return null;
         }
@@ -39,5 +44,18 @@ class PoolEnroller
         $this->em->flush();
 
         return $pool;
+    }
+
+    /**
+     * Is dit een geldige (actieve) inschrijfcode? Lege code telt als geldig
+     * (= standaardpoule).
+     */
+    public function isValidCode(?string $code): bool
+    {
+        if ($code === null || $code === '') {
+            return true;
+        }
+
+        return $this->pools->findOneActiveByCode($code) !== null;
     }
 }

@@ -33,19 +33,31 @@ class RegistrationController extends AbstractController
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
 
+        $session = $request->getSession();
+        $code = $session->get(PoolEnroller::SESSION_KEY);
+        $code = is_string($code) ? $code : null;
+
         if ($form->isSubmitted() && $form->isValid()) {
+            // Foutieve/verlopen poule-link: niet registreren.
+            if (!$poolEnroller->isValidCode($code)) {
+                $session->remove(PoolEnroller::SESSION_KEY);
+                $this->addFlash('error', 'pool.invalid_link');
+
+                return $this->render('security/register.html.twig', [
+                    'registrationForm' => $form,
+                ]);
+            }
+
             $user->setPassword(
                 $passwordHasher->hashPassword($user, (string) $form->get('plainPassword')->getData())
             );
             $user->setSlug($userRepository->uniqueSlug($user->getDisplayName()));
             $userRepository->save($user, true);
 
-            // Inschrijven op de poule van een (onthouden) uitnodigingscode, anders
+            // Inschrijven op de poule van de (onthouden) uitnodigingscode, anders
             // de standaardpoule.
-            $session = $request->getSession();
-            $code = $session->get(PoolEnroller::SESSION_KEY);
             $session->remove(PoolEnroller::SESSION_KEY);
-            $poolEnroller->enroll($user, is_string($code) ? $code : null);
+            $poolEnroller->enroll($user, $code);
 
             return $userAuthenticator->authenticateUser($user, $authenticator, $request);
         }
