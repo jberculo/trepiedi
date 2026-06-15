@@ -25,8 +25,8 @@ class FootballMatchRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('m')
             ->leftJoin('m.round', 'r')->addSelect('r')
-            ->orderBy('r.sortOrder', 'DESC')
-            ->addOrderBy('m.kickoffAt', 'DESC')
+            ->orderBy('r.sortOrder', 'ASC')
+            ->addOrderBy('m.kickoffAt', 'ASC')
             ->getQuery()
             ->getResult();
     }

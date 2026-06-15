@@ -25,8 +25,8 @@ class RoundRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('r')
             ->leftJoin('r.matches', 'm')->addSelect('m')
-            ->orderBy('r.sortOrder', 'DESC')
-            ->addOrderBy('m.kickoffAt', 'DESC')
+            ->orderBy('r.sortOrder', 'ASC')
+            ->addOrderBy('m.kickoffAt', 'ASC')
             ->getQuery()
             ->getResult();
     }
