@@ -221,3 +221,13 @@ admin:
     member_removed: Player removed from the pool.
     no_members: No members yet.
     back_to_pools: '← Back to pools'
+    participants: Participants
+    manage_participants: '👤 Manage participants'
+    participant_edit: Edit participant
+    participant_updated: Participant updated.
+    participant_deleted: Participant deleted.
+    no_participants: No participants yet.
+    role: Role
+    is_admin: Admin
+    confirm_delete_participant: 'Delete participant and all their predictions?'
+    cannot_delete_self: You cannot delete yourself.

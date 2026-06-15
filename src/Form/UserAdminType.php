@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Form;
+
+use App\Entity\Pool;
+use App\Entity\User;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+/**
+ * Beheerformulier voor een deelnemer: naam, e-mail, beheerrechten en poules.
+ * De beheer-checkbox is niet gemapt; de controller vertaalt 'm naar de rollen.
+ */
+class UserAdminType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $builder
+            ->add('displayName', TextType::class, [
+                'label' => 'auth.display_name',
+            ])
+            ->add('email', EmailType::class, [
+                'label' => 'auth.email',
+            ])
+            ->add('isAdmin', CheckboxType::class, [
+                'label' => 'admin.is_admin',
+                'mapped' => false,
+                'required' => false,
+            ])
+            ->add('pools', EntityType::class, [
+                'class' => Pool::class,
+                'choice_label' => 'name',
+                'multiple' => true,
+                'expanded' => true,
+                'required' => false,
+                'by_reference' => false,
+                'label' => 'admin.pools',
+            ]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults(['data_class' => User::class]);
+    }
+}

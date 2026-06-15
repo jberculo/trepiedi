@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.participants'|trans }} — {{ 'admin.title'|trans }}{% endblock %}
+
+{% block body %}
+    <h1 class="h3 mb-3">{{ 'admin.participants'|trans }}</h1>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ 'lb.player'|trans }}</th>
+                        <th>{{ 'auth.email'|trans }}</th>
+                        <th>{{ 'admin.pools'|trans }}</th>
+                        <th>{{ 'admin.role'|trans }}</th>
+                        <th class="text-end">{{ 'admin.actions'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td>{{ user.displayName }}</td>
+                            <td class="small text-muted">{{ user.email }}</td>
+                            <td class="small">
+                                {% for pool in user.pools %}<span class="badge text-bg-light text-dark border">{{ pool.name }}</span> {% else %}<span class="text-muted">—</span>{% endfor %}
+                            </td>
+                            <td>{% if user.admin %}<span class="badge text-bg-primary">{{ 'admin.is_admin'|trans }}</span>{% endif %}</td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_participant_edit', {id: user.id}) }}">{{ 'common.edit'|trans }}</a>
+                                {% if app.user.id != user.id %}
+                                    <form method="post" action="{{ path('admin_participant_delete', {id: user.id}) }}" class="d-inline"
+                                          onsubmit="return confirm('{{ 'admin.confirm_delete_participant'|trans }}');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete-participant-' ~ user.id) }}">
+                                        <button class="btn btn-sm btn-outline-danger">{{ 'common.delete'|trans }}</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">{{ 'admin.no_participants'|trans }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <a class="btn btn-link mt-3" href="{{ path('admin_dashboard') }}">{{ 'admin.back'|trans }}</a>
+{% endblock %}
