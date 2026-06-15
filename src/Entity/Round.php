@@ -39,7 +39,7 @@ class Round
      * @var Collection<int, FootballMatch>
      */
     #[ORM\OneToMany(targetEntity: FootballMatch::class, mappedBy: 'round', cascade: ['remove'])]
-    #[ORM\OrderBy(['kickoffAt' => 'DESC'])]
+    #[ORM\OrderBy(['kickoffAt' => 'ASC'])]
     private Collection $matches;
 
     public function __construct()
