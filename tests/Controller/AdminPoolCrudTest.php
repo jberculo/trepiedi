@@ -21,7 +21,7 @@ class AdminPoolCrudTest extends FixturesWebTestCase
 
         $this->assertResponseIsSuccessful();
         $body = $crawler->filter('body')->text();
-        $this->assertStringContainsString('Algemeen', $body);
+        $this->assertStringContainsString('Tremani', $body);
         $this->assertStringContainsString('Kantoor', $body);
     }
 
@@ -29,17 +29,17 @@ class AdminPoolCrudTest extends FixturesWebTestCase
     {
         $this->client->loginUser($this->user('admin@trepiedi.test'));
         $crawler = $this->client->request('GET', '/admin/poules/nieuw');
+        // Code wordt automatisch gegenereerd; alleen de naam wordt ingevoerd.
         $form = $crawler->selectButton('Opslaan')->form([
             'pool[name]' => 'Familie',
-            'pool[code]' => 'familie',
         ]);
         $this->client->submit($form);
         $this->assertResponseRedirects('/admin/poules');
 
         $this->em->clear();
-        $pool = $this->em->getRepository(Pool::class)->findOneBy(['code' => 'familie']);
+        $pool = $this->em->getRepository(Pool::class)->findOneBy(['name' => 'Familie']);
         $this->assertNotNull($pool);
-        $this->assertSame('Familie', $pool->getName());
+        $this->assertMatchesRegularExpression('/^familie-[0-9a-f]{4}$/', $pool->getCode(), 'Code = slug(naam)-salt.');
         $this->assertFalse($pool->isDefault());
     }
 
@@ -49,14 +49,13 @@ class AdminPoolCrudTest extends FixturesWebTestCase
         $crawler = $this->client->request('GET', '/admin/poules/nieuw');
         $form = $crawler->selectButton('Opslaan')->form([
             'pool[name]' => 'Nieuwe standaard',
-            'pool[code]' => 'nieuw',
         ]);
         $form['pool[default]']->tick();
         $this->client->submit($form);
 
         $this->em->clear();
         $repo = $this->em->getRepository(Pool::class);
-        $this->assertTrue($repo->findOneBy(['code' => 'nieuw'])->isDefault());
+        $this->assertTrue($repo->findOneBy(['name' => 'Nieuwe standaard'])->isDefault());
         $this->assertFalse($repo->findOneBy(['code' => 'algemeen'])->isDefault(), 'Oude standaard is niet langer standaard.');
         $this->assertCount(1, $repo->findBy(['isDefault' => true]), 'Hooguit één standaardpoule.');
     }

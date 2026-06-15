@@ -25,6 +25,7 @@ class CreatePoolCommand extends Command
     public function __construct(
         private EntityManagerInterface $em,
         private PoolRepository $pools,
+        private \App\Pool\PoolCodeGenerator $codeGenerator,
     ) {
         parent::__construct();
     }
@@ -33,7 +34,7 @@ class CreatePoolCommand extends Command
     {
         $this
             ->addArgument('name', InputArgument::REQUIRED, 'Naam van de poule')
-            ->addOption('code', null, InputOption::VALUE_REQUIRED, 'Eigen inschrijfcode (anders willekeurig)')
+            ->addOption('code', null, InputOption::VALUE_REQUIRED, 'Eigen inschrijfcode (anders uit de naam + salt)')
             ->addOption('default', null, InputOption::VALUE_NONE, 'Maak dit de standaardpoule');
     }
 
@@ -42,8 +43,10 @@ class CreatePoolCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $name = (string) $input->getArgument('name');
-        $code = (string) ($input->getOption('code') ?: bin2hex(random_bytes(4)));
-        $code = strtolower($code);
+        // Eigen code, anders automatisch uit de naam + korte salt.
+        $code = $input->getOption('code')
+            ? strtolower((string) $input->getOption('code'))
+            : $this->codeGenerator->generate($name);
 
         if ($this->pools->findOneByCode($code) !== null) {
             $io->error(sprintf('Er bestaat al een poule met code "%s".', $code));

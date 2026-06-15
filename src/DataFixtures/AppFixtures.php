@@ -80,7 +80,7 @@ class AppFixtures extends Fixture
      */
     private function createPools(ObjectManager $manager): array
     {
-        $default = (new Pool())->setName('Algemeen')->setCode('algemeen')->setDefault(true);
+        $default = (new Pool())->setName('Tremani')->setCode('algemeen')->setDefault(true);
         $kantoor = (new Pool())->setName('Kantoor')->setCode('kantoor');
         $manager->persist($default);
         $manager->persist($kantoor);

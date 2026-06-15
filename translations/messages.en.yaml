@@ -104,7 +104,7 @@ form:
     match_active_help: 'Inactive matches cannot be predicted yet, but do count towards the tournament max.'
     pool_name: Name
     pool_code: 'Registration code (in the invite URL)'
-    pool_code_help: 'Short code without spaces, e.g. "office". Must be unique.'
+    pool_code_help: 'Generated automatically from the name (with a short salt) and then kept unchanged.'
     pool_default: Default pool
     pool_default_help: 'New players without a code join the default pool. There can be only one.'
     goals_for: '%team% (goals incl. extra time, excl. penalties)'

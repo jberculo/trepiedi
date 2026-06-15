@@ -20,6 +20,10 @@ class PoolType extends AbstractType
             ->add('code', TextType::class, [
                 'label' => 'form.pool_code',
                 'help' => 'form.pool_code_help',
+                // De code wordt automatisch uit de naam gegenereerd en blijft
+                // daarna stabiel (zo blijven uitnodigingslinks werken).
+                'disabled' => true,
+                'required' => false,
             ])
             ->add('default', CheckboxType::class, [
                 'label' => 'form.pool_default',

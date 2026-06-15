@@ -20,11 +20,13 @@ class ScoringServiceTest extends TestCase
 
     protected function setUp(): void
     {
+        // Stubs (geen verwachtingen): deze unit-tests gebruiken de repositories niet,
+        // ze geven match/prediction-objecten rechtstreeks mee.
         $this->service = new ScoringService(
-            $this->createMock(PredictionRepository::class),
-            $this->createMock(FootballMatchRepository::class),
-            $this->createMock(RoundRepository::class),
-            $this->createMock(UserRepository::class),
+            $this->createStub(PredictionRepository::class),
+            $this->createStub(FootballMatchRepository::class),
+            $this->createStub(RoundRepository::class),
+            $this->createStub(UserRepository::class),
         );
     }
 

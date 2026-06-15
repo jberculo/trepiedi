@@ -104,7 +104,7 @@ form:
     match_active_help: 'Inactieve wedstrijden zijn nog niet invulbaar, maar tellen wel mee in de toernooi-max.'
     pool_name: Naam
     pool_code: 'Inschrijfcode (in de uitnodigings-URL)'
-    pool_code_help: 'Korte code zonder spaties, bijv. "kantoor". Moet uniek zijn.'
+    pool_code_help: 'Wordt automatisch uit de naam gegenereerd (met een korte salt) en blijft daarna ongewijzigd.'
     pool_default: Standaardpoule
     pool_default_help: 'Nieuwe spelers zonder code komen in de standaardpoule. Er kan er maar één zijn.'
     goals_for: '%team% (doelpunten incl. verlenging, zonder penalty''s)'

@@ -26,13 +26,17 @@ class PoolController extends AbstractController
     }
 
     #[Route('/nieuw', name: 'admin_pool_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em, PoolRepository $pools): Response
+    public function new(Request $request, EntityManagerInterface $em, PoolRepository $pools, \App\Pool\PoolCodeGenerator $codeGenerator): Response
     {
         $pool = new Pool();
         $form = $this->createForm(PoolType::class, $pool);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Code automatisch uit de naam genereren (code-veld is read-only).
+            if ($pool->getCode() === '') {
+                $pool->setCode($codeGenerator->generate($pool->getName()));
+            }
             $this->ensureSingleDefault($pool, $pools);
             $em->persist($pool);
             $em->flush();
