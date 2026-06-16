@@ -38,6 +38,8 @@ security:
         - { path: ^/speler, roles: PUBLIC_ACCESS }
         - { path: ^/wedstrijd, roles: PUBLIC_ACCESS }
         - { path: ^/poule, roles: PUBLIC_ACCESS }
+        - { path: ^/api/standings, roles: PUBLIC_ACCESS }
+        - { path: ^/api/matches, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/, roles: ROLE_USER }
 

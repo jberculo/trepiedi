@@ -58,6 +58,18 @@
                             {% endfor %}
                         </div>
                     {% endif %}
+
+                    <hr class="my-4">
+                    <span class="form-label d-block">{{ 'account.api_token'|trans }}</span>
+                    <p class="text-muted small mb-2">{{ 'account.api_token_help'|trans }}</p>
+                    <div class="input-group input-group-sm mb-2">
+                        <input type="text" class="form-control font-monospace" value="{{ app.user.apiToken }}" readonly onclick="this.select()">
+                    </div>
+                    <form method="post" action="{{ path('app_account_api_token') }}"
+                          onsubmit="return confirm('{{ 'account.api_token_confirm'|trans }}');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('api-token-' ~ app.user.id) }}">
+                        <button class="btn btn-sm btn-outline-secondary">{{ 'account.api_token_regenerate'|trans }}</button>
+                    </form>
                 </div>
             </div>
         </div>

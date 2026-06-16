@@ -39,6 +39,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return $slug;
     }
 
+    public function findOneByApiToken(string $token): ?User
+    {
+        return $this->findOneBy(['apiToken' => $token]);
+    }
+
     public function save(User $user, bool $flush = false): void
     {
         $this->getEntityManager()->persist($user);

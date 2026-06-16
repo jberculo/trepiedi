@@ -29,6 +29,11 @@ account:
     current_photo: Huidige foto
     language: Taal
     pool: Poule
+    api_token: API-sleutel
+    api_token_help: 'Persoonlijke sleutel voor de API. Lezen (stand/wedstrijden) kan zonder sleutel; uitslagen aanpassen alleen met een beheerderssleutel via de header X-API-Key.'
+    api_token_regenerate: Nieuwe sleutel genereren
+    api_token_confirm: 'Een nieuwe sleutel maken? De oude werkt daarna niet meer.'
+    api_token_regenerated: Nieuwe API-sleutel gegenereerd.
     saved: Je gegevens zijn bijgewerkt.
 lb:
     title: Klassement

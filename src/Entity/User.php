@@ -77,6 +77,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Pool $activePool = null;
 
+    /**
+     * Persoonlijke API-sleutel voor de stand-/uitslagen-API. Null tot hij voor het
+     * eerst wordt gegenereerd.
+     */
+    #[ORM\Column(length: 64, unique: true, nullable: true)]
+    private ?string $apiToken = null;
+
     public function __construct()
     {
         $this->pools = new ArrayCollection();
@@ -124,6 +131,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setActivePool(?Pool $activePool): static
     {
         $this->activePool = $activePool;
+
+        return $this;
+    }
+
+    public function getApiToken(): ?string
+    {
+        return $this->apiToken;
+    }
+
+    public function setApiToken(?string $apiToken): static
+    {
+        $this->apiToken = $apiToken;
 
         return $this;
     }

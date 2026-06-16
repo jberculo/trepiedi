@@ -24,6 +24,7 @@ class RegistrationController extends AbstractController
         UserAuthenticatorInterface $userAuthenticator,
         LoginFormAuthenticator $authenticator,
         PoolEnroller $poolEnroller,
+        \App\Security\ApiTokenGenerator $apiTokenGenerator,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_dashboard');
@@ -52,6 +53,7 @@ class RegistrationController extends AbstractController
                 $passwordHasher->hashPassword($user, (string) $form->get('plainPassword')->getData())
             );
             $user->setSlug($userRepository->uniqueSlug($user->getDisplayName()));
+            $apiTokenGenerator->ensure($user);
             $userRepository->save($user, true);
 
             // Inschrijven op de poule van de (onthouden) uitnodigingscode, anders

@@ -29,6 +29,11 @@ account:
     current_photo: Current photo
     language: Language
     pool: Pool
+    api_token: API key
+    api_token_help: 'Personal key for the API. Reading (standings/matches) needs no key; updating results requires an admin key via the X-API-Key header.'
+    api_token_regenerate: Generate new key
+    api_token_confirm: 'Generate a new key? The old one will stop working.'
+    api_token_regenerated: New API key generated.
     saved: Your details have been updated.
 lb:
     title: Standings

@@ -20,11 +20,17 @@ class AccountController extends AbstractController
         Request $request,
         UserRepository $users,
         EntityManagerInterface $em,
+        \App\Security\ApiTokenGenerator $apiTokenGenerator,
         #[Autowire('%kernel.project_dir%/public/uploads/avatars')]
         string $avatarDir,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
+
+        // Zorg dat de speler een persoonlijke API-sleutel heeft (lazy aanmaken).
+        if ($apiTokenGenerator->ensure($user)) {
+            $em->flush();
+        }
 
         $form = $this->createForm(AccountType::class, $user);
         $form->handleRequest($request);
@@ -58,5 +64,23 @@ class AccountController extends AbstractController
         return $this->render('account/edit.html.twig', [
             'form' => $form,
         ]);
+    }
+
+    #[Route('/account/api-sleutel', name: 'app_account_api_token', methods: ['POST'])]
+    public function regenerateApiToken(
+        Request $request,
+        EntityManagerInterface $em,
+        \App\Security\ApiTokenGenerator $apiTokenGenerator,
+    ): Response {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if ($this->isCsrfTokenValid('api-token-' . $user->getId(), (string) $request->getPayload()->get('_token'))) {
+            $user->setApiToken($apiTokenGenerator->generate());
+            $em->flush();
+            $this->addFlash('success', 'account.api_token_regenerated');
+        }
+
+        return $this->redirectToRoute('app_account');
     }
 }
