@@ -11,14 +11,13 @@ use App\Tests\FixturesWebTestCase;
  */
 class PoolPreferenceTest extends FixturesWebTestCase
 {
-    public function testLoginResetsToDefaultPool(): void
+    public function testLoginKeepsChosenPoolAsDefault(): void
     {
-        // Anne had laatst Kantoor actief.
+        // Anne koos eerder Kantoor; dat blijft haar standaard, ook na opnieuw inloggen.
         $anne = $this->user('anne@trepiedi.test');
         $anne->setActivePool($this->poolByCode('kantoor'));
         $this->em->flush();
 
-        // Inloggen via het formulier.
         $crawler = $this->client->request('GET', '/login');
         $this->client->submit($crawler->selectButton('Inloggen')->form([
             'email' => 'anne@trepiedi.test',
@@ -27,10 +26,28 @@ class PoolPreferenceTest extends FixturesWebTestCase
         $this->client->followRedirect();
 
         $this->em->clear();
-        $this->assertNull(
-            $this->user('anne@trepiedi.test')->getActivePool(),
-            'Na inloggen valt de actieve poule terug op de standaard.'
+        $this->assertSame(
+            'kantoor',
+            $this->user('anne@trepiedi.test')->getActivePool()?->getCode(),
+            'De zelfgekozen poule blijft onthouden na inloggen.'
         );
+    }
+
+    public function testWithoutChoiceLoginShowsDefaultPool(): void
+    {
+        // Geen eigen keuze → PoolContext toont de standaardpoule.
+        $bram = $this->user('bram@trepiedi.test');
+        $this->assertNull($bram->getActivePool());
+
+        $crawler = $this->client->request('GET', '/login');
+        $this->client->submit($crawler->selectButton('Inloggen')->form([
+            'email' => 'bram@trepiedi.test',
+            'password' => 'test',
+        ]));
+        $this->client->followRedirect();
+
+        $this->em->clear();
+        $this->assertNull($this->user('bram@trepiedi.test')->getActivePool(), 'Zonder keuze blijft het de standaard (null).');
     }
 
     public function testProfileShowsPoolSwitcherForMultiPoolUser(): void

@@ -3,7 +3,10 @@ framework:
     secret: '%env(APP_SECRET)%'
 
     # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    # Langere sessie (geen gevoelige data): pas na 30 dagen inactiviteit verlopen.
+    session:
+        cookie_lifetime: 2592000   # 30 dagen; cookie overleeft het sluiten van de browser
+        gc_maxlifetime: 2592000    # 30 dagen inactiviteit voordat de sessie wordt opgeruimd
 
     #esi: true
     #fragments: true

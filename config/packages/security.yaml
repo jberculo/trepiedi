@@ -22,6 +22,12 @@ security:
             # Beperk brute-force op de loginpagina.
             login_throttling:
                 max_attempts: 5
+            # Lang ingelogd blijven (geen gevoelige data). always_remember_me zet de
+            # cookie ook zonder het vinkje, zodat je niet snel wordt uitgelogd.
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 31536000        # 1 jaar
+                always_remember_me: true
 
     # Alleen de *eerste* matchende regel wordt toegepast.
     access_control:

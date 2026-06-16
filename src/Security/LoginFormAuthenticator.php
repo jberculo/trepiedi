@@ -26,7 +26,6 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
         private \App\Pool\PoolEnroller $poolEnroller,
-        private \Doctrine\ORM\EntityManagerInterface $em,
     ) {
     }
 
@@ -53,19 +52,15 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         if ($user instanceof \App\Entity\User) {
             $request->getSession()->set('_locale', $user->getLocale());
 
-            // Alleen bij een echte login via het formulier (niet bij registratie, die
-            // dit pad ook aanroept maar de poule zelf al heeft geregeld).
+            // Een onthouden uitnodigingscode (klik op join-link vóór inloggen) verzilveren.
+            // De zelfgekozen poule blijft onthouden als jouw standaard (activePool is
+            // persistent); wie nooit koos, ziet via PoolContext de standaardpoule.
             if ($request->getPathInfo() === $this->getLoginUrl($request)) {
-                // Een onthouden uitnodigingscode (klik op join-link vóór inloggen)
-                // verzilveren; anders start de speler standaard in de standaardpoule.
                 $session = $request->getSession();
                 $code = $session->get(\App\Pool\PoolEnroller::SESSION_KEY);
                 if (is_string($code) && $code !== '') {
                     $session->remove(\App\Pool\PoolEnroller::SESSION_KEY);
                     $this->poolEnroller->enroll($user, $code);
-                } else {
-                    $user->setActivePool(null);
-                    $this->em->flush();
                 }
             }
         }
