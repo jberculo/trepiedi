@@ -25,6 +25,11 @@ class ApiTest extends FixturesWebTestCase
         $this->assertContains('Bram', $players);
         $this->assertArrayHasKey('rank', $data['standings'][0]);
         $this->assertArrayHasKey('weightedTotal', $data['standings'][0]);
+        $this->assertArrayHasKey('movement', $data['standings'][0], 'Stand toont ook recente positieverandering.');
+        // Klassement-types met emoji.
+        $emoji = array_column($data['types'], 'emoji', 'key');
+        $this->assertSame('🟡', $emoji['points']);
+        $this->assertSame('🔴', $emoji['lantern']);
     }
 
     public function testStandingsForSpecificPoolAreScoped(): void

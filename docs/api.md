@@ -28,13 +28,22 @@ curl "https://trepiedi.online/api/standings?pool=kantoor"
 ```json
 {
   "pool": { "name": "Tremani", "code": "algemeen" },
+  "types": [
+    { "key": "points", "emoji": "🟡", "label": "Algemeen", "field": "weightedTotal" },
+    { "key": "score", "emoji": "⚽", "label": "Balletjestrui", "field": "scorePoints" },
+    { "key": "winners", "emoji": "🔮", "label": "Glazen bal", "field": "winners" },
+    { "key": "lantern", "emoji": "🔴", "label": "Ronde lantaarn", "field": "lanternPoints" },
+    { "key": "inconsistent", "emoji": "🤔", "label": "Tegenstrijdig", "field": "inconsistent" }
+  ],
   "standings": [
-    { "rank": 1, "player": "Anne", "slug": "anne",
+    { "rank": 1, "movement": 2, "player": "Anne", "slug": "anne",
       "weightedTotal": 84, "rawTotal": 30, "scorePoints": 12,
       "winners": 9, "lanternPoints": 0, "inconsistent": 0 }
   ]
 }
 ```
+- `movement` — positieverandering sinds de vorige speeldag (`+` = gestegen, `null` = nieuw/geen vergelijking).
+- `types` — de klassement-types met hun emoji en het veld waarop ze sorteren.
 
 ### `GET /api/matches` — alle wedstrijden
 ```bash
@@ -135,4 +144,12 @@ curl -X POST https://trepiedi.online/api/pools \
 
 ---
 
-Zie ook de MCP-server in [`mcp/`](../mcp/README.md) die deze endpoints als tools voor een AI-assistent ontsluit.
+## MCP-server (`/mcp`)
+
+`https://trepiedi.online/mcp` is een **MCP-server** (Streamable HTTP, JSON-RPC) die dezelfde functionaliteit als tools voor een AI-assistent aanbiedt — zelfde logica, zelfde `X-API-Key`-auth. Koppelen, bijv. in Claude Code:
+
+```bash
+claude mcp add --transport http trepiedi https://trepiedi.online/mcp --header "X-API-Key: jouw-sleutel"
+```
+
+Tools: `get_standings`, `list_matches`, `get_match`, `get_rounds`, `whoami`, `submit_prediction`, `set_match_result`, `update_match`, `list_pools`, `create_pool`. Lezen kan zonder sleutel; schrijven met je (beheerders)sleutel. Zie [`mcp/README.md`](../mcp/README.md) voor de hosted-koppeling en een lokale stdio-variant.
