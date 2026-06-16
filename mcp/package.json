@@ -1,0 +1,16 @@
+{
+    "name": "trepiedi-mcp",
+    "version": "1.0.0",
+    "description": "MCP-server voor de Trepiedi-voetbalpoule: stand uitlezen en uitslagen toevoegen/aanpassen.",
+    "type": "module",
+    "bin": {
+        "trepiedi-mcp": "server.mjs"
+    },
+    "scripts": {
+        "start": "node server.mjs"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.0.0",
+        "zod": "^3.23.0"
+    }
+}
