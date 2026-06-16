@@ -28,6 +28,7 @@ account:
     photo: Profile photo
     current_photo: Current photo
     language: Language
+    pool: Pool
     saved: Your details have been updated.
 lb:
     title: Standings

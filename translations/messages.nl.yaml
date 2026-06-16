@@ -28,6 +28,7 @@ account:
     photo: Profielfoto
     current_photo: Huidige foto
     language: Taal
+    pool: Poule
     saved: Je gegevens zijn bijgewerkt.
 lb:
     title: Klassement

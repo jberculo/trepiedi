@@ -44,6 +44,20 @@
                             <span class="fi fi-gb team-flag"></span>English
                         </a>
                     </div>
+
+                    {% set my_pools = app.user.pools|filter(p => not p.archived) %}
+                    {% if my_pools|length > 1 %}
+                        {% set current_pool = active_pool() %}
+                        <hr class="my-4">
+                        <span class="form-label d-block">{{ 'account.pool'|trans }}</span>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for p in my_pools %}
+                                <a class="btn btn-sm {{ current_pool and p.id == current_pool.id ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_pool_switch', {code: p.code}) }}">
+                                    {{ p.name }}{% if p.default %} <span class="small">({{ 'admin.pool_is_default'|trans }})</span>{% endif %}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
