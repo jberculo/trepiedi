@@ -40,6 +40,18 @@ class ApiTest extends FixturesWebTestCase
         $this->assertNotContains('Bram', $players, 'Kantoor bevat Bram niet.');
     }
 
+    public function testStandingsViaQueryParameter(): void
+    {
+        $this->client->request('GET', '/api/standings?pool=kantoor');
+
+        $this->assertResponseIsSuccessful();
+        $data = json_decode((string) $this->client->getResponse()->getContent(), true);
+        $this->assertSame('kantoor', $data['pool']['code']);
+        $players = array_column($data['standings'], 'player');
+        $this->assertContains('Chris', $players);
+        $this->assertNotContains('Bram', $players);
+    }
+
     public function testStandingsUnknownPoolIs404(): void
     {
         $this->client->request('GET', '/api/standings/bestaat-niet');

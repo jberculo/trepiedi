@@ -30,10 +30,15 @@ class ApiController extends AbstractController
     #[Route('/api/standings/{code}', name: 'api_standings', methods: ['GET'])]
     public function standings(
         ?string $code,
+        Request $request,
         PoolRepository $pools,
         ScoringService $scoringService,
     ): JsonResponse {
-        $pool = $code !== null ? $pools->findOneActiveByCode($code) : $pools->findDefault();
+        // Code mag via het pad of via ?pool=…; zonder code de standaardpoule.
+        $code ??= $request->query->get('pool');
+        $pool = ($code !== null && $code !== '')
+            ? $pools->findOneActiveByCode($code)
+            : $pools->findDefault();
         if ($pool === null) {
             return $this->json(['error' => 'Onbekende of gearchiveerde poule.'], Response::HTTP_NOT_FOUND);
         }
