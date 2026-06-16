@@ -8,6 +8,7 @@ use App\Entity\Prediction;
 use App\Entity\Round;
 use App\Entity\User;
 use App\Pool\PoolCodeGenerator;
+use App\Reference\Countries;
 use App\Repository\FootballMatchRepository;
 use App\Repository\PoolRepository;
 use App\Repository\PredictionRepository;
@@ -336,9 +337,13 @@ class Operations
             'kickoff' => $match->getKickoffAt()?->format(\DateTimeInterface::ATOM),
             'home' => $match->getHomeTeam(),
             'away' => $match->getAwayTeam(),
+            // flag-icons-code per ploeg (null bij een onbekende naam/placeholder).
+            'homeFlag' => Countries::codeForName($match->getHomeTeam()),
+            'awayFlag' => Countries::codeForName($match->getAwayTeam()),
             'homeScore' => $match->getHomeScore(),
             'awayScore' => $match->getAwayScore(),
             'advancingTeam' => $match->getAdvancingTeam(),
+            'advancingFlag' => Countries::codeForName($match->getAdvancingTeam()),
             'advancingSide' => $match->getAdvancingSide(),
             'finished' => $match->isFinished(),
             'open' => !$match->isFinished(),

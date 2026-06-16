@@ -54,11 +54,13 @@ Elk item bevat o.a.:
 ```json
 {
   "id": 42, "round": "16e finales", "kickoff": "2026-06-28T21:00:00+02:00",
-  "home": "2A", "away": "2B", "homeScore": null, "awayScore": null,
-  "advancingTeam": null, "advancingSide": null,
-  "finished": false, "open": true, "active": true, "locked": false, "predictable": true
+  "home": "Nederland", "away": "Polen", "homeFlag": "nl", "awayFlag": "pl",
+  "homeScore": 2, "awayScore": 1,
+  "advancingTeam": "Nederland", "advancingFlag": "nl", "advancingSide": "home",
+  "finished": true, "open": false, "active": true, "locked": true, "predictable": false
 }
 ```
+- `homeFlag`/`awayFlag`/`advancingFlag` — [flag-icons](https://github.com/lipis/flag-icons)-code per ploeg (bijv. `nl`, `gb-eng`), of `null` bij een placeholder (`2A`).
 - `open` — uitslag nog niet definitief (relevant voor de *uitslag*-write).
 - `predictable` — je kunt nu nog een voorspelling indienen/aanpassen (`active` én niet `locked`).
 

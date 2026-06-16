@@ -72,6 +72,9 @@ class ApiTest extends FixturesWebTestCase
         $this->assertNotEmpty($data['matches']);
         $this->assertArrayHasKey('open', $data['matches'][0]);
         $this->assertArrayHasKey('id', $data['matches'][0]);
+        // Vlag-codes per ploeg.
+        $this->assertArrayHasKey('homeFlag', $data['matches'][0]);
+        $this->assertContains('nl', array_column($data['matches'], 'homeFlag'), 'Nederland levert vlag-code nl.');
     }
 
     public function testSetResultWithAdminKeyOnOpenMatch(): void
