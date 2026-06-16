@@ -75,6 +75,20 @@ class ApiTest extends FixturesWebTestCase
         // Vlag-codes per ploeg.
         $this->assertArrayHasKey('homeFlag', $data['matches'][0]);
         $this->assertContains('nl', array_column($data['matches'], 'homeFlag'), 'Nederland levert vlag-code nl.');
+        // De SVG's worden meegegeven in een (gededupliceerde) flags-map.
+        $this->assertArrayHasKey('nl', $data['flags']);
+        $this->assertStringContainsString('<svg', $data['flags']['nl']);
+    }
+
+    public function testFlagSvgEndpoint(): void
+    {
+        $this->client->request('GET', '/api/flags/nl');
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('Content-Type', 'image/svg+xml');
+        $this->assertStringContainsString('<svg', (string) $this->client->getResponse()->getContent());
+
+        $this->client->request('GET', '/api/flags/zz');
+        $this->assertResponseStatusCodeSame(404);
     }
 
     public function testSetResultWithAdminKeyOnOpenMatch(): void

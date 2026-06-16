@@ -61,6 +61,7 @@ Elk item bevat o.a.:
 }
 ```
 - `homeFlag`/`awayFlag`/`advancingFlag` — [flag-icons](https://github.com/lipis/flag-icons)-code per ploeg (bijv. `nl`, `gb-eng`), of `null` bij een placeholder (`2A`).
+- De respons bevat daarnaast een gededupliceerde **`flags`-map** `{ code: "<svg…>" }` met de SVG per voorkomende code, zodat de client de vlaggetjes zelf kan renderen (of negeren). Losse SVG ook op te halen via `GET /api/flags/{code}`.
 - `open` — uitslag nog niet definitief (relevant voor de *uitslag*-write).
 - `predictable` — je kunt nu nog een voorspelling indienen/aanpassen (`active` én niet `locked`).
 
@@ -77,6 +78,13 @@ curl https://trepiedi.online/api/rounds
 ```
 ```json
 { "rounds": [ { "name": "16e finales", "sortOrder": 1, "weight": 1, "matchCount": 16 } ] }
+```
+
+### `GET /api/flags/{code}` — vlag-SVG
+Geeft de SVG van een vlag (flag-icons-code), met `Content-Type: image/svg+xml`.
+
+```bash
+curl https://trepiedi.online/api/flags/nl
 ```
 
 ---

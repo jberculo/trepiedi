@@ -7,6 +7,7 @@ use App\Entity\Pool;
 use App\Entity\Prediction;
 use App\Entity\Round;
 use App\Entity\User;
+use App\Flag\FlagProvider;
 use App\Pool\PoolCodeGenerator;
 use App\Reference\Countries;
 use App\Repository\FootballMatchRepository;
@@ -31,6 +32,7 @@ class Operations
         private RoundRepository $rounds,
         private ScoringService $scoring,
         private PoolCodeGenerator $codeGenerator,
+        private FlagProvider $flags,
         private EntityManagerInterface $em,
     ) {
     }
@@ -86,13 +88,16 @@ class Operations
 
     public function matchesList(): array
     {
-        return ['matches' => array_map($this->matchToArray(...), $this->matches->findAllChronological())];
+        $matches = array_map($this->matchToArray(...), $this->matches->findAllChronological());
+
+        return ['matches' => $matches, 'flags' => $this->flagsFor($matches)];
     }
 
     public function matchDetail(int $id): array
     {
         $match = $this->findMatch($id);
         $data = $this->matchToArray($match);
+        $data['flags'] = $this->flagsFor([$data]);
         $data['predictionCount'] = count($this->predictions->findByMatch($match));
 
         if ($match->isLocked()) {
@@ -309,6 +314,32 @@ class Operations
         }
 
         return [$home, $away];
+    }
+
+    /**
+     * Gededupliceerde map van flag-icons-code → SVG-inhoud voor de gegeven
+     * wedstrijd-arrays, zodat de client de vlaggetjes zelf kan renderen.
+     *
+     * @param list<array<string, mixed>> $matches
+     *
+     * @return array<string, string>
+     */
+    private function flagsFor(array $matches): array
+    {
+        $map = [];
+        foreach ($matches as $m) {
+            foreach (['homeFlag', 'awayFlag', 'advancingFlag'] as $key) {
+                $code = $m[$key] ?? null;
+                if (is_string($code) && !isset($map[$code])) {
+                    $svg = $this->flags->svg($code);
+                    if ($svg !== null) {
+                        $map[$code] = $svg;
+                    }
+                }
+            }
+        }
+
+        return $map;
     }
 
     /**

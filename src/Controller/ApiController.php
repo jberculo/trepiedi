@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Api\ApiException;
 use App\Api\ApiKeyResolver;
 use App\Api\Operations;
+use App\Flag\FlagProvider;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,6 +50,20 @@ class ApiController extends AbstractController
     public function rounds(): JsonResponse
     {
         return $this->run(fn (): array => $this->ops->roundsList());
+    }
+
+    #[Route('/api/flags/{code}', name: 'api_flag', methods: ['GET'], requirements: ['code' => '[a-z]{2}(-[a-z]+)?'])]
+    public function flag(string $code, FlagProvider $flags): Response
+    {
+        $svg = $flags->svg($code);
+        if ($svg === null) {
+            return $this->json(['error' => 'Onbekende vlag.'], Response::HTTP_NOT_FOUND);
+        }
+
+        return new Response($svg, Response::HTTP_OK, [
+            'Content-Type' => 'image/svg+xml',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
     }
 
     #[Route('/api/me', name: 'api_me', methods: ['GET'])]

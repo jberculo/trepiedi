@@ -47,6 +47,7 @@ security:
         - { path: ^/api/standings, roles: PUBLIC_ACCESS }
         - { path: ^/api/matches, roles: PUBLIC_ACCESS }
         - { path: ^/api/rounds, roles: PUBLIC_ACCESS }
+        - { path: ^/api/flags, roles: PUBLIC_ACCESS }
         - { path: ^/api/me, roles: PUBLIC_ACCESS }
         - { path: ^/api/pools, roles: PUBLIC_ACCESS }
         - { path: ^/mcp, roles: PUBLIC_ACCESS }
