@@ -7,8 +7,14 @@ Een [MCP](https://modelcontextprotocol.io)-server die de Trepiedi-API ontsluit, 
 | Tool | Sleutel nodig? | Wat |
 |------|----------------|-----|
 | `get_standings(poolCode?)` | nee | Huidige stand van een poule (default: standaardpoule) |
-| `list_matches()` | nee | Alle wedstrijden + of ze open staan (met id) |
+| `list_matches()` | nee | Alle wedstrijden + open/te voorspellen (met id) |
+| `get_match(matchId)` | nee | Eén wedstrijd met detail |
+| `get_rounds()` | nee | Ronden met gewicht en aantal wedstrijden |
+| `whoami()` | ja | Info over de eigenaar van de sleutel |
+| `submit_prediction(matchId, homeScore, awayScore, advancingSide)` | ja | Je eigen voorspelling indienen/aanpassen |
 | `set_match_result(matchId, homeScore, awayScore, advancingSide?, finished?)` | ja (beheerder) | Uitslag van een open wedstrijd zetten/aanpassen |
+| `update_match(matchId, home?, away?, kickoff?, active?)` | ja (beheerder) | Ploegnamen/aftrap/activeren bijwerken |
+| `create_pool(name, code?, default?)` | ja (beheerder) | Een poule aanmaken |
 
 ## Installeren
 

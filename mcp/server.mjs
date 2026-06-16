@@ -70,10 +70,94 @@ server.registerTool(
     'list_matches',
     {
         title: 'Wedstrijden opvragen',
-        description: 'Alle wedstrijden met uitslag en of ze nog open staan (incl. id om een uitslag te zetten).',
+        description: 'Alle wedstrijden met uitslag, of ze nog open staan en of ze te voorspellen zijn (incl. id).',
         inputSchema: {},
     },
     async () => call('GET', '/api/matches'),
+);
+
+server.registerTool(
+    'get_match',
+    {
+        title: 'Wedstrijd opvragen',
+        description: 'Eén wedstrijd met detail (en na de aftrap de voorspellingen).',
+        inputSchema: { matchId: z.number().int().positive() },
+    },
+    async ({ matchId }) => call('GET', `/api/matches/${matchId}`),
+);
+
+server.registerTool(
+    'get_rounds',
+    {
+        title: 'Ronden opvragen',
+        description: 'De ronden met gewicht en aantal wedstrijden.',
+        inputSchema: {},
+    },
+    async () => call('GET', '/api/rounds'),
+);
+
+server.registerTool(
+    'whoami',
+    {
+        title: 'Wie ben ik',
+        description: 'Info over de eigenaar van de ingestelde API-sleutel (naam, poules, beheerder?).',
+        inputSchema: {},
+    },
+    async () => call('GET', '/api/me', { useKey: true }),
+);
+
+server.registerTool(
+    'submit_prediction',
+    {
+        title: 'Eigen voorspelling indienen',
+        description: 'Dien je eigen voorspelling in of pas die aan voor een wedstrijd die nog te voorspellen is.',
+        inputSchema: {
+            matchId: z.number().int().positive(),
+            homeScore: z.number().int().nonnegative(),
+            awayScore: z.number().int().nonnegative(),
+            advancingSide: z.enum(['home', 'away']).describe('Welke kant gaat door'),
+        },
+    },
+    async ({ matchId, homeScore, awayScore, advancingSide }) =>
+        call('POST', `/api/matches/${matchId}/prediction`, { body: { homeScore, awayScore, advancingSide }, useKey: true }),
+);
+
+server.registerTool(
+    'update_match',
+    {
+        title: 'Wedstrijd bijwerken (beheerder)',
+        description: 'Ploegnamen invullen, activeren/deactiveren of de aftrap aanpassen.',
+        inputSchema: {
+            matchId: z.number().int().positive(),
+            home: z.string().optional(),
+            away: z.string().optional(),
+            kickoff: z.string().optional().describe('ISO-datum/tijd, bijv. 2026-06-28T21:00:00'),
+            active: z.boolean().optional(),
+        },
+    },
+    async ({ matchId, ...fields }) => {
+        const body = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
+        return call('PATCH', `/api/matches/${matchId}`, { body, useKey: true });
+    },
+);
+
+server.registerTool(
+    'create_pool',
+    {
+        title: 'Poule aanmaken (beheerder)',
+        description: 'Maakt een nieuwe poule aan. Code is optioneel (anders uit de naam gegenereerd).',
+        inputSchema: {
+            name: z.string(),
+            code: z.string().optional(),
+            default: z.boolean().optional(),
+        },
+    },
+    async ({ name, code, default: isDefault }) => {
+        const body = { name };
+        if (code !== undefined) body.code = code;
+        if (isDefault !== undefined) body.default = isDefault;
+        return call('POST', '/api/pools', { body, useKey: true });
+    },
 );
 
 server.registerTool(
