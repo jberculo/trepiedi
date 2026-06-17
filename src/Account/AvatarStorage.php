@@ -8,18 +8,15 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
- * Bewaart een avatar als kleine, vierkante JPG-varianten — één per maat die de UI
- * gebruikt. De volledige upload wordt niet bewaard. `User::avatar` houdt de basisnaam
- * vast; de bestanden heten `{basis}-{maat}.jpg`. Bij een nieuwe upload worden de
- * oude varianten verwijderd.
+ * Bewaart een avatar als kleine, vierkante JPG-varianten (één per UI-maat) plus het
+ * volledige, ongesneden origineel als bron voor toekomstige formaten. `User::avatar`
+ * houdt de basisnaam vast; de bestanden heten `{basis}-{maat}.jpg` en `{basis}-orig.{ext}`.
+ * Bij een nieuwe upload worden alle bestanden van de oude basis verwijderd.
  */
 final class AvatarStorage
 {
     /** Zijde (px) per UI-maat; ~2× de CSS-grootte voor scherpte (sm 28px, lg 96px). */
     public const SIZES = ['sm' => 64, 'lg' => 192];
-
-    /** Achtervoegsel voor het bewaarde, ongesneden origineel (bron voor andere formaten). */
-    private const ORIGINAL = '-orig';
 
     public function __construct(
         #[Autowire('%kernel.project_dir%/public/uploads/avatars')]
@@ -50,15 +47,17 @@ final class AvatarStorage
         }
         imagedestroy($source);
 
-        // Het volledige (ongesneden) origineel bewaren als bron voor toekomstige formaten.
-        copy($sourcePath, $this->avatarDir . '/' . $base . self::ORIGINAL);
+        // Het volledige (ongesneden) origineel bewaren als bron voor toekomstige
+        // formaten, met de echte extensie (afgeleid uit de bytes).
+        copy($sourcePath, $this->avatarDir . '/' . $base . '-orig.' . $this->extensionFor($sourcePath));
 
         $this->remove($user->getAvatar());
         $user->setAvatar($base);
     }
 
     /**
-     * Verwijdert alle maat-varianten van een avatar-basis.
+     * Verwijdert alle bestanden van een avatar-basis (varianten én origineel,
+     * ongeacht extensie).
      */
     public function remove(?string $base): void
     {
@@ -66,16 +65,21 @@ final class AvatarStorage
             return;
         }
 
-        $paths = [$this->avatarDir . '/' . $base . self::ORIGINAL];
-        foreach (array_keys(self::SIZES) as $name) {
-            $paths[] = $this->avatarDir . '/' . $base . '-' . $name . '.jpg';
-        }
-
-        foreach ($paths as $path) {
+        foreach (glob($this->avatarDir . '/' . $base . '-*') ?: [] as $path) {
             if (is_file($path)) {
                 $this->filesystem->remove($path);
             }
         }
+    }
+
+    /**
+     * Bestandsextensie op basis van het werkelijke afbeeldingstype.
+     */
+    private function extensionFor(string $path): string
+    {
+        $info = @getimagesize($path);
+
+        return $info !== false ? image_type_to_extension($info[2], false) : 'bin';
     }
 
     /**

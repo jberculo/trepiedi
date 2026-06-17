@@ -106,7 +106,7 @@ class AdminParticipantCrudTest extends FixturesWebTestCase
         $this->assertFileExists($avatarDir . '/' . $base . '-sm.jpg');
         @unlink($avatarDir . '/' . $base . '-sm.jpg');
         @unlink($avatarDir . '/' . $base . '-lg.jpg');
-        @unlink($avatarDir . '/' . $base . '-orig');
+        @unlink($avatarDir . '/' . $base . '-orig.png');
     }
 
     private function poolByCode(string $code): Pool
