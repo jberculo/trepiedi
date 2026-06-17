@@ -1,22 +1,12 @@
 {% extends 'base.html.twig' %}
 
-{% import '_macros.html.twig' as m %}
-
-{% macro pts(v) %}{{ v == v|round ? v|number_format(0, ',', '.') : v|number_format(1, ',', '.') }}{% endmacro %}
-
-{% macro arrow(change) %}{% if change is not null %}{% if change > 0 %}<span class="small rise" title="{{ 'lb.rose'|trans }}">▲{{ change }}</span>{% elseif change < 0 %}<span class="text-danger small" title="{{ 'lb.fell'|trans }}">▼{{ -change }}</span>{% else %}<span class="text-muted small" title="{{ 'lb.equal'|trans }}">=</span>{% endif %}{% endif %}{% endmacro %}
-
-{% macro stat(home, away, exact, winner) %}{{ home }}× {{ 'lb.home'|trans }} · {{ away }}× {{ 'lb.away'|trans }} · {{ exact }}× {{ 'lb.exact'|trans }} · {{ winner }}× {{ 'lb.winner'|trans }}{% endmacro %}
-
-{% macro total(value, max) %}{{ _self.pts(value) }}/{{ _self.pts(max) }}<br><small class="text-muted fw-normal">{{ max > 0 ? (value / max * 100)|round : 0 }}%</small>{% endmacro %}
-
-{% macro medal(rank) %}{% if rank == 1 %}medal-gold{% elseif rank == 2 %}medal-silver{% elseif rank == 3 %}medal-bronze{% endif %}{% endmacro %}
+{% import 'leaderboard/_lb.html.twig' as lb %}
 
 {% block title %}{{ 'lb.title'|trans }} — Trepiedi{% endblock %}
 
 {% block body %}
-    {% set maxNow = activeTab in ['points', 'animation'] ? _self.pts(maxPossible) : (activeTab == 'score' ? totalFinished * 3 : (activeTab == 'lantern' ? totalFinished * 3 : totalFinished)) %}
-    {% set maxTour = activeTab in ['points', 'animation'] ? _self.pts(maxTournament) : (activeTab == 'score' ? totalMatches * 3 : (activeTab == 'lantern' ? totalMatches * 3 : totalMatches)) %}
+    {% set maxNow = activeTab in ['points', 'animation'] ? lb.pts(maxPossible) : (activeTab == 'score' ? totalFinished * 3 : (activeTab == 'lantern' ? totalFinished * 3 : totalFinished)) %}
+    {% set maxTour = activeTab in ['points', 'animation'] ? lb.pts(maxTournament) : (activeTab == 'score' ? totalMatches * 3 : (activeTab == 'lantern' ? totalMatches * 3 : totalMatches)) %}
     <div class="lb-hero mb-3">
         <h1 class="h3 mb-0">⚽ {{ 'lb.title'|trans }}</h1>
         {% if activeTab != 'animation' %}
@@ -58,198 +48,49 @@
 
     {# ============ Algemeen klassement (punten, gewogen) ============ #}
     {% if activeTab == 'points' %}
-        <p class="text-muted small">{{ 'lb.general_intro'|trans }}</p>
-        <div class="card shadow-sm">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 lb-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="col-rank">#</th>
-                            <th>{{ 'lb.player'|trans }}</th>
-                            {% for round in rounds %}
-                                <th class="text-center small">{{ round.name }}<br><span class="fw-normal text-muted">× {{ _self.pts(round.weight) }}</span></th>
-                            {% endfor %}
-                            <th class="text-end">{{ 'lb.total'|trans }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for entry in entries %}
-                            <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
-                                <td class="fw-bold {{ _self.medal(entry.rank) }}">{{ entry.rank }} {{ _self.arrow(entry.change('points')) }}</td>
-                                <td>{{ m.player(entry.user) }}</td>
-                                {% for round in rounds %}
-                                    {% set played = finishedPerRound[round.id] ?? 0 %}
-                                    <td class="text-center">
-                                        {% if played > 0 %}
-                                            {{ _self.pts(entry.roundWeighted(round.id)) }}
-                                            <br><small class="text-muted">{{ _self.stat(entry.roundHome(round.id), entry.roundAway(round.id), entry.roundExact(round.id), entry.roundAdvance(round.id)) }}</small>
-                                        {% else %}—{% endif %}
-                                    </td>
-                                {% endfor %}
-                                <td class="text-end fw-bold">{{ _self.total(entry.weightedTotal, maxPossible) }}</td>
-                            </tr>
-                        {% else %}
-                            <tr><td colspan="{{ rounds|length + 3 }}" class="text-center text-muted py-4">{{ 'lb.no_participants'|trans }}</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        {% embed 'leaderboard/_ranking_table.html.twig' with {entries: entries, intro: 'lb.general_intro', showArrow: true, arrowKey: 'points', rankField: null} %}
+            {% import 'leaderboard/_lb.html.twig' as lb %}
+            {% block round_header %}{{ round.name }}<br><span class="fw-normal text-muted">× {{ lb.pts(round.weight) }}</span>{% endblock %}
+            {% block round_cell %}{% if played > 0 %}{{ lb.pts(entry.roundWeighted(round.id)) }}<br><small class="text-muted">{{ lb.stat(entry.roundHome(round.id), entry.roundAway(round.id), entry.roundExact(round.id), entry.roundAdvance(round.id)) }}</small>{% else %}—{% endif %}{% endblock %}
+            {% block total_cell %}{{ lb.total(entry.weightedTotal, maxPossible) }}{% endblock %}
+        {% endembed %}
     {% endif %}
 
     {# ============ Balletjestrui (score-onderdelen, ongewogen) ============ #}
     {% if activeTab == 'score' %}
-        <p class="text-muted small">{{ 'lb.balls_intro'|trans }}</p>
-        <div class="card shadow-sm">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 lb-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="col-rank">#</th>
-                            <th>{{ 'lb.player'|trans }}</th>
-                            {% for round in rounds %}
-                                <th class="text-center small">{{ round.name }}<br><span class="fw-normal text-muted">{{ 'lb.components'|trans }}</span></th>
-                            {% endfor %}
-                            <th class="text-end">{{ 'lb.total'|trans }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set prev = null %}{% set rank = 0 %}
-                        {% for entry in byScore %}
-                            {% if prev is null or entry.scorePoints != prev %}{% set rank = loop.index %}{% set prev = entry.scorePoints %}{% endif %}
-                            <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
-                                <td class="fw-bold {{ _self.medal(rank) }}">{{ rank }} {{ _self.arrow(entry.change('score')) }}</td>
-                                <td>{{ m.player(entry.user) }}</td>
-                                {% for round in rounds %}
-                                    {% set played = finishedPerRound[round.id] ?? 0 %}
-                                    <td class="text-center">{% if played > 0 %}{{ entry.roundHome(round.id) }} · {{ entry.roundAway(round.id) }} · {{ entry.roundExact(round.id) }}{% else %}—{% endif %}</td>
-                                {% endfor %}
-                                <td class="text-end fw-bold">{{ _self.total(entry.scorePoints, totalFinished * 3) }}</td>
-                            </tr>
-                        {% else %}
-                            <tr><td colspan="{{ rounds|length + 3 }}" class="text-center text-muted py-4">{{ 'lb.no_participants'|trans }}</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        {% embed 'leaderboard/_ranking_table.html.twig' with {entries: byScore, intro: 'lb.balls_intro', showArrow: true, arrowKey: 'score', rankField: 'scorePoints'} %}
+            {% import 'leaderboard/_lb.html.twig' as lb %}
+            {% block round_header %}{{ round.name }}<br><span class="fw-normal text-muted">{{ 'lb.components'|trans }}</span>{% endblock %}
+            {% block round_cell %}{% if played > 0 %}{{ entry.roundHome(round.id) }} · {{ entry.roundAway(round.id) }} · {{ entry.roundExact(round.id) }}{% else %}—{% endif %}{% endblock %}
+            {% block total_cell %}{{ lb.total(entry.scorePoints, totalFinished * 3) }}{% endblock %}
+        {% endembed %}
     {% endif %}
 
     {# ============ De glazen bal (winnaars, ongewogen) ============ #}
     {% if activeTab == 'winners' %}
-        <p class="text-muted small">{{ 'lb.oracle_intro'|trans }}</p>
-        <div class="card shadow-sm">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 lb-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="col-rank">#</th>
-                            <th>{{ 'lb.player'|trans }}</th>
-                            {% for round in rounds %}
-                                <th class="text-center small">{{ round.name }}</th>
-                            {% endfor %}
-                            <th class="text-end">{{ 'lb.total'|trans }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set prev = null %}{% set rank = 0 %}
-                        {% for entry in byWinners %}
-                            {% if prev is null or entry.advanceCount != prev %}{% set rank = loop.index %}{% set prev = entry.advanceCount %}{% endif %}
-                            <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
-                                <td class="fw-bold {{ _self.medal(rank) }}">{{ rank }} {{ _self.arrow(entry.change('winners')) }}</td>
-                                <td>{{ m.player(entry.user) }}</td>
-                                {% for round in rounds %}
-                                    {% set played = finishedPerRound[round.id] ?? 0 %}
-                                    {% set good = entry.roundAdvance(round.id) %}
-                                    <td class="text-center">
-                                        {% if played > 0 %}{{ good }}/{{ played }} <small class="text-muted">({{ (good / played * 100)|round }}%)</small>{% else %}—{% endif %}
-                                    </td>
-                                {% endfor %}
-                                <td class="text-end fw-bold">{{ _self.total(entry.advanceCount, totalFinished) }}</td>
-                            </tr>
-                        {% else %}
-                            <tr><td colspan="{{ rounds|length + 3 }}" class="text-center text-muted py-4">{{ 'lb.no_participants'|trans }}</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        {% embed 'leaderboard/_ranking_table.html.twig' with {entries: byWinners, intro: 'lb.oracle_intro', showArrow: true, arrowKey: 'winners', rankField: 'advanceCount'} %}
+            {% import 'leaderboard/_lb.html.twig' as lb %}
+            {% block round_cell %}{% if played > 0 %}{% set good = entry.roundAdvance(round.id) %}{{ good }}/{{ played }} <small class="text-muted">({{ (good / played * 100)|round }}%)</small>{% else %}—{% endif %}{% endblock %}
+            {% block total_cell %}{{ lb.total(entry.advanceCount, totalFinished) }}{% endblock %}
+        {% endembed %}
     {% endif %}
 
     {# ============ De rode lantaarn (gemiste voorspellingen) ============ #}
     {% if activeTab == 'lantern' %}
-        <p class="text-muted small">{{ 'lb.lantern_intro'|trans }}</p>
-        <div class="card shadow-sm">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 lb-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="col-rank">#</th>
-                            <th>{{ 'lb.player'|trans }}</th>
-                            {% for round in rounds %}
-                                <th class="text-center small">{{ round.name }}</th>
-                            {% endfor %}
-                            <th class="text-end">{{ 'lb.total'|trans }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set prev = null %}{% set rank = 0 %}
-                        {% for entry in byLantern %}
-                            {% if prev is null or entry.lanternPoints != prev %}{% set rank = loop.index %}{% set prev = entry.lanternPoints %}{% endif %}
-                            <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
-                                <td class="fw-bold {{ _self.medal(rank) }}">{{ rank }}</td>
-                                <td>{{ m.player(entry.user) }}</td>
-                                {% for round in rounds %}
-                                    {% set played = finishedPerRound[round.id] ?? 0 %}
-                                    <td class="text-center">{% if played > 0 %}{{ entry.roundLantern(round.id) }}{% else %}—{% endif %}</td>
-                                {% endfor %}
-                                <td class="text-end fw-bold">{{ _self.total(entry.lanternPoints, totalFinished * 3) }}</td>
-                            </tr>
-                        {% else %}
-                            <tr><td colspan="{{ rounds|length + 3 }}" class="text-center text-muted py-4">{{ 'lb.no_participants'|trans }}</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        {% embed 'leaderboard/_ranking_table.html.twig' with {entries: byLantern, intro: 'lb.lantern_intro', showArrow: false, arrowKey: null, rankField: 'lanternPoints'} %}
+            {% import 'leaderboard/_lb.html.twig' as lb %}
+            {% block round_cell %}{% if played > 0 %}{{ entry.roundLantern(round.id) }}{% else %}—{% endif %}{% endblock %}
+            {% block total_cell %}{{ lb.total(entry.lanternPoints, totalFinished * 3) }}{% endblock %}
+        {% endembed %}
     {% endif %}
 
     {# ============ Tegenstrijdig (voorspelde winnaar ≠ doorgang) ============ #}
     {% if activeTab == 'inconsistent' %}
-        <p class="text-muted small">{{ 'lb.inconsistent_intro'|trans }}</p>
-        <div class="card shadow-sm">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 lb-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="col-rank">#</th>
-                            <th>{{ 'lb.player'|trans }}</th>
-                            {% for round in rounds %}
-                                <th class="text-center small">{{ round.name }}</th>
-                            {% endfor %}
-                            <th class="text-end">{{ 'lb.total'|trans }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set prev = null %}{% set rank = 0 %}
-                        {% for entry in byInconsistent %}
-                            {% if prev is null or entry.inconsistentCount != prev %}{% set rank = loop.index %}{% set prev = entry.inconsistentCount %}{% endif %}
-                            <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
-                                <td class="fw-bold {{ _self.medal(rank) }}">{{ rank }}</td>
-                                <td>{{ m.player(entry.user) }}</td>
-                                {% for round in rounds %}
-                                    {% set played = finishedPerRound[round.id] ?? 0 %}
-                                    <td class="text-center">{% if played > 0 %}{{ entry.roundInconsistent(round.id) }}{% else %}—{% endif %}</td>
-                                {% endfor %}
-                                <td class="text-end fw-bold">{{ _self.total(entry.inconsistentCount, totalFinished) }}</td>
-                            </tr>
-                        {% else %}
-                            <tr><td colspan="{{ rounds|length + 3 }}" class="text-center text-muted py-4">{{ 'lb.no_participants'|trans }}</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        {% embed 'leaderboard/_ranking_table.html.twig' with {entries: byInconsistent, intro: 'lb.inconsistent_intro', showArrow: false, arrowKey: null, rankField: 'inconsistentCount'} %}
+            {% import 'leaderboard/_lb.html.twig' as lb %}
+            {% block round_cell %}{% if played > 0 %}{{ entry.roundInconsistent(round.id) }}{% else %}—{% endif %}{% endblock %}
+            {% block total_cell %}{{ lb.total(entry.inconsistentCount, totalFinished) }}{% endblock %}
+        {% endembed %}
     {% endif %}
 
     {# ============ Animatie ============ #}

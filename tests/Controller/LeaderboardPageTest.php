@@ -70,6 +70,22 @@ class LeaderboardPageTest extends FixturesWebTestCase
         $this->assertStringContainsString('9', $top->text());
     }
 
+    /**
+     * Alle vijf ranglijst-tabbladen delen hetzelfde tabel-skelet (de embed):
+     * een lb-table met #/speler/totaal-koppen en minstens één spelersrij.
+     */
+    public function testEveryRankingTabRendersTheSharedTable(): void
+    {
+        foreach (['/', '/balletjestrui', '/glazen-bal', '/ronde-lantaarn', '/tegenstrijdig'] as $url) {
+            $crawler = $this->client->request('GET', $url);
+            $this->assertResponseIsSuccessful();
+
+            $table = $crawler->filter('table.lb-table');
+            $this->assertCount(1, $table, "Tab {$url} toont precies één klassementtabel.");
+            $this->assertStringContainsString('Anne', $table->filter('tbody')->text(), "Tab {$url} toont spelersrijen.");
+        }
+    }
+
     public function testTiedRanksShareMedalColour(): void
     {
         $crawler = $this->client->request('GET', '/');

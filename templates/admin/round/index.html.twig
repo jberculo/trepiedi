@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import '_macros.html.twig' as m %}
+
 {% block title %}{{ 'admin.rounds'|trans }} — {{ 'admin.title'|trans }}{% endblock %}
 
 {% block body %}
@@ -22,11 +24,7 @@
                         <td>{{ round.matches|length }}</td>
                         <td class="text-end">
                             <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_round_edit', {id: round.id}) }}">{{ 'common.edit'|trans }}</a>
-                            <form method="post" action="{{ path('admin_round_delete', {id: round.id}) }}" class="d-inline"
-                                  onsubmit="return confirm('{{ 'admin.confirm_delete_round'|trans }}');">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete-round-' ~ round.id) }}">
-                                <button class="btn btn-sm btn-outline-danger">{{ 'common.delete'|trans }}</button>
-                            </form>
+                            {{ m.csrf_button(path('admin_round_delete', {id: round.id}), csrf_token('delete-round-' ~ round.id), 'common.delete'|trans, 'danger', 'admin.confirm_delete_round'|trans) }}
                         </td>
                     </tr>
                 {% else %}

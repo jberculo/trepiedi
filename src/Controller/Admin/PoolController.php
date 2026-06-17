@@ -18,6 +18,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class PoolController extends AbstractController
 {
+    use AdminCrud;
+
     #[Route('', name: 'admin_pool_index', methods: ['GET'])]
     public function index(PoolRepository $repository): Response
     {
@@ -29,49 +31,25 @@ class PoolController extends AbstractController
     #[Route('/nieuw', name: 'admin_pool_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em, PoolRepository $pools, PoolCodeGenerator $codeGenerator): Response
     {
-        $pool = new Pool();
-        $form = $this->createForm(PoolType::class, $pool);
-        $form->handleRequest($request);
+        $form = $this->createForm(PoolType::class, new Pool());
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        return $this->handleCrudForm($form, $request, $em, 'admin.pool_added', 'admin_pool_index', 'admin.pool_new', function (Pool $pool) use ($pools, $codeGenerator): void {
             // Code automatisch uit de naam genereren (code-veld is read-only).
             if ($pool->getCode() === '') {
                 $pool->setCode($codeGenerator->generate($pool->getName()));
             }
             $this->ensureSingleDefault($pool, $pools);
-            $em->persist($pool);
-            $em->flush();
-            $this->addFlash('success', 'admin.pool_added');
-
-            return $this->redirectToRoute('admin_pool_index');
-        }
-
-        return $this->render('admin/_crud_form.html.twig', [
-            'form' => $form,
-            'title' => 'admin.pool_new',
-            'back_path' => $this->generateUrl('admin_pool_index'),
-        ]);
+        });
     }
 
     #[Route('/{id}/bewerken', name: 'admin_pool_edit', methods: ['GET', 'POST'])]
     public function edit(Pool $pool, Request $request, EntityManagerInterface $em, PoolRepository $pools): Response
     {
         $form = $this->createForm(PoolType::class, $pool);
-        $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        return $this->handleCrudForm($form, $request, $em, 'admin.pool_updated', 'admin_pool_index', 'admin.pool_edit', function (Pool $pool) use ($pools): void {
             $this->ensureSingleDefault($pool, $pools);
-            $em->flush();
-            $this->addFlash('success', 'admin.pool_updated');
-
-            return $this->redirectToRoute('admin_pool_index');
-        }
-
-        return $this->render('admin/_crud_form.html.twig', [
-            'form' => $form,
-            'title' => 'admin.pool_edit',
-            'back_path' => $this->generateUrl('admin_pool_index'),
-        ]);
+        });
     }
 
     #[Route('/{id}/leden', name: 'admin_pool_members', methods: ['GET'])]

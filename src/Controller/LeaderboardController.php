@@ -24,25 +24,13 @@ class LeaderboardController extends AbstractController
         $memberIds = $poolContext->getMemberIds();
         $entries = $scoringService->leaderboardWithMovement($memberIds);
 
-        // Drie klassementen uit dezelfde data. Balletjestrui en glazen bal tellen
-        // ongewogen (zonder rondemultiplier); alleen het algemeen klassement weegt.
-        $byScore = $entries;
-        usort($byScore, static fn (LeaderboardEntry $a, LeaderboardEntry $b): int =>
-            [$b->scorePoints, $a->user->getDisplayName()] <=> [$a->scorePoints, $b->user->getDisplayName()]);
-
-        $byWinners = $entries;
-        usort($byWinners, static fn (LeaderboardEntry $a, LeaderboardEntry $b): int =>
-            [$b->advanceCount, $a->user->getDisplayName()] <=> [$a->advanceCount, $b->user->getDisplayName()]);
-
-        // Ronde lantaarn: wie verzamelde de meeste strafpunten met slechte voorspellingen?
-        $byLantern = $entries;
-        usort($byLantern, static fn (LeaderboardEntry $a, LeaderboardEntry $b): int =>
-            [$b->lanternPoints, $a->user->getDisplayName()] <=> [$a->lanternPoints, $b->user->getDisplayName()]);
-
-        // Tegenstrijdig: wie liet het vaakst een andere ploeg doorgaan dan de voorspelde winnaar?
-        $byInconsistent = $entries;
-        usort($byInconsistent, static fn (LeaderboardEntry $a, LeaderboardEntry $b): int =>
-            [$b->inconsistentCount, $a->user->getDisplayName()] <=> [$a->inconsistentCount, $b->user->getDisplayName()]);
+        // Extra klassementen uit dezelfde data, elk op een eigen veld gesorteerd
+        // (aflopend; bij gelijke stand alfabetisch). Deze tellen ongewogen — alleen
+        // het algemeen klassement past de rondemultiplier toe.
+        $byScore = $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->scorePoints);
+        $byWinners = $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->advanceCount);
+        $byLantern = $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->lanternPoints);
+        $byInconsistent = $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->inconsistentCount);
 
         $finishedPerRound = $scoringService->finishedCountPerRound();
 
@@ -71,5 +59,22 @@ class LeaderboardController extends AbstractController
     public function legacy(): Response
     {
         return $this->redirectToRoute('app_leaderboard', [], Response::HTTP_MOVED_PERMANENTLY);
+    }
+
+    /**
+     * Sorteert een kopie van de entries aflopend op de waarde uit $value; bij een
+     * gelijke stand alfabetisch op spelernaam. De invoer blijft ongewijzigd.
+     *
+     * @param list<LeaderboardEntry>      $entries
+     * @param \Closure(LeaderboardEntry): int $value
+     *
+     * @return list<LeaderboardEntry>
+     */
+    private function sortedBy(array $entries, \Closure $value): array
+    {
+        usort($entries, static fn (LeaderboardEntry $a, LeaderboardEntry $b): int =>
+            [$value($b), $a->user->getDisplayName()] <=> [$value($a), $b->user->getDisplayName()]);
+
+        return $entries;
     }
 }

@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import '_macros.html.twig' as m %}
+
 {% block title %}{{ 'admin.pools'|trans }} — {{ 'admin.title'|trans }}{% endblock %}
 
 {% block body %}
@@ -35,19 +37,12 @@
                             </td>
                             <td class="text-end text-nowrap">
                                 {% if pool.archived %}
-                                    <form method="post" action="{{ path('admin_pool_restore', {id: pool.id}) }}" class="d-inline">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('restore-pool-' ~ pool.id) }}">
-                                        <button class="btn btn-sm btn-outline-success">{{ 'admin.restore'|trans }}</button>
-                                    </form>
+                                    {{ m.csrf_button(path('admin_pool_restore', {id: pool.id}), csrf_token('restore-pool-' ~ pool.id), 'admin.restore'|trans, 'success') }}
                                 {% else %}
                                     <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_pool_members', {id: pool.id}) }}">{{ 'admin.members'|trans }}</a>
                                     <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_pool_edit', {id: pool.id}) }}">{{ 'common.edit'|trans }}</a>
                                     {% if not pool.default %}
-                                        <form method="post" action="{{ path('admin_pool_delete', {id: pool.id}) }}" class="d-inline"
-                                              onsubmit="return confirm('{{ 'admin.confirm_archive_pool'|trans }}');">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('archive-pool-' ~ pool.id) }}">
-                                            <button class="btn btn-sm btn-outline-danger">{{ 'admin.archive'|trans }}</button>
-                                        </form>
+                                        {{ m.csrf_button(path('admin_pool_delete', {id: pool.id}), csrf_token('archive-pool-' ~ pool.id), 'admin.archive'|trans, 'danger', 'admin.confirm_archive_pool'|trans) }}
                                     {% endif %}
                                 {% endif %}
                             </td>

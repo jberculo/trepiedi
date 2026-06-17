@@ -17,6 +17,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class ParticipantController extends AbstractController
 {
+    use AdminCrud;
+
     #[Route('', name: 'admin_participant_index', methods: ['GET'])]
     public function index(UserRepository $users): Response
     {
@@ -29,25 +31,15 @@ class ParticipantController extends AbstractController
     public function edit(User $user, Request $request, EntityManagerInterface $em, UserRepository $users): Response
     {
         $form = $this->createForm(UserAdminType::class, $user);
+        // Checkbox vooraf vullen (moet vóór handleRequest gebeuren).
         $form->get('isAdmin')->setData($user->isAdmin());
-        $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        return $this->handleCrudForm($form, $request, $em, 'admin.participant_updated', 'admin_participant_index', 'admin.participant_edit', function (User $user) use ($form, $users): void {
             // Beheerrechten op basis van de checkbox.
             $user->setRoles($form->get('isAdmin')->getData() ? ['ROLE_ADMIN'] : []);
             // Naam kan gewijzigd zijn: slug bijwerken zonder botsing met zichzelf.
             $user->setSlug($users->uniqueSlug($user->getDisplayName(), $user));
-            $em->flush();
-            $this->addFlash('success', 'admin.participant_updated');
-
-            return $this->redirectToRoute('admin_participant_index');
-        }
-
-        return $this->render('admin/_crud_form.html.twig', [
-            'form' => $form,
-            'title' => 'admin.participant_edit',
-            'back_path' => $this->generateUrl('admin_participant_index'),
-        ]);
+        });
     }
 
     #[Route('/{id}/verwijderen', name: 'admin_participant_delete', methods: ['POST'])]

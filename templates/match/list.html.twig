@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import '_macros.html.twig' as m %}
+
 {% block title %}{{ 'matches.title'|trans }} — Trepiedi{% endblock %}
 
 {% block body %}
@@ -28,10 +30,10 @@
                                 <tr>
                                     <td class="text-nowrap small">{{ match.kickoffAt|date('d-m-Y H:i') }}</td>
                                     <td class="text-end">
-                                        <a class="text-decoration-none" href="{{ path('app_match_view', {id: match.id}) }}">{{ match.homeTeam }} {{ country_flag(match.homeTeam) }}</a>
+                                        <a class="text-decoration-none" href="{{ path('app_match_view', {id: match.id}) }}">{{ m.team(match.homeTeam, false) }}</a>
                                     </td>
                                     <td>
-                                        <a class="text-decoration-none" href="{{ path('app_match_view', {id: match.id}) }}">{{ country_flag(match.awayTeam) }}{{ match.awayTeam }}</a>
+                                        <a class="text-decoration-none" href="{{ path('app_match_view', {id: match.id}) }}">{{ m.team(match.awayTeam) }}</a>
                                     </td>
                                     <td class="text-end text-nowrap">
                                         {% if match.finished %}
@@ -42,7 +44,7 @@
                                     </td>
                                     <td class="text-nowrap">
                                         {% if match.finished and match.advancingTeam %}
-                                            {{ country_flag(match.advancingTeam) }}{{ match.advancingTeam }}
+                                            {{ m.team(match.advancingTeam) }}
                                         {% else %}
                                             <span class="text-muted">—</span>
                                         {% endif %}

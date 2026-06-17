@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import '_macros.html.twig' as m %}
+
 {% block title %}{{ pool.name }} — {{ 'admin.members'|trans }}{% endblock %}
 
 {% block body %}
@@ -22,11 +24,7 @@
                             <td>{{ member.displayName }}</td>
                             <td class="small text-muted">{{ member.email }}</td>
                             <td class="text-end">
-                                <form method="post" action="{{ path('admin_pool_member_remove', {id: pool.id, userId: member.id}) }}" class="d-inline"
-                                      onsubmit="return confirm('{{ 'admin.confirm_remove_member'|trans }}');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('remove-member-' ~ pool.id ~ '-' ~ member.id) }}">
-                                    <button class="btn btn-sm btn-outline-danger">{{ 'admin.remove_member'|trans }}</button>
-                                </form>
+                                {{ m.csrf_button(path('admin_pool_member_remove', {id: pool.id, userId: member.id}), csrf_token('remove-member-' ~ pool.id ~ '-' ~ member.id), 'admin.remove_member'|trans, 'danger', 'admin.confirm_remove_member'|trans) }}
                             </td>
                         </tr>
                     {% else %}

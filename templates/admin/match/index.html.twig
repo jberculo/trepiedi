@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import '_macros.html.twig' as m %}
+
 {% block title %}{{ 'admin.matches'|trans }} — {{ 'admin.title'|trans }}{% endblock %}
 
 {% block body %}
@@ -33,11 +35,11 @@
                             </td>
                             <td class="small">{{ match.round.name }}</td>
                             <td class="small">{{ match.kickoffAt|date('d-m-Y H:i') }}</td>
-                            <td>{{ country_flag(match.homeTeam) }}{{ match.homeTeam }} – {{ country_flag(match.awayTeam) }}{{ match.awayTeam }}</td>
+                            <td>{{ m.team(match.homeTeam) }} – {{ m.team(match.awayTeam) }}</td>
                             <td>
                                 {% if match.homeScore is not null %}{{ match.homeScore }} – {{ match.awayScore }}{% else %}—{% endif %}
                             </td>
-                            <td>{% if match.advancingTeam %}{{ country_flag(match.advancingTeam) }}{{ match.advancingTeam }}{% else %}—{% endif %}</td>
+                            <td>{{ m.team_or_dash(match.advancingTeam) }}</td>
                             <td class="text-nowrap">
                                 {% if not match.active %}<span class="badge text-bg-light text-dark border">{{ 'admin.inactive'|trans }}</span>{% endif %}
                                 {% if match.finished %}<span class="badge text-bg-secondary">{{ 'admin.final'|trans }}</span>{% endif %}
@@ -45,11 +47,7 @@
                             <td class="text-end text-nowrap">
                                 <a class="btn btn-sm btn-success" href="{{ path('admin_match_result', {id: match.id}) }}">{{ 'admin.result'|trans }}</a>
                                 <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_match_edit', {id: match.id}) }}">{{ 'common.edit'|trans }}</a>
-                                <form method="post" action="{{ path('admin_match_delete', {id: match.id}) }}" class="d-inline"
-                                      onsubmit="return confirm('{{ 'admin.confirm_delete_match'|trans }}');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-match-' ~ match.id) }}">
-                                    <button class="btn btn-sm btn-outline-danger">×</button>
-                                </form>
+                                {{ m.csrf_button(path('admin_match_delete', {id: match.id}), csrf_token('delete-match-' ~ match.id), '×', 'danger', 'admin.confirm_delete_match'|trans) }}
                             </td>
                         </tr>
                     {% else %}

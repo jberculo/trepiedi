@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import '_macros.html.twig' as m %}
+
 {% block title %}{{ profile.displayName }} — Trepiedi{% endblock %}
 
 {% block body %}
@@ -8,11 +10,7 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div class="d-flex align-items-center gap-3">
-                {% if profile.avatar %}
-                    <img src="{{ asset('uploads/avatars/' ~ profile.avatar) }}" alt="" class="avatar-lg">
-                {% else %}
-                    <span class="avatar-lg avatar-empty">{{ profile.displayName|first|upper }}</span>
-                {% endif %}
+                {{ m.avatar(profile, 'lg') }}
                 <div>
                 <h1 class="h4 mb-1">{{ profile.displayName }}{% if isSelf %} <span class="badge text-bg-success">{{ 'prof.you'|trans }}</span>{% endif %}</h1>
                 {% if entry %}
@@ -59,7 +57,7 @@
                             {% set match = item.match %}
                             <tr>
                                 <td>
-                                    <a href="{{ path('app_match_view', {id: match.id}) }}">{{ country_flag(match.homeTeam) }}{{ match.homeTeam }} – {{ country_flag(match.awayTeam) }}{{ match.awayTeam }}</a>
+                                    <a href="{{ path('app_match_view', {id: match.id}) }}">{{ m.team(match.homeTeam) }} – {{ m.team(match.awayTeam) }}</a>
                                     <div class="text-muted small">{{ match.kickoffAt|date('d-m H:i') }}</div>
                                 </td>
                                 {% if not item.visible %}
@@ -67,7 +65,7 @@
                                     <td class="text-center text-muted small">🔒</td>
                                 {% elseif item.prediction %}
                                     <td class="text-center"><strong>{{ item.prediction.homeScore }} – {{ item.prediction.awayScore }}</strong></td>
-                                    <td class="text-center">{% if item.prediction.advancingTeam %}{{ country_flag(item.prediction.advancingTeam) }}{{ item.prediction.advancingTeam }}{% else %}—{% endif %}</td>
+                                    <td class="text-center">{{ m.team_or_dash(item.prediction.advancingTeam) }}</td>
                                 {% else %}
                                     <td class="text-center text-muted">{{ 'prof.no_prediction'|trans }}</td>
                                     <td class="text-center text-muted">{{ 'prof.no_prediction'|trans }}</td>
@@ -75,15 +73,11 @@
                                 <td>
                                     {% if match.finished %}
                                         {{ match.homeScore }} – {{ match.awayScore }}
-                                        <span class="text-muted small">· {{ country_flag(match.advancingTeam) }}{{ match.advancingTeam }}</span>
+                                        <span class="text-muted small">· {{ m.team(match.advancingTeam) }}</span>
                                     {% else %}<span class="text-muted small">{{ 'prof.no_result'|trans }}</span>{% endif %}
                                 </td>
                                 <td class="text-center">
-                                    {% if item.score %}
-                                        <span class="badge text-bg-success">+{{ item.score.total * match.round.weight }}</span>
-                                    {% else %}
-                                        —
-                                    {% endif %}
+                                    {% if item.score %}{{ m.points_badge(item.score.total * match.round.weight) }}{% else %}—{% endif %}
                                 </td>
                             </tr>
                         {% endfor %}

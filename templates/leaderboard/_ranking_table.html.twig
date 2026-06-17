@@ -1,0 +1,53 @@
+{# Herbruikbare klassement-tabel. De vijf ranglijsten delen dit skelet en vullen
+   per tabblad alleen de rondekop, de rondecel en het totaal in via de blokken
+   round_header / round_cell / total_cell. Verwachte variabelen:
+     entries          (gesorteerde lijst)
+     rounds, finishedPerRound
+     intro            (vertaalsleutel boven de tabel)
+     showArrow        (positiepijl tonen?)
+     arrowKey         (sleutel voor entry.change(), bij showArrow)
+     rankField        (veld voor dense-rang; null = entry.rank gebruiken)
+   round_header/round_cell zien de lus-variabelen `round` en `played`;
+   round_cell/total_cell zien `entry`. #}
+{% import '_macros.html.twig' as m %}
+{% import 'leaderboard/_lb.html.twig' as lb %}
+
+<p class="text-muted small">{{ intro|trans }}</p>
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 lb-table">
+            <thead class="table-light">
+                <tr>
+                    <th class="col-rank">#</th>
+                    <th>{{ 'lb.player'|trans }}</th>
+                    {% for round in rounds %}
+                        <th class="text-center small">{% block round_header %}{{ round.name }}{% endblock %}</th>
+                    {% endfor %}
+                    <th class="text-end">{{ 'lb.total'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set prev = null %}{% set rank = 0 %}
+                {% for entry in entries %}
+                    {% if rankField is null %}
+                        {% set rank = entry.rank %}
+                    {% else %}
+                        {% set value = attribute(entry, rankField) %}
+                        {% if prev is null or value != prev %}{% set rank = loop.index %}{% set prev = value %}{% endif %}
+                    {% endif %}
+                    <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
+                        <td class="fw-bold {{ lb.medal(rank) }}">{{ rank }}{% if showArrow %} {{ lb.arrow(entry.change(arrowKey)) }}{% endif %}</td>
+                        <td>{{ m.player(entry.user) }}</td>
+                        {% for round in rounds %}
+                            {% set played = finishedPerRound[round.id] ?? 0 %}
+                            <td class="text-center">{% block round_cell %}{% if played > 0 %}…{% else %}—{% endif %}{% endblock %}</td>
+                        {% endfor %}
+                        <td class="text-end fw-bold">{% block total_cell %}{% endblock %}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="{{ rounds|length + 3 }}" class="text-center text-muted py-4">{{ 'lb.no_participants'|trans }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,16 @@
+{# Klassement-specifieke opmaakmacro's, gedeeld door de index en de ranking-tabel. #}
+
+{# Getal netjes: heel getal zonder decimalen, anders één decimaal (NL-notatie). #}
+{% macro pts(v) %}{{ v == v|round ? v|number_format(0, ',', '.') : v|number_format(1, ',', '.') }}{% endmacro %}
+
+{# Positieverandering t.o.v. de vorige stand: ▲ omhoog, ▼ omlaag, = gelijk. #}
+{% macro arrow(change) %}{% if change is not null %}{% if change > 0 %}<span class="small rise" title="{{ 'lb.rose'|trans }}">▲{{ change }}</span>{% elseif change < 0 %}<span class="text-danger small" title="{{ 'lb.fell'|trans }}">▼{{ -change }}</span>{% else %}<span class="text-muted small" title="{{ 'lb.equal'|trans }}">=</span>{% endif %}{% endif %}{% endmacro %}
+
+{# Score-onderdelen van een ronde: thuis · uit · exact · winnaar. #}
+{% macro stat(home, away, exact, winner) %}{{ home }}× {{ 'lb.home'|trans }} · {{ away }}× {{ 'lb.away'|trans }} · {{ exact }}× {{ 'lb.exact'|trans }} · {{ winner }}× {{ 'lb.winner'|trans }}{% endmacro %}
+
+{# Totaal t.o.v. het maximum, met het percentage eronder. #}
+{% macro total(value, max) %}{{ _self.pts(value) }}/{{ _self.pts(max) }}<br><small class="text-muted fw-normal">{{ max > 0 ? (value / max * 100)|round : 0 }}%</small>{% endmacro %}
+
+{# Medaillekleur voor de top 3. #}
+{% macro medal(rank) %}{% if rank == 1 %}medal-gold{% elseif rank == 2 %}medal-silver{% elseif rank == 3 %}medal-bronze{% endif %}{% endmacro %}

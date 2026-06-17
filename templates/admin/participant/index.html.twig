@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import '_macros.html.twig' as m %}
+
 {% block title %}{{ 'admin.participants'|trans }} — {{ 'admin.title'|trans }}{% endblock %}
 
 {% block body %}
@@ -29,11 +31,7 @@
                             <td class="text-end text-nowrap">
                                 <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_participant_edit', {id: user.id}) }}">{{ 'common.edit'|trans }}</a>
                                 {% if app.user.id != user.id %}
-                                    <form method="post" action="{{ path('admin_participant_delete', {id: user.id}) }}" class="d-inline"
-                                          onsubmit="return confirm('{{ 'admin.confirm_delete_participant'|trans }}');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete-participant-' ~ user.id) }}">
-                                        <button class="btn btn-sm btn-outline-danger">{{ 'common.delete'|trans }}</button>
-                                    </form>
+                                    {{ m.csrf_button(path('admin_participant_delete', {id: user.id}), csrf_token('delete-participant-' ~ user.id), 'common.delete'|trans, 'danger', 'admin.confirm_delete_participant'|trans) }}
                                 {% endif %}
                             </td>
                         </tr>

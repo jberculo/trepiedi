@@ -16,6 +16,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class RoundController extends AbstractController
 {
+    use AdminCrud;
+
     #[Route('', name: 'admin_round_index', methods: ['GET'])]
     public function index(RoundRepository $repository): Response
     {
@@ -27,54 +29,22 @@ class RoundController extends AbstractController
     #[Route('/nieuw', name: 'admin_round_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
-        $round = new Round();
-        $form = $this->createForm(RoundType::class, $round);
-        $form->handleRequest($request);
+        $form = $this->createForm(RoundType::class, new Round());
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($round);
-            $em->flush();
-            $this->addFlash('success', 'admin.round_added');
-
-            return $this->redirectToRoute('admin_round_index');
-        }
-
-        return $this->render('admin/_crud_form.html.twig', [
-            'form' => $form,
-            'title' => 'admin.round_new',
-            'back_path' => $this->generateUrl('admin_round_index'),
-        ]);
+        return $this->handleCrudForm($form, $request, $em, 'admin.round_added', 'admin_round_index', 'admin.round_new');
     }
 
     #[Route('/{id}/bewerken', name: 'admin_round_edit', methods: ['GET', 'POST'])]
     public function edit(Round $round, Request $request, EntityManagerInterface $em): Response
     {
         $form = $this->createForm(RoundType::class, $round);
-        $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
-            $this->addFlash('success', 'admin.round_updated');
-
-            return $this->redirectToRoute('admin_round_index');
-        }
-
-        return $this->render('admin/_crud_form.html.twig', [
-            'form' => $form,
-            'title' => 'admin.round_edit',
-            'back_path' => $this->generateUrl('admin_round_index'),
-        ]);
+        return $this->handleCrudForm($form, $request, $em, 'admin.round_updated', 'admin_round_index', 'admin.round_edit');
     }
 
     #[Route('/{id}/verwijderen', name: 'admin_round_delete', methods: ['POST'])]
     public function delete(Round $round, Request $request, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('delete-round-' . $round->getId(), (string) $request->getPayload()->get('_token'))) {
-            $em->remove($round);
-            $em->flush();
-            $this->addFlash('success', 'admin.round_deleted');
-        }
-
-        return $this->redirectToRoute('admin_round_index');
+        return $this->deleteWithCsrf($request, $em, 'delete-round-' . $round->getId(), $round, 'admin.round_deleted', 'admin_round_index');
     }
 }
