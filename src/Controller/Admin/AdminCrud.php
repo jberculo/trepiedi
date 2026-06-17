@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -52,6 +53,7 @@ trait AdminCrud
         string $title,
         ?callable $onValid = null,
         bool $includeCountryAutocomplete = false,
+        ?User $avatarPreview = null,
     ): Response {
         $form->handleRequest($request);
 
@@ -71,6 +73,7 @@ trait AdminCrud
             'title' => $title,
             'back_path' => $this->generateUrl($indexRoute),
             'include_country_autocomplete' => $includeCountryAutocomplete,
+            'avatar_preview' => $avatarPreview,
         ]);
     }
 

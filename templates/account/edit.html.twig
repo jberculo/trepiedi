@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import '_macros.html.twig' as m %}
+
 {% block title %}{{ 'account.title'|trans }} - Trepiedi{% endblock %}
 
 {% block body %}
@@ -17,11 +19,7 @@
 
                         <div class="mb-3">
                             <span class="form-label d-block">{{ 'account.current_photo'|trans }}</span>
-                            {% if app.user.avatar %}
-                                <img src="{{ asset('uploads/avatars/' ~ app.user.avatar) }}" alt="" class="avatar-lg">
-                            {% else %}
-                                <span class="avatar-lg avatar-empty">{{ app.user.displayName|first|upper }}</span>
-                            {% endif %}
+                            {{ m.avatar(app.user, 'lg') }}
                         </div>
 
                         <div class="mb-3">

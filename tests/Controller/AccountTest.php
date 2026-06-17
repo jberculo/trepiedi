@@ -53,17 +53,11 @@ class AccountTest extends FixturesWebTestCase
     {
         $avatarDir = self::getContainer()->getParameter('kernel.project_dir') . '/public/uploads/avatars';
 
-        // Klein geldig PNG'tje (1×1) wegschrijven als upload.
-        $tmp = tempnam(sys_get_temp_dir(), 'avatar') . '.png';
-        file_put_contents($tmp, base64_decode(
-            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-        ));
-
         $this->client->loginUser($this->user('bram@trepiedi.test'));
         $crawler = $this->client->request('GET', '/account');
         $form = $crawler->selectButton('Opslaan')->form();
         $form['account[displayName]'] = 'Bram';
-        $form['account[avatar]']->upload($tmp);
+        $form['account[avatar]']->upload($this->makeImageFile());
         $this->client->submit($form);
 
         $this->assertResponseRedirects('/account');
@@ -72,41 +66,41 @@ class AccountTest extends FixturesWebTestCase
         $user = $this->em->getRepository(User::class)->findOneBy(['email' => 'bram@trepiedi.test']);
         $this->assertNotNull($user->getAvatar(), 'Avatar-bestandsnaam had opgeslagen moeten worden.');
 
-        $stored = $avatarDir . '/' . $user->getAvatar();
-        $this->assertFileExists($stored);
-        @unlink($stored);
+        // Opgeslagen als kleine vierkante varianten per UI-maat.
+        $base = $user->getAvatar();
+        $this->assertFileExists($avatarDir . '/' . $base . '-sm.jpg');
+        $this->assertFileExists($avatarDir . '/' . $base . '-lg.jpg');
+        @unlink($avatarDir . '/' . $base . '-sm.jpg');
+        @unlink($avatarDir . '/' . $base . '-lg.jpg');
     }
 
     public function testNewAvatarReplacesAndRemovesTheOld(): void
     {
         $avatarDir = self::getContainer()->getParameter('kernel.project_dir') . '/public/uploads/avatars';
-        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
 
         $this->client->loginUser($this->user('bram@trepiedi.test'));
 
         // Eerste avatar.
-        $first = $this->uploadAvatar($png);
-        $firstPath = $avatarDir . '/' . $first;
-        $this->assertFileExists($firstPath);
+        $first = $this->uploadAvatar();
+        $firstLg = $avatarDir . '/' . $first . '-lg.jpg';
+        $this->assertFileExists($firstLg);
 
-        // Tweede upload moet de eerste vervangen én het oude bestand verwijderen.
-        $second = $this->uploadAvatar($png);
-        $this->assertNotSame($first, $second, 'Nieuwe avatar krijgt een eigen bestandsnaam.');
-        $this->assertFileExists($avatarDir . '/' . $second);
-        $this->assertFileDoesNotExist($firstPath, 'De oude avatar is opgeruimd.');
+        // Tweede upload moet de eerste vervangen én de oude varianten verwijderen.
+        $second = $this->uploadAvatar();
+        $this->assertNotSame($first, $second, 'Nieuwe avatar krijgt een eigen basisnaam.');
+        $this->assertFileExists($avatarDir . '/' . $second . '-lg.jpg');
+        $this->assertFileDoesNotExist($firstLg, 'De oude avatar-variant is opgeruimd.');
 
-        @unlink($avatarDir . '/' . $second);
+        @unlink($avatarDir . '/' . $second . '-sm.jpg');
+        @unlink($avatarDir . '/' . $second . '-lg.jpg');
     }
 
-    private function uploadAvatar(string $png): string
+    private function uploadAvatar(): string
     {
-        $tmp = tempnam(sys_get_temp_dir(), 'avatar') . '.png';
-        file_put_contents($tmp, $png);
-
         $crawler = $this->client->request('GET', '/account');
         $form = $crawler->selectButton('Opslaan')->form();
         $form['account[displayName]'] = 'Bram';
-        $form['account[avatar]']->upload($tmp);
+        $form['account[avatar]']->upload($this->makeImageFile());
         $this->client->submit($form);
 
         $this->em->clear();

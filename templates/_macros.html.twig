@@ -2,7 +2,7 @@
 {% macro avatar(user, size) %}
     {%- set s = size|default('sm') -%}
     {%- if user.avatar -%}
-        <img src="{{ asset('uploads/avatars/' ~ user.avatar) }}" alt="" class="avatar-{{ s }}">
+        <img src="{{ asset('uploads/avatars/' ~ user.avatar ~ '-' ~ s ~ '.jpg') }}" alt="" class="avatar-{{ s }}">
     {%- else -%}
         <span class="avatar-{{ s }} avatar-empty">{{ user.displayName|first|upper }}</span>
     {%- endif -%}

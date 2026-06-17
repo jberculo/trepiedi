@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import '_macros.html.twig' as m %}
+
 {% block title %}{{ title|trans }} &mdash; Trepiedi{% endblock %}
 
 {% block body %}
@@ -7,6 +9,9 @@
         <div class="col-md-7">
             <h1 class="h4 mb-3">{{ title|trans }}</h1>
             <div class="card shadow-sm"><div class="card-body">
+                {% if avatar_preview is defined and avatar_preview %}
+                    <p class="mb-3">{{ 'account.current_photo'|trans }}: {{ m.avatar(avatar_preview, 'lg') }}</p>
+                {% endif %}
                 {{ form_start(form) }}
                     {{ form_widget(form) }}
                     <div class="mt-3">

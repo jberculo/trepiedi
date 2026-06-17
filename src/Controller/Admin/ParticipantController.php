@@ -36,7 +36,7 @@ class ParticipantController extends AbstractController
         // Checkbox vooraf vullen (moet voor handleRequest gebeuren).
         $form->get('isAdmin')->setData($user->isAdmin());
 
-        return $this->handleCrudForm($form, $request, $em, 'admin.participant_updated', 'admin_participant_index', 'admin.participant_edit', function (User $user) use ($form, $users, $avatars): void {
+        return $this->handleCrudForm($form, $request, $em, 'admin.participant_updated', 'admin_participant_index', 'admin.participant_edit', onValid: function (User $user) use ($form, $users, $avatars): void {
             $user->setRoles($form->get('isAdmin')->getData() ? ['ROLE_ADMIN'] : []);
             $user->setSlug($users->uniqueSlug($user->getDisplayName(), $user));
 
@@ -44,7 +44,7 @@ class ParticipantController extends AbstractController
             if ($avatar instanceof UploadedFile) {
                 $avatars->store($user, $avatar);
             }
-        });
+        }, avatarPreview: $user);
     }
 
     #[Route('/{id}/verwijderen', name: 'admin_participant_delete', methods: ['POST'])]

@@ -43,7 +43,7 @@
         if (p.avatar) {
             avatar = document.createElement('img');
             avatar.className = 'avatar-sm';
-            avatar.src = avatarBase + p.avatar;
+            avatar.src = avatarBase + p.avatar + '-sm.jpg';
             avatar.alt = '';
         } else {
             avatar = document.createElement('span');

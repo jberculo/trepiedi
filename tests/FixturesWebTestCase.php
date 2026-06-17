@@ -67,4 +67,19 @@ abstract class FixturesWebTestCase extends WebTestCase
 
         return $token;
     }
+
+    /**
+     * Schrijft een geldige PNG naar een tijdelijk bestand en geeft het pad terug.
+     * (Bewust via GD gegenereerd; een hand-getypte base64-PNG kan een CRC-fout geven.)
+     */
+    protected function makeImageFile(): string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'avatar') . '.png';
+        $img = imagecreatetruecolor(20, 20);
+        imagefilledrectangle($img, 0, 0, 19, 19, imagecolorallocate($img, 90, 150, 90));
+        imagepng($img, $path);
+        imagedestroy($img);
+
+        return $path;
+    }
 }
