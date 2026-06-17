@@ -24,6 +24,54 @@ class AdminCrudTest extends FixturesWebTestCase
         $this->assertNotNull($this->em->getRepository(Round::class)->findOneBy(['name' => 'Testronde']));
     }
 
+    public function testAdminCanEditRound(): void
+    {
+        $round = $this->em->getRepository(Round::class)->findOneBy(['name' => 'Achtste finales']);
+        $id = $round->getId();
+
+        $this->client->loginUser($this->user('admin@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/admin/ronden/' . $id . '/bewerken');
+        $form = $crawler->selectButton('Opslaan')->form(['round[name]' => 'Achtste (gewijzigd)']);
+        $this->client->submit($form);
+
+        $this->assertResponseRedirects('/admin/ronden');
+        $this->em->clear();
+        $this->assertSame('Achtste (gewijzigd)', $this->em->getRepository(Round::class)->find($id)->getName());
+    }
+
+    public function testAdminCanDeleteRound(): void
+    {
+        // Lege ronde (zonder wedstrijden) om te verwijderen.
+        $round = (new Round())->setName('Weg ermee')->setSortOrder(99)->setWeight(1.0);
+        $this->em->persist($round);
+        $this->em->flush();
+        $id = $round->getId();
+
+        $this->client->loginUser($this->user('admin@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/admin/ronden');
+        $form = $crawler->filter('form[action="/admin/ronden/' . $id . '/verwijderen"]')->form();
+        $this->client->submit($form);
+
+        $this->assertResponseRedirects('/admin/ronden');
+        $this->em->clear();
+        $this->assertNull($this->em->getRepository(Round::class)->find($id), 'Ronde is verwijderd.');
+    }
+
+    public function testDeleteRoundRejectsInvalidCsrf(): void
+    {
+        $round = (new Round())->setName('Blijft staan')->setSortOrder(98)->setWeight(1.0);
+        $this->em->persist($round);
+        $this->em->flush();
+        $id = $round->getId();
+
+        $this->client->loginUser($this->user('admin@trepiedi.test'));
+        $this->client->request('POST', '/admin/ronden/' . $id . '/verwijderen', ['_token' => 'ongeldig']);
+        $this->assertResponseRedirects('/admin/ronden');
+
+        $this->em->clear();
+        $this->assertNotNull($this->em->getRepository(Round::class)->find($id), 'Bij ongeldige CSRF blijft de ronde staan.');
+    }
+
     public function testAdminCanCreateMatch(): void
     {
         $round = $this->em->getRepository(Round::class)->findOneBy(['name' => 'Achtste finales']);

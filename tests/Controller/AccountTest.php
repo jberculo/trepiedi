@@ -77,6 +77,43 @@ class AccountTest extends FixturesWebTestCase
         @unlink($stored);
     }
 
+    public function testNewAvatarReplacesAndRemovesTheOld(): void
+    {
+        $avatarDir = self::getContainer()->getParameter('kernel.project_dir') . '/public/uploads/avatars';
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+
+        $this->client->loginUser($this->user('bram@trepiedi.test'));
+
+        // Eerste avatar.
+        $first = $this->uploadAvatar($png);
+        $firstPath = $avatarDir . '/' . $first;
+        $this->assertFileExists($firstPath);
+
+        // Tweede upload moet de eerste vervangen én het oude bestand verwijderen.
+        $second = $this->uploadAvatar($png);
+        $this->assertNotSame($first, $second, 'Nieuwe avatar krijgt een eigen bestandsnaam.');
+        $this->assertFileExists($avatarDir . '/' . $second);
+        $this->assertFileDoesNotExist($firstPath, 'De oude avatar is opgeruimd.');
+
+        @unlink($avatarDir . '/' . $second);
+    }
+
+    private function uploadAvatar(string $png): string
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'avatar') . '.png';
+        file_put_contents($tmp, $png);
+
+        $crawler = $this->client->request('GET', '/account');
+        $form = $crawler->selectButton('Opslaan')->form();
+        $form['account[displayName]'] = 'Bram';
+        $form['account[avatar]']->upload($tmp);
+        $this->client->submit($form);
+
+        $this->em->clear();
+
+        return $this->user('bram@trepiedi.test')->getAvatar();
+    }
+
     public function testNameChangeUpdatesSlug(): void
     {
         $this->client->loginUser($this->user('anne@trepiedi.test'));

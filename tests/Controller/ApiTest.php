@@ -261,6 +261,113 @@ class ApiTest extends FixturesWebTestCase
         $this->assertResponseStatusCodeSame(403);
     }
 
+    public function testSetResultOnUnknownMatchIs404(): void
+    {
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
+        $this->post(999999, $adminKey, ['homeScore' => 1, 'awayScore' => 0, 'advancingSide' => 'home']);
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    public function testSetResultMissingScoreIs422(): void
+    {
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
+        $id = $this->openMatch()->getId();
+        // awayScore ontbreekt.
+        $this->post($id, $adminKey, ['homeScore' => 1, 'advancingSide' => 'home']);
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testSetResultNonNumericScoreIs422(): void
+    {
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
+        $id = $this->openMatch()->getId();
+        $this->post($id, $adminKey, ['homeScore' => 'twee', 'awayScore' => 0, 'advancingSide' => 'home']);
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testSetResultInvalidSideIs422(): void
+    {
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
+        $id = $this->openMatch()->getId();
+        $this->post($id, $adminKey, ['homeScore' => 1, 'awayScore' => 0, 'advancingSide' => 'midden']);
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testSetResultFinishedWithoutSideIs422(): void
+    {
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
+        $id = $this->openMatch()->getId();
+        // finished=true vereist advancingSide.
+        $this->post($id, $adminKey, ['homeScore' => 1, 'awayScore' => 0, 'finished' => true]);
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testSubmitPredictionMissingScoreIs422(): void
+    {
+        $anneKey = $this->issueApiToken($this->user('anne@trepiedi.test'));
+        $id = $this->openMatch()->getId();
+        $this->req('POST', '/api/matches/' . $id . '/prediction', $anneKey, ['homeScore' => 2, 'advancingSide' => 'home']);
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testSubmitPredictionInvalidSideIs422(): void
+    {
+        $anneKey = $this->issueApiToken($this->user('anne@trepiedi.test'));
+        $id = $this->openMatch()->getId();
+        $this->req('POST', '/api/matches/' . $id . '/prediction', $anneKey, ['homeScore' => 2, 'awayScore' => 0, 'advancingSide' => 'x']);
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testSubmitPredictionOnInactiveMatchIs409(): void
+    {
+        $anneKey = $this->issueApiToken($this->user('anne@trepiedi.test'));
+        $open = $this->openMatch();
+        $open->setActive(false);
+        $this->em->flush();
+
+        $this->req('POST', '/api/matches/' . $open->getId() . '/prediction', $anneKey, ['homeScore' => 1, 'awayScore' => 0, 'advancingSide' => 'home']);
+        $this->assertResponseStatusCodeSame(409);
+    }
+
+    public function testUpdateMatchActiveToggleLeavesTeamsUntouched(): void
+    {
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
+        $open = $this->openMatch();
+        $id = $open->getId();
+        $home = $open->getHomeTeam();
+
+        $this->req('PATCH', '/api/matches/' . $id, $adminKey, ['active' => false]);
+        $this->assertResponseIsSuccessful();
+
+        $this->em->clear();
+        $match = $this->em->getRepository(FootballMatch::class)->find($id);
+        $this->assertFalse($match->isActive());
+        $this->assertSame($home, $match->getHomeTeam(), 'Een active-toggle mag de ploegnaam niet wijzigen.');
+    }
+
+    public function testUpdateMatchInvalidKickoffIs422(): void
+    {
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
+        $id = $this->openMatch()->getId();
+        $this->req('PATCH', '/api/matches/' . $id, $adminKey, ['kickoff' => 'geen-datum']);
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testCreatePoolEmptyNameIs422(): void
+    {
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
+        $this->req('POST', '/api/pools', $adminKey, ['name' => '   ']);
+        $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testCreatePoolDuplicateCodeIs409(): void
+    {
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
+        // 'kantoor' bestaat al in de fixtures.
+        $this->req('POST', '/api/pools', $adminKey, ['name' => 'Kopie', 'code' => 'kantoor']);
+        $this->assertResponseStatusCodeSame(409);
+    }
+
     /**
      * @param array<string, mixed> $body
      */
