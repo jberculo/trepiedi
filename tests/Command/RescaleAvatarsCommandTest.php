@@ -32,9 +32,11 @@ class RescaleAvatarsCommandTest extends FixturesWebTestCase
         $this->assertNotSame($legacy, $base, 'Avatar verwijst nu naar een nieuwe basisnaam.');
         $this->assertFileExists($avatarDir . '/' . $base . '-sm.jpg');
         $this->assertFileExists($avatarDir . '/' . $base . '-lg.jpg');
+        $this->assertFileExists($avatarDir . '/' . $base . '-orig', 'Het origineel wordt bewaard.');
         $this->assertFileDoesNotExist($legacyPath, 'Het oude losse bestand is verwijderd.');
 
         @unlink($avatarDir . '/' . $base . '-sm.jpg');
         @unlink($avatarDir . '/' . $base . '-lg.jpg');
+        @unlink($avatarDir . '/' . $base . '-orig');
     }
 }

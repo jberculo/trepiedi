@@ -66,12 +66,14 @@ class AccountTest extends FixturesWebTestCase
         $user = $this->em->getRepository(User::class)->findOneBy(['email' => 'bram@trepiedi.test']);
         $this->assertNotNull($user->getAvatar(), 'Avatar-bestandsnaam had opgeslagen moeten worden.');
 
-        // Opgeslagen als kleine vierkante varianten per UI-maat.
+        // Opgeslagen als kleine vierkante varianten per UI-maat + het bewaarde origineel.
         $base = $user->getAvatar();
         $this->assertFileExists($avatarDir . '/' . $base . '-sm.jpg');
         $this->assertFileExists($avatarDir . '/' . $base . '-lg.jpg');
+        $this->assertFileExists($avatarDir . '/' . $base . '-orig', 'Het origineel wordt bewaard.');
         @unlink($avatarDir . '/' . $base . '-sm.jpg');
         @unlink($avatarDir . '/' . $base . '-lg.jpg');
+        @unlink($avatarDir . '/' . $base . '-orig');
     }
 
     public function testNewAvatarReplacesAndRemovesTheOld(): void
@@ -90,9 +92,11 @@ class AccountTest extends FixturesWebTestCase
         $this->assertNotSame($first, $second, 'Nieuwe avatar krijgt een eigen basisnaam.');
         $this->assertFileExists($avatarDir . '/' . $second . '-lg.jpg');
         $this->assertFileDoesNotExist($firstLg, 'De oude avatar-variant is opgeruimd.');
+        $this->assertFileDoesNotExist($avatarDir . '/' . $first . '-orig', 'Het oude origineel is opgeruimd.');
 
         @unlink($avatarDir . '/' . $second . '-sm.jpg');
         @unlink($avatarDir . '/' . $second . '-lg.jpg');
+        @unlink($avatarDir . '/' . $second . '-orig');
     }
 
     private function uploadAvatar(): string

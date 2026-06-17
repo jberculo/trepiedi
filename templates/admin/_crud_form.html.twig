@@ -9,10 +9,15 @@
         <div class="col-md-7">
             <h1 class="h4 mb-3">{{ title|trans }}</h1>
             <div class="card shadow-sm"><div class="card-body">
-                {% if avatar_preview is defined and avatar_preview %}
-                    <p class="mb-3">{{ 'account.current_photo'|trans }}: {{ m.avatar(avatar_preview, 'lg') }}</p>
-                {% endif %}
                 {{ form_start(form) }}
+                    {% if avatar_preview is defined and avatar_preview %}
+                        {# Huidige foto en het uploadveld bij elkaar. form_row markeert het
+                           avatar-veld als gerenderd, zodat form_widget het niet nog eens toont. #}
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            {{ m.avatar(avatar_preview, 'lg') }}
+                            <div class="flex-grow-1">{{ form_row(form.avatar) }}</div>
+                        </div>
+                    {% endif %}
                     {{ form_widget(form) }}
                     <div class="mt-3">
                         <button class="btn btn-success">{{ 'common.save'|trans }}</button>

@@ -18,6 +18,9 @@ final class AvatarStorage
     /** Zijde (px) per UI-maat; ~2× de CSS-grootte voor scherpte (sm 28px, lg 96px). */
     public const SIZES = ['sm' => 64, 'lg' => 192];
 
+    /** Achtervoegsel voor het bewaarde, ongesneden origineel (bron voor andere formaten). */
+    private const ORIGINAL = '-orig';
+
     public function __construct(
         #[Autowire('%kernel.project_dir%/public/uploads/avatars')]
         private string $avatarDir,
@@ -47,6 +50,9 @@ final class AvatarStorage
         }
         imagedestroy($source);
 
+        // Het volledige (ongesneden) origineel bewaren als bron voor toekomstige formaten.
+        copy($sourcePath, $this->avatarDir . '/' . $base . self::ORIGINAL);
+
         $this->remove($user->getAvatar());
         $user->setAvatar($base);
     }
@@ -60,8 +66,12 @@ final class AvatarStorage
             return;
         }
 
+        $paths = [$this->avatarDir . '/' . $base . self::ORIGINAL];
         foreach (array_keys(self::SIZES) as $name) {
-            $path = $this->avatarDir . '/' . $base . '-' . $name . '.jpg';
+            $paths[] = $this->avatarDir . '/' . $base . '-' . $name . '.jpg';
+        }
+
+        foreach ($paths as $path) {
             if (is_file($path)) {
                 $this->filesystem->remove($path);
             }
