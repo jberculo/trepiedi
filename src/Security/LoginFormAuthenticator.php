@@ -2,6 +2,8 @@
 
 namespace App\Security;
 
+use App\Entity\User;
+use App\Pool\PoolEnroller;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,7 +27,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
-        private \App\Pool\PoolEnroller $poolEnroller,
+        private PoolEnroller $poolEnroller,
     ) {
     }
 
@@ -49,7 +51,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
     {
         // De voorkeurstaal uit het profiel wordt de taal van de sessie.
         $user = $token->getUser();
-        if ($user instanceof \App\Entity\User) {
+        if ($user instanceof User) {
             $request->getSession()->set('_locale', $user->getLocale());
 
             // Een onthouden uitnodigingscode (klik op join-link vóór inloggen) verzilveren.
@@ -57,9 +59,9 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
             // persistent); wie nooit koos, ziet via PoolContext de standaardpoule.
             if ($request->getPathInfo() === $this->getLoginUrl($request)) {
                 $session = $request->getSession();
-                $code = $session->get(\App\Pool\PoolEnroller::SESSION_KEY);
+                $code = $session->get(PoolEnroller::SESSION_KEY);
                 if (is_string($code) && $code !== '') {
-                    $session->remove(\App\Pool\PoolEnroller::SESSION_KEY);
+                    $session->remove(PoolEnroller::SESSION_KEY);
                     $this->poolEnroller->enroll($user, $code);
                 }
             }

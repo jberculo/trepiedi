@@ -17,3 +17,6 @@
 # Geüploade avatars: gebruikersfoto's niet committen, map wel behouden.
 /public/uploads/avatars/*
 !/public/uploads/avatars/.gitkeep
+
+# IDE-bestanden (PhpStorm e.d.)
+/.idea/

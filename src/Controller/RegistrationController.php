@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Form\RegistrationFormType;
 use App\Pool\PoolEnroller;
 use App\Repository\UserRepository;
+use App\Security\ApiTokenGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,7 +25,7 @@ class RegistrationController extends AbstractController
         UserAuthenticatorInterface $userAuthenticator,
         LoginFormAuthenticator $authenticator,
         PoolEnroller $poolEnroller,
-        \App\Security\ApiTokenGenerator $apiTokenGenerator,
+        ApiTokenGenerator $apiTokenGenerator,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_dashboard');

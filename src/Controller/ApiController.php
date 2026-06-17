@@ -2,9 +2,11 @@
 
 namespace App\Controller;
 
+use App\Api\ApiError;
 use App\Api\ApiException;
 use App\Api\ApiKeyResolver;
-use App\Api\Operations;
+use App\Api\ReadApi;
+use App\Api\WriteApi;
 use App\Flag\FlagProvider;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,14 +15,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * REST-API. Dezelfde logica (App\Api\Operations) voedt ook de MCP-server.
- *   - Lezen (geen sleutel): stand, wedstrijden, ronden.
- *   - Header X-API-Key: je eigen voorspelling en /api/me; beheer met een beheerderssleutel.
+ * REST-API. De logica zit in App\Api\ReadApi/WriteApi (gedeeld met de MCP-server);
+ * deze controller doet alleen HTTP: routes, sleutel-resolutie en het vertalen van
+ * een ApiException naar de juiste status.
  */
 class ApiController extends AbstractController
 {
     public function __construct(
-        private Operations $ops,
+        private ReadApi $read,
+        private WriteApi $write,
         private ApiKeyResolver $keys,
     ) {
     }
@@ -31,25 +34,25 @@ class ApiController extends AbstractController
     {
         $code ??= $request->query->get('pool');
 
-        return $this->run(fn (): array => $this->ops->standings($code));
+        return $this->run(fn (): array => $this->read->standings($code));
     }
 
     #[Route('/api/matches', name: 'api_matches', methods: ['GET'])]
     public function matches(): JsonResponse
     {
-        return $this->run(fn (): array => $this->ops->matchesList());
+        return $this->run(fn (): array => $this->read->matchesList());
     }
 
     #[Route('/api/matches/{id}', name: 'api_match', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function match(int $id): JsonResponse
     {
-        return $this->run(fn (): array => $this->ops->matchDetail($id));
+        return $this->run(fn (): array => $this->read->matchDetail($id));
     }
 
     #[Route('/api/rounds', name: 'api_rounds', methods: ['GET'])]
     public function rounds(): JsonResponse
     {
-        return $this->run(fn (): array => $this->ops->roundsList());
+        return $this->run(fn (): array => $this->read->roundsList());
     }
 
     #[Route('/api/flags/{code}', name: 'api_flag', methods: ['GET'], requirements: ['code' => '[a-z]{2}(-[a-z]+)?'])]
@@ -69,41 +72,41 @@ class ApiController extends AbstractController
     #[Route('/api/me', name: 'api_me', methods: ['GET'])]
     public function me(Request $request): JsonResponse
     {
-        return $this->run(fn (): array => $this->ops->me($this->keys->fromRequest($request)));
+        return $this->run(fn (): array => $this->read->me($this->keys->fromRequest($request)));
     }
 
     #[Route('/api/matches/{id}/prediction', name: 'api_match_prediction', methods: ['POST', 'PUT'], requirements: ['id' => '\d+'])]
     public function prediction(int $id, Request $request): JsonResponse
     {
-        return $this->run(fn (): array => $this->ops->submitPrediction($this->keys->fromRequest($request), $id, $this->body($request)));
+        return $this->run(fn (): array => $this->write->submitPrediction($this->keys->fromRequest($request), $id, $this->body($request)));
     }
 
     #[Route('/api/matches/{id}/result', name: 'api_match_result', methods: ['POST', 'PUT'], requirements: ['id' => '\d+'])]
     public function result(int $id, Request $request): JsonResponse
     {
-        return $this->run(fn (): array => $this->ops->setResult($this->keys->fromRequest($request), $id, $this->body($request)));
+        return $this->run(fn (): array => $this->write->setResult($this->keys->fromRequest($request), $id, $this->body($request)));
     }
 
     #[Route('/api/matches/{id}', name: 'api_match_update', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function updateMatch(int $id, Request $request): JsonResponse
     {
-        return $this->run(fn (): array => $this->ops->updateMatch($this->keys->fromRequest($request), $id, $this->body($request)));
+        return $this->run(fn (): array => $this->write->updateMatch($this->keys->fromRequest($request), $id, $this->body($request)));
     }
 
     #[Route('/api/pools', name: 'api_pools', methods: ['GET'])]
     public function pools(Request $request): JsonResponse
     {
-        return $this->run(fn (): array => $this->ops->poolsList($this->keys->fromRequest($request)));
+        return $this->run(fn (): array => $this->write->poolsList($this->keys->fromRequest($request)));
     }
 
     #[Route('/api/pools', name: 'api_pool_create', methods: ['POST'])]
     public function createPool(Request $request): JsonResponse
     {
-        return $this->run(fn (): array => $this->ops->createPool($this->keys->fromRequest($request), $this->body($request)), Response::HTTP_CREATED);
+        return $this->run(fn (): array => $this->write->createPool($this->keys->fromRequest($request), $this->body($request)), Response::HTTP_CREATED);
     }
 
     /**
-     * Voert een operatie uit en vertaalt een ApiException naar de juiste JSON + status.
+     * Voert een operatie uit en vertaalt een ApiException naar de juiste HTTP-status.
      *
      * @param callable(): array $fn
      */
@@ -112,8 +115,19 @@ class ApiController extends AbstractController
         try {
             return $this->json($fn(), $okStatus);
         } catch (ApiException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->status);
+            return $this->json(['error' => $e->getMessage()], $this->statusFor($e->error));
         }
+    }
+
+    private function statusFor(ApiError $error): int
+    {
+        return match ($error) {
+            ApiError::Unauthorized => Response::HTTP_UNAUTHORIZED,
+            ApiError::Forbidden => Response::HTTP_FORBIDDEN,
+            ApiError::NotFound => Response::HTTP_NOT_FOUND,
+            ApiError::Conflict => Response::HTTP_CONFLICT,
+            ApiError::Validation => Response::HTTP_UNPROCESSABLE_ENTITY,
+        };
     }
 
     /**
@@ -123,7 +137,7 @@ class ApiController extends AbstractController
     {
         $decoded = json_decode($request->getContent() ?: '{}', true);
         if (!is_array($decoded)) {
-            throw new ApiException(Response::HTTP_BAD_REQUEST, 'Ongeldige JSON-body.');
+            throw new ApiException(ApiError::Validation, 'Ongeldige JSON-body.');
         }
 
         return $decoded;

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\AccountType;
 use App\Repository\UserRepository;
+use App\Security\ApiTokenGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -20,7 +21,7 @@ class AccountController extends AbstractController
         Request $request,
         UserRepository $users,
         EntityManagerInterface $em,
-        \App\Security\ApiTokenGenerator $apiTokenGenerator,
+        ApiTokenGenerator $apiTokenGenerator,
         #[Autowire('%kernel.project_dir%/public/uploads/avatars')]
         string $avatarDir,
     ): Response {
@@ -70,7 +71,7 @@ class AccountController extends AbstractController
     public function regenerateApiToken(
         Request $request,
         EntityManagerInterface $em,
-        \App\Security\ApiTokenGenerator $apiTokenGenerator,
+        ApiTokenGenerator $apiTokenGenerator,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();

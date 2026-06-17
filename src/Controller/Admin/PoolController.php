@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Pool;
 use App\Entity\User;
 use App\Form\PoolType;
+use App\Pool\PoolCodeGenerator;
 use App\Repository\PoolRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,7 +27,7 @@ class PoolController extends AbstractController
     }
 
     #[Route('/nieuw', name: 'admin_pool_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em, PoolRepository $pools, \App\Pool\PoolCodeGenerator $codeGenerator): Response
+    public function new(Request $request, EntityManagerInterface $em, PoolRepository $pools, PoolCodeGenerator $codeGenerator): Response
     {
         $pool = new Pool();
         $form = $this->createForm(PoolType::class, $pool);
