@@ -3,7 +3,7 @@
 namespace App\Api;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
+use App\Security\ApiTokenService;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -11,17 +11,12 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class ApiKeyResolver
 {
-    public function __construct(private UserRepository $users)
+    public function __construct(private ApiTokenService $tokens)
     {
     }
 
     public function fromRequest(Request $request): ?User
     {
-        return $this->fromKey((string) $request->headers->get('X-API-Key', ''));
-    }
-
-    public function fromKey(string $key): ?User
-    {
-        return $key !== '' ? $this->users->findOneByApiToken($key) : null;
+        return $this->tokens->resolve((string) $request->headers->get('X-API-Key', ''));
     }
 }

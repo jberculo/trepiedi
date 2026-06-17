@@ -1,12 +1,12 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ 'admin.result'|trans }} — {{ 'admin.title'|trans }}{% endblock %}
+{% block title %}{{ 'admin.result'|trans }} &mdash; {{ 'admin.title'|trans }}{% endblock %}
 
 {% block body %}
     <div class="row justify-content-center">
         <div class="col-md-7">
             <h1 class="h4 mb-1">{{ 'admin.enter_result'|trans }}</h1>
-            <p class="text-muted">{{ match.homeTeam }} – {{ match.awayTeam }} · {{ match.kickoffAt|date('d-m-Y H:i') }}</p>
+            <p class="text-muted">{{ match.homeTeam }} &ndash; {{ match.awayTeam }} &middot; {{ match.kickoffAt|date('d-m-Y H:i') }}</p>
 
             <div class="card shadow-sm"><div class="card-body">
                 <p class="small text-muted">{{ 'admin.result_help'|trans }}</p>

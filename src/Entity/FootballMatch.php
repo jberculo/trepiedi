@@ -10,9 +10,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Een knock-outwedstrijd (vanaf de 16e finales).
- * De score betreft de stand na reguliere speeltijd én eventuele verlenging (zonder penalty's);
+ * De score betreft de stand na reguliere speeltijd en eventuele verlenging (zonder penalty's);
  * advancingSide geeft aan welke kant (thuis/uit) doorgaat (eventueel na strafschoppen).
- * De ploegen zijn vrije tekst — er is geen aparte teamadministratie.
+ * De ploegen zijn vrije tekst; er is geen aparte teamadministratie.
  */
 #[ORM\Entity(repositoryClass: FootballMatchRepository::class)]
 #[ORM\Table(name: 'football_match')]
@@ -45,7 +45,7 @@ class FootballMatch
     private ?\DateTimeImmutable $kickoffAt = null;
 
     /**
-     * Doelpunten thuisploeg na reguliere speeltijd én verlenging, zonder penalty's
+     * Doelpunten thuisploeg na reguliere speeltijd en verlenging, zonder penalty's
      * (null zolang er geen uitslag is).
      */
     #[ORM\Column(nullable: true)]
@@ -53,7 +53,7 @@ class FootballMatch
     private ?int $homeScore = null;
 
     /**
-     * Doelpunten uitploeg na reguliere speeltijd én verlenging, zonder penalty's.
+     * Doelpunten uitploeg na reguliere speeltijd en verlenging, zonder penalty's.
      */
     #[ORM\Column(nullable: true)]
     #[Assert\PositiveOrZero]

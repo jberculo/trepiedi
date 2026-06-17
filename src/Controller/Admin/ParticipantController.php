@@ -31,13 +31,11 @@ class ParticipantController extends AbstractController
     public function edit(User $user, Request $request, EntityManagerInterface $em, UserRepository $users): Response
     {
         $form = $this->createForm(UserAdminType::class, $user);
-        // Checkbox vooraf vullen (moet vóór handleRequest gebeuren).
+        // Checkbox vooraf vullen (moet voor handleRequest gebeuren).
         $form->get('isAdmin')->setData($user->isAdmin());
 
         return $this->handleCrudForm($form, $request, $em, 'admin.participant_updated', 'admin_participant_index', 'admin.participant_edit', function (User $user) use ($form, $users): void {
-            // Beheerrechten op basis van de checkbox.
             $user->setRoles($form->get('isAdmin')->getData() ? ['ROLE_ADMIN'] : []);
-            // Naam kan gewijzigd zijn: slug bijwerken zonder botsing met zichzelf.
             $user->setSlug($users->uniqueSlug($user->getDisplayName(), $user));
         });
     }
@@ -45,25 +43,26 @@ class ParticipantController extends AbstractController
     #[Route('/{id}/verwijderen', name: 'admin_participant_delete', methods: ['POST'])]
     public function delete(User $user, Request $request, EntityManagerInterface $em): Response
     {
-        if (!$this->isCsrfTokenValid('delete-participant-' . $user->getId(), (string) $request->getPayload()->get('_token'))) {
-            return $this->redirectToRoute('admin_participant_index');
-        }
+        return $this->deleteWithCsrf(
+            $request,
+            $em,
+            'delete-participant-' . $user->getId(),
+            $user,
+            'admin.participant_deleted',
+            'admin_participant_index',
+            function (User $user) use ($em): bool {
+                if ($this->getUser() instanceof User && $this->getUser()->getId() === $user->getId()) {
+                    $this->addFlash('error', 'admin.cannot_delete_self');
 
-        // Jezelf verwijderen kan niet.
-        if ($this->getUser() instanceof User && $this->getUser()->getId() === $user->getId()) {
-            $this->addFlash('error', 'admin.cannot_delete_self');
+                    return false;
+                }
 
-            return $this->redirectToRoute('admin_participant_index');
-        }
+                foreach ($em->getRepository(Prediction::class)->findBy(['user' => $user]) as $prediction) {
+                    $em->remove($prediction);
+                }
 
-        // Eerst de voorspellingen van deze speler weg (geen cascade op de FK).
-        foreach ($em->getRepository(Prediction::class)->findBy(['user' => $user]) as $prediction) {
-            $em->remove($prediction);
-        }
-        $em->remove($user);
-        $em->flush();
-        $this->addFlash('success', 'admin.participant_deleted');
-
-        return $this->redirectToRoute('admin_participant_index');
+                return true;
+            },
+        );
     }
 }

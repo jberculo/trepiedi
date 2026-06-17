@@ -53,14 +53,12 @@ class McpTest extends FixturesWebTestCase
 
     public function testCallSubmitPredictionWithKey(): void
     {
-        $anne = $this->user('anne@trepiedi.test');
-        $anne->setApiToken('anne-key-123');
-        $this->em->flush();
+        $anneKey = $this->issueApiToken($this->user('anne@trepiedi.test'));
         $id = $this->openMatch()->getId();
 
         $res = $this->rpc(
             ['jsonrpc' => '2.0', 'id' => 5, 'method' => 'tools/call', 'params' => ['name' => 'submit_prediction', 'arguments' => ['matchId' => $id, 'homeScore' => 3, 'awayScore' => 2, 'advancingSide' => 'home']]],
-            'anne-key-123',
+            $anneKey,
         );
 
         $this->assertArrayNotHasKey('isError', $res['result']);

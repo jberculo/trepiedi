@@ -2,140 +2,105 @@
 
 {% import '_macros.html.twig' as m %}
 
-{% block title %}{{ 'dash.title'|trans }} — Trepiedi{% endblock %}
+{% block title %}{{ 'dash.title'|trans }} - Trepiedi{% endblock %}
 
 {% block body %}
-    <h1 class="h3 mb-4">{{ 'dash.heading'|trans }}</h1>
+    <div id="dashboard-predictions-config" data-error-text="{{ 'common.error'|trans }}">
+        <h1 class="h3 mb-4">{{ 'dash.heading'|trans }}</h1>
 
-    {% for group in rounds %}
-        <section class="mb-4">
-            <h2 class="h5 text-success border-bottom pb-2">
-                {{ group.round.name }} <span class="text-muted fw-normal small">(× {{ group.round.weight }})</span>
-            </h2>
+        {% for group in rounds %}
+            <section class="mb-4">
+                <h2 class="h5 text-success border-bottom pb-2">
+                    {{ group.round.name }} <span class="text-muted fw-normal small">(&times; {{ group.round.weight }})</span>
+                </h2>
 
-            {% if group.matches is empty %}
-                <p class="text-muted">{{ 'dash.no_matches_round'|trans }}</p>
-            {% endif %}
+                {% if group.matches is empty %}
+                    <p class="text-muted">{{ 'dash.no_matches_round'|trans }}</p>
+                {% endif %}
 
-            <div class="row g-3">
-                {% for item in group.matches %}
-                    {% set match = item.match %}
-                    <div class="col-md-6" id="match-{{ match.id }}">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <strong>{{ m.team(match.homeTeam) }} – {{ m.team(match.awayTeam) }}</strong>
-                                    {% if not match.active %}
-                                        <span class="badge text-bg-light text-dark border">{{ 'dash.status_soon'|trans }}</span>
-                                    {% elseif match.finished %}
-                                        <span class="badge text-bg-secondary">{{ 'dash.status_finished'|trans }}</span>
-                                    {% elseif item.locked %}
-                                        <span class="badge text-bg-warning">{{ 'dash.status_started'|trans }}</span>
+                <div class="row g-3">
+                    {% for item in group.matches %}
+                        {% set match = item.match %}
+                        <div class="col-md-6" id="match-{{ match.id }}">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <strong>{{ m.team(match.homeTeam) }} &ndash; {{ m.team(match.awayTeam) }}</strong>
+                                        {% if not match.active %}
+                                            <span class="badge text-bg-light text-dark border">{{ 'dash.status_soon'|trans }}</span>
+                                        {% elseif match.finished %}
+                                            <span class="badge text-bg-secondary">{{ 'dash.status_finished'|trans }}</span>
+                                        {% elseif item.locked %}
+                                            <span class="badge text-bg-warning">{{ 'dash.status_started'|trans }}</span>
+                                        {% else %}
+                                            <span class="badge text-bg-success">{{ 'dash.status_open'|trans }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-muted small mb-3">
+                                        {{ 'dash.kickoff'|trans }}: {{ match.kickoffAt|date('d-m-Y H:i') }}
+                                        {% if match.active %} &middot; <a href="{{ path('app_match_view', {id: match.id}) }}">{{ 'dash.predictions_link'|trans }}</a>{% endif %}
+                                    </p>
+
+                                    {% if match.finished %}
+                                        <p class="mb-2">
+                                            {{ 'dash.result'|trans }} <strong>{{ match.homeScore }} &ndash; {{ match.awayScore }}</strong>
+                                            &middot; {{ 'dash.winner'|trans }}: <strong>{{ m.team(match.advancingTeam) }}</strong>
+                                        </p>
+                                    {% endif %}
+
+                                    {% if item.form %}
+                                        {{ form_start(item.form, {attr: {class: 'js-prediction-form'}}) }}
+                                            <div class="row g-2 align-items-end">
+                                                <div class="col">
+                                                    {{ form_label(item.form.homeScore, null, {label_attr: {class: 'form-label small'}}) }}
+                                                    {{ form_widget(item.form.homeScore, {attr: {class: 'form-control'}}) }}
+                                                </div>
+                                                <div class="col-auto pb-2">&ndash;</div>
+                                                <div class="col">
+                                                    {{ form_label(item.form.awayScore, null, {label_attr: {class: 'form-label small'}}) }}
+                                                    {{ form_widget(item.form.awayScore, {attr: {class: 'form-control'}}) }}
+                                                </div>
+                                            </div>
+                                            <div class="mt-2">
+                                                {{ form_label(item.form.advancingSide, null, {label_attr: {class: 'form-label small'}}) }}
+                                                {{ form_widget(item.form.advancingSide, {attr: {class: 'form-select'}}) }}
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2 mt-3">
+                                                <button class="btn btn-sm btn-success">{{ 'common.save'|trans }}</button>
+                                                <span class="save-status small {% if item.prediction %}text-muted{% endif %}">{% if item.prediction %}{{ 'dash.last_changed'|trans }}: {{ item.prediction.updatedAt|date('d-m H:i') }}{% endif %}</span>
+                                            </div>
+                                        {{ form_end(item.form) }}
                                     {% else %}
-                                        <span class="badge text-bg-success">{{ 'dash.status_open'|trans }}</span>
+                                        {% if not match.active %}
+                                            <p class="text-muted mb-0">{{ 'dash.not_available'|trans }}</p>
+                                        {% elseif item.prediction %}
+                                            <p class="mb-1">
+                                                {{ 'dash.your_prediction'|trans }}:
+                                                <strong>{{ item.prediction.homeScore }} &ndash; {{ item.prediction.awayScore }}</strong>
+                                                &middot; {{ 'dash.winner'|trans }}: <strong>{{ m.team_or_dash(item.prediction.advancingTeam) }}</strong>
+                                            </p>
+                                            {% if item.score and match.finished %}
+                                                <span class="badge text-bg-success">+{{ item.score.total * match.round.weight }} {{ 'dash.points_suffix'|trans }}</span>
+                                                <span class="text-muted small">
+                                                    ({{ 'dash.breakdown'|trans({'%home%': item.score.homeGoalsPoint, '%away%': item.score.awayGoalsPoint, '%exact%': item.score.exactBonusPoint, '%winner%': item.score.advancePoints}) }}{% if match.round.weight != 1 %}{{ 'dash.breakdown_round'|trans({'%weight%': match.round.weight}) }}{% endif %})
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <p class="text-muted mb-0">{{ 'dash.no_prediction'|trans }}</p>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
-                                <p class="text-muted small mb-3">
-                                    {{ 'dash.kickoff'|trans }}: {{ match.kickoffAt|date('d-m-Y H:i') }}
-                                    {% if match.active %} · <a href="{{ path('app_match_view', {id: match.id}) }}">{{ 'dash.predictions_link'|trans }}</a>{% endif %}
-                                </p>
-
-                                {% if match.finished %}
-                                    <p class="mb-2">
-                                        {{ 'dash.result'|trans }} <strong>{{ match.homeScore }} – {{ match.awayScore }}</strong>
-                                        · {{ 'dash.winner'|trans }}: <strong>{{ m.team(match.advancingTeam) }}</strong>
-                                    </p>
-                                {% endif %}
-
-                                {% if item.form %}
-                                    {{ form_start(item.form, {attr: {class: 'js-prediction-form'}}) }}
-                                        <div class="row g-2 align-items-end">
-                                            <div class="col">
-                                                {{ form_label(item.form.homeScore, null, {label_attr: {class: 'form-label small'}}) }}
-                                                {{ form_widget(item.form.homeScore, {attr: {class: 'form-control'}}) }}
-                                            </div>
-                                            <div class="col-auto pb-2">–</div>
-                                            <div class="col">
-                                                {{ form_label(item.form.awayScore, null, {label_attr: {class: 'form-label small'}}) }}
-                                                {{ form_widget(item.form.awayScore, {attr: {class: 'form-control'}}) }}
-                                            </div>
-                                        </div>
-                                        <div class="mt-2">
-                                            {{ form_label(item.form.advancingSide, null, {label_attr: {class: 'form-label small'}}) }}
-                                            {{ form_widget(item.form.advancingSide, {attr: {class: 'form-select'}}) }}
-                                        </div>
-                                        <div class="d-flex align-items-center gap-2 mt-3">
-                                            <button class="btn btn-sm btn-success">{{ 'common.save'|trans }}</button>
-                                            <span class="save-status small {% if item.prediction %}text-muted{% endif %}">{% if item.prediction %}{{ 'dash.last_changed'|trans }}: {{ item.prediction.updatedAt|date('d-m H:i') }}{% endif %}</span>
-                                        </div>
-                                    {{ form_end(item.form) }}
-                                {% else %}
-                                    {% if not match.active %}
-                                        <p class="text-muted mb-0">{{ 'dash.not_available'|trans }}</p>
-                                    {% elseif item.prediction %}
-                                        <p class="mb-1">
-                                            {{ 'dash.your_prediction'|trans }}:
-                                            <strong>{{ item.prediction.homeScore }} – {{ item.prediction.awayScore }}</strong>
-                                            · {{ 'dash.winner'|trans }}: <strong>{{ m.team_or_dash(item.prediction.advancingTeam) }}</strong>
-                                        </p>
-                                        {% if item.score and match.finished %}
-                                            <span class="badge text-bg-success">+{{ item.score.total * match.round.weight }} {{ 'dash.points_suffix'|trans }}</span>
-                                            <span class="text-muted small">
-                                                ({{ 'dash.breakdown'|trans({'%home%': item.score.homeGoalsPoint, '%away%': item.score.awayGoalsPoint, '%exact%': item.score.exactBonusPoint, '%winner%': item.score.advancePoints}) }}{% if match.round.weight != 1 %}{{ 'dash.breakdown_round'|trans({'%weight%': match.round.weight}) }}{% endif %})
-                                            </span>
-                                        {% endif %}
-                                    {% else %}
-                                        <p class="text-muted mb-0">{{ 'dash.no_prediction'|trans }}</p>
-                                    {% endif %}
-                                {% endif %}
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
-            </div>
-        </section>
-    {% else %}
-        <div class="alert alert-info">{{ 'dash.nothing_yet'|trans }}</div>
-    {% endfor %}
+                    {% endfor %}
+                </div>
+            </section>
+        {% else %}
+            <div class="alert alert-info">{{ 'dash.nothing_yet'|trans }}</div>
+        {% endfor %}
+    </div>
 {% endblock %}
 
 {% block javascripts %}
-    <script>
-        document.querySelectorAll('.js-prediction-form').forEach(function (form) {
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                var status = form.querySelector('.save-status');
-                var btn = form.querySelector('button');
-                if (btn) { btn.disabled = true; }
-                if (status) { status.textContent = '…'; status.className = 'save-status small text-muted'; }
-
-                fetch(form.action, {
-                    method: 'POST',
-                    body: new FormData(form),
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                }).then(function (response) {
-                    return response.json().then(function (data) {
-                        return { ok: response.ok, data: data };
-                    });
-                }).then(function (result) {
-                    if (status) {
-                        if (result.ok && result.data.ok) {
-                            status.textContent = '✓ ' + result.data.message;
-                            status.className = 'save-status small rise';
-                        } else {
-                            status.textContent = result.data.message || '⚠';
-                            status.className = 'save-status small text-danger';
-                        }
-                    }
-                }).catch(function () {
-                    if (status) {
-                        status.textContent = '⚠';
-                        status.className = 'save-status small text-danger';
-                    }
-                }).finally(function () {
-                    if (btn) { btn.disabled = false; }
-                });
-            });
-        });
-    </script>
+    <script src="{{ asset('js/dashboard-predictions.js') }}?v={{ asset_version('js/dashboard-predictions.js') }}" defer></script>
 {% endblock %}

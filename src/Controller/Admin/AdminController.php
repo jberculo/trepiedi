@@ -21,10 +21,10 @@ class AdminController extends AbstractController
         UserRepository $users,
     ): Response {
         return $this->render('admin/dashboard.html.twig', [
-            'roundCount' => count($rounds->findAll()),
-            'matchCount' => count($matches->findAll()),
-            'finishedCount' => count($matches->findBy(['finished' => true])),
-            'userCount' => count($users->findAll()),
+            'roundCount' => $rounds->count([]),
+            'matchCount' => $matches->count([]),
+            'finishedCount' => $matches->count(['finished' => true]),
+            'userCount' => $users->count([]),
         ]);
     }
 }

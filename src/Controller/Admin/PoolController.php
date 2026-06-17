@@ -63,7 +63,11 @@ class PoolController extends AbstractController
     #[Route('/{id}/leden/{userId}/verwijderen', name: 'admin_pool_member_remove', methods: ['POST'])]
     public function removeMember(Pool $pool, int $userId, Request $request, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('remove-member-' . $pool->getId() . '-' . $userId, (string) $request->getPayload()->get('_token'))) {
+        return $this->handlePostAction(
+            $request,
+            'remove-member-' . $pool->getId() . '-' . $userId,
+            'admin_pool_members',
+            function () use ($pool, $userId, $em): void {
             $user = $em->getRepository(User::class)->find($userId);
             if ($user !== null && $user->isInPool($pool)) {
                 $user->removePool($pool);
@@ -74,9 +78,9 @@ class PoolController extends AbstractController
                 $em->flush();
                 $this->addFlash('success', 'admin.member_removed');
             }
-        }
-
-        return $this->redirectToRoute('admin_pool_members', ['id' => $pool->getId()]);
+            },
+            ['id' => $pool->getId()],
+        );
     }
 
     /**
@@ -86,40 +90,32 @@ class PoolController extends AbstractController
     #[Route('/{id}/archiveren', name: 'admin_pool_delete', methods: ['POST'])]
     public function archive(Pool $pool, Request $request, EntityManagerInterface $em): Response
     {
-        if (!$this->isCsrfTokenValid('archive-pool-' . $pool->getId(), (string) $request->getPayload()->get('_token'))) {
-            return $this->redirectToRoute('admin_pool_index');
-        }
+        return $this->handlePostAction($request, 'archive-pool-' . $pool->getId(), 'admin_pool_index', function () use ($pool, $em): void {
+            if ($pool->isDefault()) {
+                $this->addFlash('error', 'admin.cannot_delete_default');
 
-        // De standaardpoule mag niet weg: nieuwe spelers moeten ergens terechtkomen.
-        if ($pool->isDefault()) {
-            $this->addFlash('error', 'admin.cannot_delete_default');
-
-            return $this->redirectToRoute('admin_pool_index');
-        }
-
-        $pool->archive();
-        // Wie deze poule als actief had, valt terug (PoolContext kiest opnieuw).
-        foreach ($pool->getMembers() as $member) {
-            if ($member->getActivePool() !== null && $member->getActivePool()->getId() === $pool->getId()) {
-                $member->setActivePool(null);
+                return;
             }
-        }
-        $em->flush();
-        $this->addFlash('success', 'admin.pool_archived');
 
-        return $this->redirectToRoute('admin_pool_index');
+            $pool->archive();
+            foreach ($pool->getMembers() as $member) {
+                if ($member->getActivePool() !== null && $member->getActivePool()->getId() === $pool->getId()) {
+                    $member->setActivePool(null);
+                }
+            }
+            $em->flush();
+            $this->addFlash('success', 'admin.pool_archived');
+        });
     }
 
     #[Route('/{id}/herstellen', name: 'admin_pool_restore', methods: ['POST'])]
     public function restore(Pool $pool, Request $request, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('restore-pool-' . $pool->getId(), (string) $request->getPayload()->get('_token'))) {
+        return $this->handlePostAction($request, 'restore-pool-' . $pool->getId(), 'admin_pool_index', function () use ($pool, $em): void {
             $pool->restore();
             $em->flush();
             $this->addFlash('success', 'admin.pool_restored');
-        }
-
-        return $this->redirectToRoute('admin_pool_index');
+        });
     }
 
     /**

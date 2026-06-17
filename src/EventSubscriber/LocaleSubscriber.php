@@ -31,7 +31,7 @@ class LocaleSubscriber implements EventSubscriberInterface
 
     public static function getSubscribedEvents(): array
     {
-        // Vóór de standaard LocaleListener van Symfony (priority 16).
+        // Voor de standaard LocaleListener van Symfony (priority 16).
         return [KernelEvents::REQUEST => [['onKernelRequest', 20]]];
     }
 }

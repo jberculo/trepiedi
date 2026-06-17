@@ -31,24 +31,35 @@ class PoolContext
                 return $active;
             }
 
-            // Standaardpoule onder de niet-gearchiveerde lidmaatschappen.
-            foreach ($user->getPools() as $pool) {
-                if (!$pool->isArchived() && $pool->isDefault()) {
+            $activeMemberships = $this->activeMemberships($user);
+
+            foreach ($activeMemberships as $pool) {
+                if ($pool->isDefault()) {
                     return $pool;
                 }
             }
 
-            // Anders het eerste actieve lidmaatschap.
-            foreach ($user->getPools() as $pool) {
-                if (!$pool->isArchived()) {
-                    return $pool;
-                }
+            if ($activeMemberships !== []) {
+                return $activeMemberships[0];
             }
             // Geen enkele actieve poule (wees): val terug op de globale standaardpoule
             // voor de weergave; de wees-melding wijst de speler erop.
         }
 
         return $this->pools->findDefault();
+    }
+
+    /**
+     * @return list<Pool>
+     */
+    public function getSwitchablePools(): array
+    {
+        $user = $this->security->getUser();
+        if (!$user instanceof User) {
+            return [];
+        }
+
+        return $this->activeMemberships($user);
     }
 
     /**
@@ -61,35 +72,33 @@ class PoolContext
             return false;
         }
 
-        foreach ($user->getPools() as $pool) {
-            if (!$pool->isArchived()) {
-                return false;
-            }
-        }
-
-        return true;
+        return $this->activeMemberships($user) === [];
     }
 
     /**
      * Gebruiker-id's van de leden van de actieve poule, of null als er (nog) geen
-     * poule is — dan blijft het klassement ongescoped (alle spelers).
+     * poule is - dan blijft het klassement ongescoped (alle spelers).
      *
      * @return list<int>|null
      */
     public function getMemberIds(): ?array
     {
         $pool = $this->getActivePool();
-        if ($pool === null) {
-            return null;
-        }
+        return $pool?->memberIds();
+    }
 
-        $ids = [];
-        foreach ($pool->getMembers() as $member) {
-            if ($member->getId() !== null) {
-                $ids[] = $member->getId();
+    /**
+     * @return list<Pool>
+     */
+    private function activeMemberships(User $user): array
+    {
+        $pools = [];
+        foreach ($user->getPools() as $pool) {
+            if (!$pool->isArchived()) {
+                $pools[] = $pool;
             }
         }
 
-        return $ids;
+        return $pools;
     }
 }

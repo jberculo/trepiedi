@@ -2,16 +2,14 @@
 
 namespace App\Controller;
 
+use App\Dashboard\DashboardViewBuilder;
 use App\Entity\FootballMatch;
 use App\Entity\Prediction;
 use App\Entity\User;
-use App\Form\PredictionType;
+use App\Form\PredictionFormFactory;
 use App\Repository\PredictionRepository;
-use App\Repository\RoundRepository;
-use App\Scoring\ScoringService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,35 +19,13 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class DashboardController extends AbstractController
 {
     #[Route('/voorspellen', name: 'app_dashboard')]
-    public function index(
-        RoundRepository $roundRepository,
-        PredictionRepository $predictionRepository,
-        ScoringService $scoringService,
-    ): Response {
+    public function index(DashboardViewBuilder $dashboard): Response
+    {
         /** @var User $user */
         $user = $this->getUser();
-        $predictions = $predictionRepository->findByUserIndexedByMatch($user);
-
-        $rounds = [];
-        foreach ($roundRepository->findAllOrdered() as $round) {
-            $matches = [];
-            foreach ($round->getMatches() as $match) {
-                $prediction = $predictions[$match->getId()] ?? null;
-                $matches[] = [
-                    'match' => $match,
-                    'prediction' => $prediction,
-                    'locked' => $match->isLocked(),
-                    'score' => $prediction !== null ? $scoringService->scorePrediction($prediction) : null,
-                    'form' => ($match->isLocked() || !$match->isActive())
-                        ? null
-                        : $this->buildForm($match, $prediction)->createView(),
-                ];
-            }
-            $rounds[] = ['round' => $round, 'matches' => $matches];
-        }
 
         return $this->render('dashboard/index.html.twig', [
-            'rounds' => $rounds,
+            'rounds' => $dashboard->buildForUser($user),
         ]);
     }
 
@@ -60,6 +36,7 @@ class DashboardController extends AbstractController
         PredictionRepository $predictionRepository,
         EntityManagerInterface $em,
         TranslatorInterface $translator,
+        PredictionFormFactory $predictionForms,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
@@ -74,7 +51,7 @@ class DashboardController extends AbstractController
         }
 
         $prediction = $predictionRepository->findOneForUserAndMatch($user, $match) ?? new Prediction();
-        $form = $this->buildForm($match, $prediction);
+        $form = $predictionForms->create($match, $prediction);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -85,7 +62,7 @@ class DashboardController extends AbstractController
             $em->flush();
 
             if ($ajax) {
-                return new JsonResponse([
+                return $this->jsonStatus([
                     'ok' => true,
                     'message' => $translator->trans('common.saved'),
                     'updatedAt' => $prediction->getUpdatedAt()->format('d-m H:i'),
@@ -103,7 +80,7 @@ class DashboardController extends AbstractController
         }
 
         if ($ajax) {
-            return new JsonResponse([
+            return $this->jsonStatus([
                 'ok' => false,
                 'message' => $messages !== [] ? implode(' ', $messages) : $translator->trans('dash.not_available_flash'),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -113,7 +90,7 @@ class DashboardController extends AbstractController
             $this->addFlash('error', $message);
         }
 
-        return $this->redirectToRoute('app_dashboard', ['_fragment' => 'match-' . $match->getId()]);
+        return $this->dashboardRedirect($match);
     }
 
     /**
@@ -122,7 +99,7 @@ class DashboardController extends AbstractController
     private function saveError(bool $ajax, FootballMatch $match, string $key, TranslatorInterface $translator): Response
     {
         if ($ajax) {
-            return new JsonResponse(
+            return $this->jsonStatus(
                 ['ok' => false, 'message' => $translator->trans($key)],
                 Response::HTTP_UNPROCESSABLE_ENTITY,
             );
@@ -130,14 +107,19 @@ class DashboardController extends AbstractController
 
         $this->addFlash('error', $key);
 
-        return $this->redirectToRoute('app_dashboard', ['_fragment' => 'match-' . $match->getId()]);
+        return $this->dashboardRedirect($match);
     }
 
-    private function buildForm(FootballMatch $match, ?Prediction $prediction): FormInterface
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function jsonStatus(array $payload, int $status = Response::HTTP_OK): JsonResponse
     {
-        return $this->createForm(PredictionType::class, $prediction ?? new Prediction(), [
-            'match' => $match,
-            'action' => $this->generateUrl('app_prediction_save', ['id' => $match->getId()]),
-        ]);
+        return new JsonResponse($payload, $status);
+    }
+
+    private function dashboardRedirect(FootballMatch $match): Response
+    {
+        return $this->redirectToRoute('app_dashboard', ['_fragment' => 'match-' . $match->getId()]);
     }
 }

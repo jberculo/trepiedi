@@ -78,11 +78,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?Pool $activePool = null;
 
     /**
-     * Persoonlijke API-sleutel voor de stand-/uitslagen-API. Null tot hij voor het
-     * eerst wordt gegenereerd.
+     * Publiek lookup-deel van de API-sleutel. De volledige sleutel zelf wordt niet
+     * opgeslagen; alleen dit id en een hash van de volledige token.
      */
-    #[ORM\Column(length: 64, unique: true, nullable: true)]
-    private ?string $apiToken = null;
+    #[ORM\Column(length: 16, unique: true, nullable: true)]
+    private ?string $apiTokenId = null;
+
+    /**
+     * SHA-256-hash van de volledige API-sleutel.
+     */
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $apiTokenHash = null;
 
     public function __construct()
     {
@@ -135,16 +141,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getApiToken(): ?string
+    public function getApiTokenId(): ?string
     {
-        return $this->apiToken;
+        return $this->apiTokenId;
     }
 
-    public function setApiToken(?string $apiToken): static
+    public function setApiTokenId(?string $apiTokenId): static
     {
-        $this->apiToken = $apiToken;
+        $this->apiTokenId = $apiTokenId;
 
         return $this;
+    }
+
+    public function getApiTokenHash(): ?string
+    {
+        return $this->apiTokenHash;
+    }
+
+    public function setApiTokenHash(?string $apiTokenHash): static
+    {
+        $this->apiTokenHash = $apiTokenHash;
+
+        return $this;
+    }
+
+    public function hasApiToken(): bool
+    {
+        return $this->apiTokenId !== null && $this->apiTokenHash !== null;
     }
 
     public function getLocale(): string

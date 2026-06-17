@@ -133,6 +133,21 @@ class Pool
         return $this->members;
     }
 
+    /**
+     * @return list<int>
+     */
+    public function memberIds(): array
+    {
+        $ids = [];
+        foreach ($this->members as $member) {
+            if ($member->getId() !== null) {
+                $ids[] = $member->getId();
+            }
+        }
+
+        return $ids;
+    }
+
     public function __toString(): string
     {
         return $this->name;

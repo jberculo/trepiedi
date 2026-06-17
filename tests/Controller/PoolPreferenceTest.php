@@ -55,22 +55,77 @@ class PoolPreferenceTest extends FixturesWebTestCase
         // Anne zit in twee poules → switch zichtbaar in het profiel.
         $this->client->loginUser($this->user('anne@trepiedi.test'));
         $crawler = $this->client->request('GET', '/account');
-        $this->assertGreaterThan(0, $crawler->filter('a[href="/poule/wissel/kantoor"]')->count());
+        $this->assertGreaterThan(0, $crawler->filter('form[action="/poule/wissel/kantoor"]')->count());
 
         // Bram zit in één poule → geen switch.
         $this->client->loginUser($this->user('bram@trepiedi.test'));
         $crawler = $this->client->request('GET', '/account');
-        $this->assertSame(0, $crawler->filter('a[href^="/poule/wissel/"]')->count());
+        $this->assertSame(0, $crawler->filter('form[action^="/poule/wissel/"]')->count());
     }
 
     public function testProfileSwitchChangesActivePool(): void
     {
         $this->client->loginUser($this->user('anne@trepiedi.test'));
         $this->client->request('GET', '/account');
-        $this->client->request('GET', '/poule/wissel/kantoor');
+        $crawler = $this->client->request('GET', '/account');
+        $form = $crawler->filter('form[action="/poule/wissel/kantoor"]')->form();
+        $this->client->submit($form);
 
         $this->em->clear();
         $this->assertSame('kantoor', $this->user('anne@trepiedi.test')->getActivePool()?->getCode());
+    }
+
+    public function testArchivedPoolsAreExcludedFromSwitchers(): void
+    {
+        $this->poolByCode('kantoor')->archive();
+        $this->em->flush();
+
+        $this->client->loginUser($this->user('anne@trepiedi.test'));
+
+        $crawler = $this->client->request('GET', '/');
+        $this->assertSame(0, $crawler->filter('form[action^="/poule/wissel/"]')->count());
+
+        $crawler = $this->client->request('GET', '/account');
+        $this->assertSame(0, $crawler->filter('form[action^="/poule/wissel/"]')->count());
+    }
+
+    public function testLoginWithStashedCodeJoinsPoolAndShowsFeedback(): void
+    {
+        $this->client->request('GET', '/poule/inschrijven/kantoor');
+
+        $crawler = $this->client->request('GET', '/login');
+        $this->client->submit($crawler->selectButton('Inloggen')->form([
+            'email' => 'bram@trepiedi.test',
+            'password' => 'test',
+        ]));
+        $crawler = $this->client->followRedirect();
+
+        $this->assertStringContainsString('Je bent nu lid van deze poule.', $crawler->filter('body')->text());
+        $this->assertNull($this->client->getRequest()->getSession()->get('pool_code'));
+
+        $this->em->clear();
+        $this->assertTrue($this->user('bram@trepiedi.test')->isInPool($this->poolByCode('kantoor')));
+        $this->assertSame('kantoor', $this->user('bram@trepiedi.test')->getActivePool()?->getCode());
+    }
+
+    public function testLoginWithInvalidatedStashedCodeShowsError(): void
+    {
+        $this->client->request('GET', '/poule/inschrijven/kantoor');
+        $this->poolByCode('kantoor')->archive();
+        $this->em->flush();
+
+        $crawler = $this->client->request('GET', '/login');
+        $this->client->submit($crawler->selectButton('Inloggen')->form([
+            'email' => 'bram@trepiedi.test',
+            'password' => 'test',
+        ]));
+        $crawler = $this->client->followRedirect();
+
+        $this->assertStringContainsString('je bent niet aan de poule toegevoegd', mb_strtolower($crawler->filter('body')->text()));
+        $this->assertNull($this->client->getRequest()->getSession()->get('pool_code'));
+
+        $this->em->clear();
+        $this->assertFalse($this->user('bram@trepiedi.test')->isInPool($this->poolByCode('kantoor')));
     }
 
     private function poolByCode(string $code): Pool

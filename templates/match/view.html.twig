@@ -2,7 +2,7 @@
 
 {% import '_macros.html.twig' as m %}
 
-{% block title %}{{ match.homeTeam }} – {{ match.awayTeam }} — Trepiedi{% endblock %}
+{% block title %}{{ match.homeTeam }} &ndash; {{ match.awayTeam }} - Trepiedi{% endblock %}
 
 {% block body %}
     <a class="btn btn-link px-0 mb-2" href="{{ path('app_dashboard') }}">{{ 'mv.back'|trans }}</a>
@@ -11,15 +11,15 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <h1 class="h4 mb-1">{{ m.team(match.homeTeam) }} – {{ m.team(match.awayTeam) }}</h1>
+                    <h1 class="h4 mb-1">{{ m.team(match.homeTeam) }} &ndash; {{ m.team(match.awayTeam) }}</h1>
                     <p class="text-muted mb-0">
-                        {{ match.round.name }} (× {{ match.round.weight }})
-                        · {{ 'mv.kickoff'|trans }} {{ match.kickoffAt|date('d-m-Y H:i') }}
+                        {{ match.round.name }} (&times; {{ match.round.weight }})
+                        &middot; {{ 'mv.kickoff'|trans }} {{ match.kickoffAt|date('d-m-Y H:i') }}
                     </p>
                 </div>
                 {% if match.finished %}
                     <div class="text-end">
-                        <div class="h4 mb-0">{{ match.homeScore }} – {{ match.awayScore }}</div>
+                        <div class="h4 mb-0">{{ match.homeScore }} &ndash; {{ match.awayScore }}</div>
                         <small class="text-muted">{{ 'mv.winner'|trans }}: {{ m.team(match.advancingTeam) }}</small>
                     </div>
                 {% endif %}
@@ -32,7 +32,6 @@
     {% elseif not locked %}
         <div class="alert alert-info">{{ 'mv.hidden'|trans({'%count%': predictionCount}) }}</div>
     {% else %}
-        {# Consensus #}
         <div class="row g-3 mb-4">
             <div class="col-md-6">
                 <div class="card shadow-sm h-100"><div class="card-body">
@@ -63,7 +62,7 @@
                         {% for line, count in scoreCounts|slice(0, 4) %}
                             <li class="d-flex justify-content-between">
                                 <span>{{ line }}</span>
-                                <span class="text-muted">{{ count }}×</span>
+                                <span class="text-muted">{{ count }}&times;</span>
                             </li>
                         {% endfor %}
                     </ul>
@@ -71,7 +70,6 @@
             </div>
         </div>
 
-        {# Alle voorspellingen #}
         <div class="card shadow-sm">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -88,7 +86,7 @@
                             {% set p = row.prediction %}
                             <tr {% if app.user and p.user.id == app.user.id %}class="table-success"{% endif %}>
                                 <td>{{ m.player(p.user) }}</td>
-                                <td class="text-center"><strong>{{ p.homeScore }} – {{ p.awayScore }}</strong></td>
+                                <td class="text-center"><strong>{{ p.homeScore }} &ndash; {{ p.awayScore }}</strong></td>
                                 <td class="text-center">{{ m.team_or_dash(p.advancingTeam) }}</td>
                                 {% if match.finished %}
                                     <td class="text-center">

@@ -1,0 +1,34 @@
+{% set current_pool = current_pool|default(active_pool()) %}
+{% set switcher_variant = switcher_variant|default('buttons') %}
+
+{% if pools|length > 1 %}
+    {% if switcher_variant == 'dropdown' %}
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                &#127942; {{ 'pool.current'|trans }} {{ current_pool ? current_pool.name }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+                {% for p in pools %}
+                    <li>
+                        <form method="post" action="{{ path('app_pool_switch', {code: p.code}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('switch-pool-' ~ p.code) }}">
+                            <button class="dropdown-item {{ current_pool and p.id == current_pool.id ? 'active' }}">{{ p.name }}</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </li>
+    {% else %}
+        <span class="form-label d-block">{{ 'account.pool'|trans }}</span>
+        <div class="d-flex flex-wrap gap-2">
+            {% for p in pools %}
+                <form method="post" action="{{ path('app_pool_switch', {code: p.code}) }}" class="d-inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('switch-pool-' ~ p.code) }}">
+                    <button class="btn btn-sm {{ current_pool and p.id == current_pool.id ? 'btn-success' : 'btn-outline-secondary' }}">
+                        {{ p.name }}{% if p.default %} <span class="small">({{ 'admin.pool_is_default'|trans }})</span>{% endif %}
+                    </button>
+                </form>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endif %}

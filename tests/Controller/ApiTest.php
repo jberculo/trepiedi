@@ -93,14 +93,12 @@ class ApiTest extends FixturesWebTestCase
 
     public function testSetResultWithAdminKeyOnOpenMatch(): void
     {
-        $admin = $this->user('admin@trepiedi.test');
-        $admin->setApiToken('admin-key-123');
-        $this->em->flush();
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
 
         $open = $this->openMatch();
         $id = $open->getId();
 
-        $this->post($id, 'admin-key-123', ['homeScore' => 3, 'awayScore' => 1, 'advancingSide' => 'home', 'finished' => true]);
+        $this->post($id, $adminKey, ['homeScore' => 3, 'awayScore' => 1, 'advancingSide' => 'home', 'finished' => true]);
         $this->assertResponseIsSuccessful();
 
         $this->em->clear();
@@ -127,23 +125,19 @@ class ApiTest extends FixturesWebTestCase
 
     public function testSetResultRejectedForNonAdminKey(): void
     {
-        $anne = $this->user('anne@trepiedi.test');
-        $anne->setApiToken('anne-key-123');
-        $this->em->flush();
+        $anneKey = $this->issueApiToken($this->user('anne@trepiedi.test'));
 
         $id = $this->openMatch()->getId();
-        $this->post($id, 'anne-key-123', ['homeScore' => 1, 'awayScore' => 0, 'advancingSide' => 'home']);
+        $this->post($id, $anneKey, ['homeScore' => 1, 'awayScore' => 0, 'advancingSide' => 'home']);
         $this->assertResponseStatusCodeSame(403);
     }
 
     public function testSetResultRejectedForFinishedMatch(): void
     {
-        $admin = $this->user('admin@trepiedi.test');
-        $admin->setApiToken('admin-key-123');
-        $this->em->flush();
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
 
         $finished = $this->em->getRepository(FootballMatch::class)->findOneBy(['finished' => true]);
-        $this->post($finished->getId(), 'admin-key-123', ['homeScore' => 0, 'awayScore' => 0, 'advancingSide' => 'home']);
+        $this->post($finished->getId(), $adminKey, ['homeScore' => 0, 'awayScore' => 0, 'advancingSide' => 'home']);
         $this->assertResponseStatusCodeSame(409);
     }
 
@@ -177,11 +171,9 @@ class ApiTest extends FixturesWebTestCase
         $this->client->request('GET', '/api/me');
         $this->assertResponseStatusCodeSame(401);
 
-        $anne = $this->user('anne@trepiedi.test');
-        $anne->setApiToken('anne-key-123');
-        $this->em->flush();
+        $anneKey = $this->issueApiToken($this->user('anne@trepiedi.test'));
 
-        $this->req('GET', '/api/me', 'anne-key-123');
+        $this->req('GET', '/api/me', $anneKey);
         $this->assertResponseIsSuccessful();
         $data = json_decode((string) $this->client->getResponse()->getContent(), true);
         $this->assertSame('Anne', $data['displayName']);
@@ -193,13 +185,11 @@ class ApiTest extends FixturesWebTestCase
 
     public function testSubmitOwnPredictionWithKey(): void
     {
-        $anne = $this->user('anne@trepiedi.test');
-        $anne->setApiToken('anne-key-123');
-        $this->em->flush();
+        $anneKey = $this->issueApiToken($this->user('anne@trepiedi.test'));
         $open = $this->openMatch();
         $id = $open->getId();
 
-        $this->req('POST', '/api/matches/' . $id . '/prediction', 'anne-key-123', ['homeScore' => 2, 'awayScore' => 0, 'advancingSide' => 'home']);
+        $this->req('POST', '/api/matches/' . $id . '/prediction', $anneKey, ['homeScore' => 2, 'awayScore' => 0, 'advancingSide' => 'home']);
         $this->assertResponseIsSuccessful();
 
         $this->em->clear();
@@ -220,23 +210,19 @@ class ApiTest extends FixturesWebTestCase
 
     public function testSubmitPredictionOnLockedMatchIs409(): void
     {
-        $anne = $this->user('anne@trepiedi.test');
-        $anne->setApiToken('anne-key-123');
-        $this->em->flush();
+        $anneKey = $this->issueApiToken($this->user('anne@trepiedi.test'));
         $locked = $this->lockedMatch();
 
-        $this->req('POST', '/api/matches/' . $locked->getId() . '/prediction', 'anne-key-123', ['homeScore' => 1, 'awayScore' => 0, 'advancingSide' => 'home']);
+        $this->req('POST', '/api/matches/' . $locked->getId() . '/prediction', $anneKey, ['homeScore' => 1, 'awayScore' => 0, 'advancingSide' => 'home']);
         $this->assertResponseStatusCodeSame(409);
     }
 
     public function testUpdateMatchTeamsWithAdminKey(): void
     {
-        $admin = $this->user('admin@trepiedi.test');
-        $admin->setApiToken('admin-key-123');
-        $this->em->flush();
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
         $id = $this->openMatch()->getId();
 
-        $this->req('PATCH', '/api/matches/' . $id, 'admin-key-123', ['home' => 'Nederland', 'away' => 'Brazilië', 'active' => true]);
+        $this->req('PATCH', '/api/matches/' . $id, $adminKey, ['home' => 'Nederland', 'away' => 'Brazilië', 'active' => true]);
         $this->assertResponseIsSuccessful();
 
         $this->em->clear();
@@ -247,22 +233,18 @@ class ApiTest extends FixturesWebTestCase
 
     public function testUpdateMatchRejectedForNonAdmin(): void
     {
-        $anne = $this->user('anne@trepiedi.test');
-        $anne->setApiToken('anne-key-123');
-        $this->em->flush();
+        $anneKey = $this->issueApiToken($this->user('anne@trepiedi.test'));
         $id = $this->openMatch()->getId();
 
-        $this->req('PATCH', '/api/matches/' . $id, 'anne-key-123', ['home' => 'X']);
+        $this->req('PATCH', '/api/matches/' . $id, $anneKey, ['home' => 'X']);
         $this->assertResponseStatusCodeSame(403);
     }
 
     public function testCreatePoolWithAdminKey(): void
     {
-        $admin = $this->user('admin@trepiedi.test');
-        $admin->setApiToken('admin-key-123');
-        $this->em->flush();
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
 
-        $this->req('POST', '/api/pools', 'admin-key-123', ['name' => 'Vrienden']);
+        $this->req('POST', '/api/pools', $adminKey, ['name' => 'Vrienden']);
         $this->assertResponseStatusCodeSame(201);
 
         $this->em->clear();
@@ -273,11 +255,9 @@ class ApiTest extends FixturesWebTestCase
 
     public function testCreatePoolRejectedForNonAdmin(): void
     {
-        $anne = $this->user('anne@trepiedi.test');
-        $anne->setApiToken('anne-key-123');
-        $this->em->flush();
+        $anneKey = $this->issueApiToken($this->user('anne@trepiedi.test'));
 
-        $this->req('POST', '/api/pools', 'anne-key-123', ['name' => 'Stiekem']);
+        $this->req('POST', '/api/pools', $anneKey, ['name' => 'Stiekem']);
         $this->assertResponseStatusCodeSame(403);
     }
 

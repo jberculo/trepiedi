@@ -2,7 +2,7 @@
 
 {% import '_macros.html.twig' as m %}
 
-{% block title %}{{ 'admin.participants'|trans }} — {{ 'admin.title'|trans }}{% endblock %}
+{% block title %}{{ 'admin.participants'|trans }} &mdash; {{ 'admin.title'|trans }}{% endblock %}
 
 {% block body %}
     <h1 class="h3 mb-3">{{ 'admin.participants'|trans }}</h1>
@@ -25,7 +25,7 @@
                             <td>{{ user.displayName }}</td>
                             <td class="small text-muted">{{ user.email }}</td>
                             <td class="small">
-                                {% for pool in user.pools %}<span class="badge text-bg-light text-dark border">{{ pool.name }}</span> {% else %}<span class="text-muted">—</span>{% endfor %}
+                                {% for pool in user.pools %}<span class="badge text-bg-light text-dark border">{{ pool.name }}</span> {% else %}<span class="text-muted">&mdash;</span>{% endfor %}
                             </td>
                             <td>{% if user.admin %}<span class="badge text-bg-primary">{{ 'admin.is_admin'|trans }}</span>{% endif %}</td>
                             <td class="text-end text-nowrap">

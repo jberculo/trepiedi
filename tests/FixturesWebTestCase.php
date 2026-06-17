@@ -5,14 +5,11 @@ namespace App\Tests;
 use App\DataFixtures\AppFixtures;
 use App\Entity\FootballMatch;
 use App\Entity\User;
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
-use Doctrine\Common\DataFixtures\Loader;
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use App\Repository\FootballMatchRepository;
+use App\Security\ApiTokenService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
  * Basis voor functionele tests: verse test-database met fixtures.
@@ -28,14 +25,8 @@ abstract class FixturesWebTestCase extends WebTestCase
         $container = static::getContainer();
         $this->em = $container->get(EntityManagerInterface::class);
 
-        $metadata = $this->em->getMetadataFactory()->getAllMetadata();
-        $tool = new SchemaTool($this->em);
-        $tool->dropSchema($metadata);
-        $tool->createSchema($metadata);
-
-        $loader = new Loader();
-        $loader->addFixture(new AppFixtures($container->get(UserPasswordHasherInterface::class)));
-        (new ORMExecutor($this->em, new ORMPurger()))->execute($loader->getFixtures());
+        DatabaseBootstrap::resetSchema($this->em);
+        DatabaseBootstrap::seedFixtures($this->em, $container);
     }
 
     protected function tearDown(): void
@@ -51,21 +42,29 @@ abstract class FixturesWebTestCase extends WebTestCase
 
     protected function lockedMatch(): FootballMatch
     {
-        foreach ($this->em->getRepository(FootballMatch::class)->findAll() as $match) {
-            if ($match->isLocked()) {
-                return $match;
-            }
+        $match = $this->em->getRepository(FootballMatch::class)->findOneLocked();
+        if ($match instanceof FootballMatch) {
+            return $match;
         }
+
         $this->fail('Geen gestarte wedstrijd in de fixtures.');
     }
 
     protected function openMatch(): FootballMatch
     {
-        foreach ($this->em->getRepository(FootballMatch::class)->findAll() as $match) {
-            if (!$match->isLocked()) {
-                return $match;
-            }
+        $match = $this->em->getRepository(FootballMatch::class)->findOneOpen();
+        if ($match instanceof FootballMatch) {
+            return $match;
         }
+
         $this->fail('Geen open wedstrijd in de fixtures.');
+    }
+
+    protected function issueApiToken(User $user): string
+    {
+        $token = static::getContainer()->get(ApiTokenService::class)->issue($user);
+        $this->em->flush();
+
+        return $token;
     }
 }

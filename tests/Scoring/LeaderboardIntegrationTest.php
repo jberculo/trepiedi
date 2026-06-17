@@ -6,13 +6,9 @@ use App\DataFixtures\AppFixtures;
 use App\Entity\Prediction;
 use App\Repository\RoundRepository;
 use App\Scoring\ScoringService;
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
-use Doctrine\Common\DataFixtures\Loader;
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use App\Tests\DatabaseBootstrap;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class LeaderboardIntegrationTest extends KernelTestCase
 {
@@ -24,16 +20,8 @@ class LeaderboardIntegrationTest extends KernelTestCase
         $container = static::getContainer();
         $this->em = $container->get(EntityManagerInterface::class);
 
-        // Vers schema op de test-database.
-        $metadata = $this->em->getMetadataFactory()->getAllMetadata();
-        $tool = new SchemaTool($this->em);
-        $tool->dropSchema($metadata);
-        $tool->createSchema($metadata);
-
-        // Fixtures laden.
-        $loader = new Loader();
-        $loader->addFixture(new AppFixtures($container->get(UserPasswordHasherInterface::class)));
-        (new ORMExecutor($this->em, new ORMPurger()))->execute($loader->getFixtures());
+        DatabaseBootstrap::resetSchema($this->em);
+        DatabaseBootstrap::seedFixtures($this->em, $container);
     }
 
     public function testDefaultWeightsMakeEveryMatchCountEqually(): void

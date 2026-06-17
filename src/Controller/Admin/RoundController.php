@@ -22,7 +22,7 @@ class RoundController extends AbstractController
     public function index(RoundRepository $repository): Response
     {
         return $this->render('admin/round/index.html.twig', [
-            'rounds' => $repository->findBy([], ['sortOrder' => 'ASC']),
+            'rounds' => $repository->findAllBySortOrder(),
         ]);
     }
 

@@ -72,4 +72,29 @@ class FootballMatchRepository extends ServiceEntityRepository
 
         return $names;
     }
+
+    public function findOneLocked(): ?FootballMatch
+    {
+        return $this->createQueryBuilder('m')
+            ->where('m.kickoffAt <= :now')
+            ->setParameter('now', new \DateTimeImmutable())
+            ->orderBy('m.kickoffAt', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findOneOpen(): ?FootballMatch
+    {
+        // "Open" = te voorspellen: actief én nog niet afgetrapt.
+        return $this->createQueryBuilder('m')
+            ->where('m.kickoffAt > :now')
+            ->andWhere('m.active = :active')
+            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('active', true)
+            ->orderBy('m.kickoffAt', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

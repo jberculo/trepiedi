@@ -76,7 +76,7 @@ class ApiNormalizer
     }
 
     /**
-     * Gededupliceerde map flag-code → SVG voor de gegeven wedstrijd-arrays, zodat
+     * Gededupliceerde map flag-code -> SVG voor de gegeven wedstrijd-arrays, zodat
      * de client de vlaggetjes zelf kan renderen.
      *
      * @param list<array<string, mixed>> $matches
@@ -99,7 +99,7 @@ class ApiNormalizer
     }
 
     /**
-     * De klassement-types met hun emoji en het bijbehorende veld in de stand —
+     * De klassement-types met hun emoji en het bijbehorende veld in de stand;
      * de enige bron hiervan voor de API.
      *
      * @return list<array{key: string, emoji: string, label: string, field: string}>

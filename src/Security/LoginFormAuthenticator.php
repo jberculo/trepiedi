@@ -3,13 +3,13 @@
 namespace App\Security;
 
 use App\Entity\User;
-use App\Pool\PoolEnroller;
+use App\Locale\LocaleManager;
+use App\Pool\PoolJoinManager;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Http\Authenticator\AbstractLoginFormAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\CsrfTokenBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
@@ -27,7 +27,8 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
-        private PoolEnroller $poolEnroller,
+        private PoolJoinManager $poolJoins,
+        private LocaleManager $localeManager,
     ) {
     }
 
@@ -52,17 +53,18 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         // De voorkeurstaal uit het profiel wordt de taal van de sessie.
         $user = $token->getUser();
         if ($user instanceof User) {
-            $request->getSession()->set('_locale', $user->getLocale());
+            $this->localeManager->applyUserLocale($request->getSession(), $user);
 
-            // Een onthouden uitnodigingscode (klik op join-link vóór inloggen) verzilveren.
+            // Een onthouden uitnodigingscode (klik op join-link voor inloggen) verzilveren.
             // De zelfgekozen poule blijft onthouden als jouw standaard (activePool is
             // persistent); wie nooit koos, ziet via PoolContext de standaardpoule.
             if ($request->getPathInfo() === $this->getLoginUrl($request)) {
                 $session = $request->getSession();
-                $code = $session->get(PoolEnroller::SESSION_KEY);
-                if (is_string($code) && $code !== '') {
-                    $session->remove(PoolEnroller::SESSION_KEY);
-                    $this->poolEnroller->enroll($user, $code);
+                $join = $this->poolJoins->consumePendingJoin($user, $session);
+                if ($join->isInvalid()) {
+                    $session->getFlashBag()->add('error', 'pool.invalid_saved_link');
+                } elseif ($join->isJoined()) {
+                    $session->getFlashBag()->add('success', 'pool.joined');
                 }
             }
         }

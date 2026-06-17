@@ -35,7 +35,7 @@ class ReadApi
             throw new ApiException(ApiError::NotFound, 'Onbekende of gearchiveerde poule.');
         }
 
-        $entries = $this->scoring->leaderboardWithMovement($this->memberIds($pool));
+        $entries = $this->scoring->leaderboardWithMovement($pool->memberIds());
 
         return [
             'pool' => ['name' => $pool->getName(), 'code' => $pool->getCode()],
@@ -77,7 +77,7 @@ class ReadApi
             'sortOrder' => $r->getSortOrder(),
             'weight' => $r->getWeight(),
             'matchCount' => count($r->getMatches()),
-        ], $this->rounds->findBy([], ['sortOrder' => 'ASC']));
+        ], $this->rounds->findAllBySortOrder());
 
         return ['rounds' => $rounds];
     }
@@ -100,20 +100,5 @@ class ReadApi
             'pools' => array_values($pools),
             'activePool' => $user->getActivePool()?->getCode(),
         ];
-    }
-
-    /**
-     * @return list<int>
-     */
-    private function memberIds(Pool $pool): array
-    {
-        $ids = [];
-        foreach ($pool->getMembers() as $member) {
-            if ($member->getId() !== null) {
-                $ids[] = $member->getId();
-            }
-        }
-
-        return $ids;
     }
 }

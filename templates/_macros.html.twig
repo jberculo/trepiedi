@@ -15,7 +15,7 @@
     </a>
 {% endmacro %}
 
-{# Ploeg: vlag + naam. Met flag_first=false komt de vlag áchter de naam (rechterkolom). #}
+{# Ploeg: vlag + naam. Met flag_first=false komt de vlag achter de naam. #}
 {% macro team(name, flag_first) %}
     {%- if flag_first is same as(false) -%}
         {{ name }} {{ country_flag(name) }}
@@ -25,7 +25,7 @@
 {% endmacro %}
 
 {# Doorgaande ploeg (vlag + naam), of een streepje als die er (nog) niet is. #}
-{% macro team_or_dash(name) %}{% if name %}{{ _self.team(name) }}{% else %}—{% endif %}{% endmacro %}
+{% macro team_or_dash(name) %}{% if name %}{{ _self.team(name) }}{% else %}&mdash;{% endif %}{% endmacro %}
 
 {# Score-badge: +punten (de aanroeper rekent het rondegewicht al mee). #}
 {% macro points_badge(points) %}<span class="badge text-bg-success">+{{ points }}</span>{% endmacro %}

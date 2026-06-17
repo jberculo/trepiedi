@@ -2,7 +2,7 @@
 
 {% import '_macros.html.twig' as m %}
 
-{% block title %}{{ 'admin.matches'|trans }} — {{ 'admin.title'|trans }}{% endblock %}
+{% block title %}{{ 'admin.matches'|trans }} - {{ 'admin.title'|trans }}{% endblock %}
 
 {% block body %}
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -35,9 +35,9 @@
                             </td>
                             <td class="small">{{ match.round.name }}</td>
                             <td class="small">{{ match.kickoffAt|date('d-m-Y H:i') }}</td>
-                            <td>{{ m.team(match.homeTeam) }} – {{ m.team(match.awayTeam) }}</td>
+                            <td>{{ m.team(match.homeTeam) }} &ndash; {{ m.team(match.awayTeam) }}</td>
                             <td>
-                                {% if match.homeScore is not null %}{{ match.homeScore }} – {{ match.awayScore }}{% else %}—{% endif %}
+                                {% if match.homeScore is not null %}{{ match.homeScore }} &ndash; {{ match.awayScore }}{% else %}&mdash;{% endif %}
                             </td>
                             <td>{{ m.team_or_dash(match.advancingTeam) }}</td>
                             <td class="text-nowrap">
@@ -47,7 +47,7 @@
                             <td class="text-end text-nowrap">
                                 <a class="btn btn-sm btn-success" href="{{ path('admin_match_result', {id: match.id}) }}">{{ 'admin.result'|trans }}</a>
                                 <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_match_edit', {id: match.id}) }}">{{ 'common.edit'|trans }}</a>
-                                {{ m.csrf_button(path('admin_match_delete', {id: match.id}), csrf_token('delete-match-' ~ match.id), '×', 'danger', 'admin.confirm_delete_match'|trans) }}
+                                {{ m.csrf_button(path('admin_match_delete', {id: match.id}), csrf_token('delete-match-' ~ match.id), 'common.delete'|trans, 'danger', 'admin.confirm_delete_match'|trans) }}
                             </td>
                         </tr>
                     {% else %}

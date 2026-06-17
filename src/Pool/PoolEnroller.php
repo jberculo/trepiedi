@@ -2,32 +2,31 @@
 
 namespace App\Pool;
 
+use App\Entity\Pool;
 use App\Entity\User;
 use App\Repository\PoolRepository;
-use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * Schrijft een speler in op een poule (op basis van een code, anders de
  * standaardpoule) en maakt die meteen de actieve poule. Wordt gebruikt bij
- * registratie en — voor een gestashte uitnodigingscode — bij inloggen.
+ * registratie en - voor een gestashte uitnodigingscode - bij inloggen.
  */
 class PoolEnroller
 {
     /** Sessiesleutel voor een uitnodigingscode die nog verzilverd moet worden. */
     public const SESSION_KEY = 'pool_code';
 
-    public function __construct(
-        private PoolRepository $pools,
-        private EntityManagerInterface $em,
-    ) {
+    public function __construct(private PoolRepository $pools)
+    {
     }
 
     /**
      * Schrijf in op de actieve poule van de code, of (zonder code) op de
      * standaardpoule. Een foutieve/gearchiveerde code schrijft NIET stilletjes in
-     * op de standaardpoule maar levert null op. Maakt de poule actief en bewaart.
+     * op de standaardpoule maar levert null op. Maakt de poule actief; flushen
+     * blijft de verantwoordelijkheid van de caller.
      */
-    public function enroll(User $user, ?string $code): ?\App\Entity\Pool
+    public function enroll(User $user, ?string $code): ?Pool
     {
         if ($code !== null && $code !== '') {
             $pool = $this->pools->findOneActiveByCode($code);
@@ -41,7 +40,6 @@ class PoolEnroller
 
         $user->addPool($pool);
         $user->setActivePool($pool);
-        $this->em->flush();
 
         return $pool;
     }

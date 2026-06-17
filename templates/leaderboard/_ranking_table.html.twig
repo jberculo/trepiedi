@@ -1,14 +1,13 @@
-{# Herbruikbare klassement-tabel. De vijf ranglijsten delen dit skelet en vullen
-   per tabblad alleen de rondekop, de rondecel en het totaal in via de blokken
-   round_header / round_cell / total_cell. Verwachte variabelen:
+{# Herbruikbare klassement-tabel.
+   Verwachte variabelen:
      entries          (gesorteerde lijst)
      rounds, finishedPerRound
      intro            (vertaalsleutel boven de tabel)
      showArrow        (positiepijl tonen?)
      arrowKey         (sleutel voor entry.change(), bij showArrow)
      rankField        (veld voor dense-rang; null = entry.rank gebruiken)
-   round_header/round_cell zien de lus-variabelen `round` en `played`;
-   round_cell/total_cell zien `entry`. #}
+     mode             (points|score|winners|lantern|inconsistent)
+     maxPossible, totalFinished #}
 {% import '_macros.html.twig' as m %}
 {% import 'leaderboard/_lb.html.twig' as lb %}
 
@@ -21,7 +20,14 @@
                     <th class="col-rank">#</th>
                     <th>{{ 'lb.player'|trans }}</th>
                     {% for round in rounds %}
-                        <th class="text-center small">{% block round_header %}{{ round.name }}{% endblock %}</th>
+                        <th class="text-center small">
+                            {{ round.name }}
+                            {% if mode == 'points' %}
+                                <br><span class="fw-normal text-muted">&times; {{ lb.pts(round.weight) }}</span>
+                            {% elseif mode == 'score' %}
+                                <br><span class="fw-normal text-muted">{{ 'lb.components'|trans }}</span>
+                            {% endif %}
+                        </th>
                     {% endfor %}
                     <th class="text-end">{{ 'lb.total'|trans }}</th>
                 </tr>
@@ -40,9 +46,36 @@
                         <td>{{ m.player(entry.user) }}</td>
                         {% for round in rounds %}
                             {% set played = finishedPerRound[round.id] ?? 0 %}
-                            <td class="text-center">{% block round_cell %}{% if played > 0 %}…{% else %}—{% endif %}{% endblock %}</td>
+                            <td class="text-center">
+                                {% if played == 0 %}
+                                    &mdash;
+                                {% elseif mode == 'points' %}
+                                    {{ lb.pts(entry.roundWeighted(round.id)) }}<br><small class="text-muted">{{ lb.stat(entry.roundHome(round.id), entry.roundAway(round.id), entry.roundExact(round.id), entry.roundAdvance(round.id)) }}</small>
+                                {% elseif mode == 'score' %}
+                                    {{ entry.roundHome(round.id) }} - {{ entry.roundAway(round.id) }} - {{ entry.roundExact(round.id) }}
+                                {% elseif mode == 'winners' %}
+                                    {% set good = entry.roundAdvance(round.id) %}
+                                    {{ good }}/{{ played }} <small class="text-muted">({{ (good / played * 100)|round }}%)</small>
+                                {% elseif mode == 'lantern' %}
+                                    {{ entry.roundLantern(round.id) }}
+                                {% elseif mode == 'inconsistent' %}
+                                    {{ entry.roundInconsistent(round.id) }}
+                                {% endif %}
+                            </td>
                         {% endfor %}
-                        <td class="text-end fw-bold">{% block total_cell %}{% endblock %}</td>
+                        <td class="text-end fw-bold">
+                            {% if mode == 'points' %}
+                                {{ lb.total(entry.weightedTotal, maxPossible) }}
+                            {% elseif mode == 'score' %}
+                                {{ lb.total(entry.scorePoints, totalFinished * 3) }}
+                            {% elseif mode == 'winners' %}
+                                {{ lb.total(entry.advanceCount, totalFinished) }}
+                            {% elseif mode == 'lantern' %}
+                                {{ lb.total(entry.lanternPoints, totalFinished * 3) }}
+                            {% elseif mode == 'inconsistent' %}
+                                {{ lb.total(entry.inconsistentCount, totalFinished) }}
+                            {% endif %}
+                        </td>
                     </tr>
                 {% else %}
                     <tr><td colspan="{{ rounds|length + 3 }}" class="text-center text-muted py-4">{{ 'lb.no_participants'|trans }}</td></tr>

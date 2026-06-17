@@ -31,14 +31,14 @@ class MatchController extends AbstractController
     #[Route('/bulk', name: 'admin_match_bulk', methods: ['POST'])]
     public function bulk(Request $request, FootballMatchRepository $repository, EntityManagerInterface $em, TranslatorInterface $translator): Response
     {
-        if (!$this->isCsrfTokenValid('bulk-matches', (string) $request->getPayload()->get('_token'))) {
-            return $this->redirectToRoute('admin_match_index');
-        }
+        return $this->handlePostAction($request, 'bulk-matches', 'admin_match_index', function () use ($request, $repository, $em, $translator): void {
+            $ids = array_map('intval', (array) $request->getPayload()->all('ids'));
+            $active = $request->getPayload()->get('active') === '1';
 
-        $ids = array_map('intval', (array) $request->getPayload()->all('ids'));
-        $active = $request->getPayload()->get('active') === '1';
+            if ($ids === []) {
+                return;
+            }
 
-        if ($ids !== []) {
             $matches = $repository->findBy(['id' => $ids]);
             foreach ($matches as $match) {
                 $match->setActive($active);
@@ -48,9 +48,7 @@ class MatchController extends AbstractController
                 $active ? 'admin.bulk_activated' : 'admin.bulk_deactivated',
                 ['%count%' => count($matches)],
             ));
-        }
-
-        return $this->redirectToRoute('admin_match_index');
+        });
     }
 
     #[Route('/nieuw', name: 'admin_match_new', methods: ['GET', 'POST'])]
@@ -58,7 +56,7 @@ class MatchController extends AbstractController
     {
         $form = $this->createForm(FootballMatchType::class, new FootballMatch());
 
-        return $this->handleCrudForm($form, $request, $em, 'admin.match_added', 'admin_match_index', 'admin.match_new');
+        return $this->handleCrudForm($form, $request, $em, 'admin.match_added', 'admin_match_index', 'admin.match_new', null, true);
     }
 
     #[Route('/{id}/bewerken', name: 'admin_match_edit', methods: ['GET', 'POST'])]
@@ -66,7 +64,7 @@ class MatchController extends AbstractController
     {
         $form = $this->createForm(FootballMatchType::class, $match);
 
-        return $this->handleCrudForm($form, $request, $em, 'admin.match_updated', 'admin_match_index', 'admin.match_edit');
+        return $this->handleCrudForm($form, $request, $em, 'admin.match_updated', 'admin_match_index', 'admin.match_edit', null, true);
     }
 
     #[Route('/{id}/uitslag', name: 'admin_match_result', methods: ['GET', 'POST'])]

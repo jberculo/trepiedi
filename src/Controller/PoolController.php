@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Pool\PoolEnroller;
+use App\Pool\PoolJoinManager;
 use App\Repository\PoolRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,9 +18,13 @@ class PoolController extends AbstractController
      * poule activeren. Uitgelogd: code onthouden en naar registreren sturen
      * (na registratie/inloggen wordt de code verzilverd).
      */
-    #[Route('/poule/inschrijven/{code}', name: 'app_pool_join')]
-    public function join(string $code, Request $request, PoolRepository $pools, EntityManagerInterface $em): Response
-    {
+    #[Route('/poule/inschrijven/{code}', name: 'app_pool_join', methods: ['GET', 'POST'])]
+    public function join(
+        string $code,
+        Request $request,
+        PoolRepository $pools,
+        PoolJoinManager $poolJoins,
+    ): Response {
         $pool = $pools->findOneActiveByCode($code);
         if ($pool === null) {
             $this->addFlash('error', 'pool.not_found');
@@ -31,15 +35,24 @@ class PoolController extends AbstractController
         $user = $this->getUser();
         if (!$user instanceof User) {
             // Onthoud de code en laat eerst registreren/inloggen.
-            $request->getSession()->set(PoolEnroller::SESSION_KEY, $code);
+            $poolJoins->rememberCode($request->getSession(), $code);
             $this->addFlash('info', 'pool.login_to_join');
 
             return $this->redirectToRoute('app_register');
         }
 
-        $user->addPool($pool);
-        $user->setActivePool($pool);
-        $em->flush();
+        if (!$request->isMethod('POST')) {
+            return $this->render('pool/join.html.twig', [
+                'pool' => $pool,
+                'back_path' => $this->safeRedirectTarget($request) ?? $this->generateUrl('app_leaderboard'),
+            ]);
+        }
+
+        if (!$this->isCsrfTokenValid('join-pool-' . $pool->getCode(), (string) $request->getPayload()->get('_token'))) {
+            throw $this->createAccessDeniedException('Ongeldige CSRF-token.');
+        }
+
+        $poolJoins->join($user, $code);
         $this->addFlash('success', 'pool.joined');
 
         return $this->redirectToPoolReferer($request);
@@ -48,7 +61,7 @@ class PoolController extends AbstractController
     /**
      * Wisselen naar een andere poule waarvan je al lid bent (navbar-switcher).
      */
-    #[Route('/poule/wissel/{code}', name: 'app_pool_switch')]
+    #[Route('/poule/wissel/{code}', name: 'app_pool_switch', methods: ['POST'])]
     public function switch(string $code, Request $request, PoolRepository $pools, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
@@ -63,6 +76,10 @@ class PoolController extends AbstractController
             return $this->redirectToRoute('app_leaderboard');
         }
 
+        if (!$this->isCsrfTokenValid('switch-pool-' . $pool->getCode(), (string) $request->getPayload()->get('_token'))) {
+            throw $this->createAccessDeniedException('Ongeldige CSRF-token.');
+        }
+
         $user->setActivePool($pool);
         $em->flush();
 
@@ -71,8 +88,38 @@ class PoolController extends AbstractController
 
     private function redirectToPoolReferer(Request $request): Response
     {
-        $referer = $request->headers->get('referer');
+        $referer = $this->safeRedirectTarget($request);
 
         return $this->redirect($referer ?: $this->generateUrl('app_leaderboard'));
+    }
+
+    private function safeRedirectTarget(Request $request): ?string
+    {
+        $referer = $request->headers->get('referer');
+        if (!is_string($referer) || $referer === '') {
+            return null;
+        }
+
+        $parts = parse_url($referer);
+        if ($parts === false) {
+            return null;
+        }
+
+        $host = $parts['host'] ?? null;
+        if ($host !== null && $host !== $request->getHost()) {
+            return null;
+        }
+
+        $path = $parts['path'] ?? '';
+        if (!is_string($path) || !str_starts_with($path, '/')) {
+            return null;
+        }
+
+        $target = $path;
+        if (isset($parts['query']) && is_string($parts['query']) && $parts['query'] !== '') {
+            $target .= '?' . $parts['query'];
+        }
+
+        return $target;
     }
 }

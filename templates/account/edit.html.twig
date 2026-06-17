@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ 'account.title'|trans }} — Trepiedi{% endblock %}
+{% block title %}{{ 'account.title'|trans }} - Trepiedi{% endblock %}
 
 {% block body %}
     <div class="row justify-content-center">
@@ -38,37 +38,40 @@
                     <span class="form-label d-block">{{ 'account.language'|trans }}</span>
                     <div class="d-flex gap-2">
                         <a class="btn btn-sm d-flex align-items-center {{ app.request.locale == 'nl' ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_locale', {_locale: 'nl'}) }}">
-                            <span class="fi fi-nl team-flag"></span>Nederlands
+                            <span class="fi fi-nl team-flag"></span>{{ 'account.language_nl'|trans }}
                         </a>
                         <a class="btn btn-sm d-flex align-items-center {{ app.request.locale == 'en' ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_locale', {_locale: 'en'}) }}">
-                            <span class="fi fi-gb team-flag"></span>English
+                            <span class="fi fi-gb team-flag"></span>{{ 'account.language_en'|trans }}
                         </a>
                     </div>
 
-                    {% set my_pools = app.user.pools|filter(p => not p.archived) %}
+                    {% set my_pools = switchable_pools() %}
                     {% if my_pools|length > 1 %}
-                        {% set current_pool = active_pool() %}
                         <hr class="my-4">
-                        <span class="form-label d-block">{{ 'account.pool'|trans }}</span>
-                        <div class="d-flex flex-wrap gap-2">
-                            {% for p in my_pools %}
-                                <a class="btn btn-sm {{ current_pool and p.id == current_pool.id ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_pool_switch', {code: p.code}) }}">
-                                    {{ p.name }}{% if p.default %} <span class="small">({{ 'admin.pool_is_default'|trans }})</span>{% endif %}
-                                </a>
-                            {% endfor %}
-                        </div>
+                        {{ include('pool/_switcher.html.twig', {
+                            pools: my_pools,
+                            current_pool: active_pool(),
+                            switcher_variant: 'buttons'
+                        }) }}
                     {% endif %}
 
                     <hr class="my-4">
                     <span class="form-label d-block">{{ 'account.api_token'|trans }}</span>
                     <p class="text-muted small mb-2">{{ 'account.api_token_help'|trans }}</p>
-                    <div class="input-group input-group-sm mb-2">
-                        <input type="text" class="form-control font-monospace" value="{{ app.user.apiToken }}" readonly onclick="this.select()">
-                    </div>
+                    {% if plainApiToken %}
+                        <div class="alert alert-warning small" role="alert">{{ 'account.api_token_once'|trans }}</div>
+                        <div class="input-group input-group-sm mb-2">
+                            <input type="text" class="form-control font-monospace" value="{{ plainApiToken }}" readonly onclick="this.select()">
+                        </div>
+                    {% elseif app.user.hasApiToken %}
+                        <p class="small text-muted mb-2">{{ 'account.api_token_exists'|trans({'%id%': app.user.apiTokenId}) }}</p>
+                    {% else %}
+                        <p class="small text-muted mb-2">{{ 'account.api_token_missing'|trans }}</p>
+                    {% endif %}
                     <form method="post" action="{{ path('app_account_api_token') }}"
                           onsubmit="return confirm('{{ 'account.api_token_confirm'|trans }}');">
                         <input type="hidden" name="_token" value="{{ csrf_token('api-token-' ~ app.user.id) }}">
-                        <button class="btn btn-sm btn-outline-secondary">{{ 'account.api_token_regenerate'|trans }}</button>
+                        <button class="btn btn-sm btn-outline-secondary">{{ 'account.api_token_generate'|trans }}</button>
                     </form>
                 </div>
             </div>

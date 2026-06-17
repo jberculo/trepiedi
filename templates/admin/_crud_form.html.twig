@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ title|trans }} — Trepiedi{% endblock %}
+{% block title %}{{ title|trans }} &mdash; Trepiedi{% endblock %}
 
 {% block body %}
     <div class="row justify-content-center">
@@ -20,5 +20,7 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script src="{{ asset('js/country-autocomplete.js') }}?v={{ asset_version('js/country-autocomplete.js') }}" defer></script>
+    {% if include_country_autocomplete|default(false) %}
+        <script src="{{ asset('js/country-autocomplete.js') }}?v={{ asset_version('js/country-autocomplete.js') }}" defer></script>
+    {% endif %}
 {% endblock %}

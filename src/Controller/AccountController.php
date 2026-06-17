@@ -2,13 +2,14 @@
 
 namespace App\Controller;
 
+use App\Account\AvatarStorage;
 use App\Entity\User;
 use App\Form\AccountType;
+use App\Locale\LocaleManager;
 use App\Repository\UserRepository;
-use App\Security\ApiTokenGenerator;
+use App\Security\ApiTokenService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,49 +22,35 @@ class AccountController extends AbstractController
         Request $request,
         UserRepository $users,
         EntityManagerInterface $em,
-        ApiTokenGenerator $apiTokenGenerator,
-        #[Autowire('%kernel.project_dir%/public/uploads/avatars')]
-        string $avatarDir,
+        AvatarStorage $avatars,
+        LocaleManager $localeManager,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
-
-        // Zorg dat de speler een persoonlijke API-sleutel heeft (lazy aanmaken).
-        if ($apiTokenGenerator->ensure($user)) {
-            $em->flush();
-        }
 
         $form = $this->createForm(AccountType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Naam kan gewijzigd zijn: slug bijwerken (zonder botsing met zichzelf).
             $user->setSlug($users->uniqueSlug($user->getDisplayName(), $user));
 
             $file = $form->get('avatar')->getData();
             if ($file instanceof UploadedFile) {
-                $filename = $user->getSlug() . '-' . uniqid() . '.' . ($file->guessExtension() ?: 'bin');
-                $file->move($avatarDir, $filename);
-
-                $old = $user->getAvatar();
-                if ($old !== null && is_file($avatarDir . '/' . $old)) {
-                    @unlink($avatarDir . '/' . $old);
-                }
-                $user->setAvatar($filename);
+                $avatars->store($user, $file);
             }
 
             $em->flush();
-
-            // Taalkeuze meteen toepassen.
-            $request->getSession()->set('_locale', $user->getLocale());
-
+            $localeManager->applyUserLocale($request->getSession(), $user);
             $this->addFlash('success', 'account.saved');
 
             return $this->redirectToRoute('app_account');
         }
 
+        $plainApiToken = $request->getSession()->remove('account.new_api_token');
+
         return $this->render('account/edit.html.twig', [
             'form' => $form,
+            'plainApiToken' => is_string($plainApiToken) ? $plainApiToken : null,
         ]);
     }
 
@@ -71,14 +58,15 @@ class AccountController extends AbstractController
     public function regenerateApiToken(
         Request $request,
         EntityManagerInterface $em,
-        ApiTokenGenerator $apiTokenGenerator,
+        ApiTokenService $apiTokens,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
 
         if ($this->isCsrfTokenValid('api-token-' . $user->getId(), (string) $request->getPayload()->get('_token'))) {
-            $user->setApiToken($apiTokenGenerator->generate());
+            $token = $apiTokens->issue($user);
             $em->flush();
+            $request->getSession()->set('account.new_api_token', $token);
             $this->addFlash('success', 'account.api_token_regenerated');
         }
 

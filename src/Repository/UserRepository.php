@@ -20,7 +20,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Genereert een unieke slug uit een naam (voegt -2, -3, … toe bij botsing).
+     * Genereert een unieke slug uit een naam (voegt -2, -3, enz. toe bij botsing).
      */
     public function uniqueSlug(string $name, ?User $exclude = null): string
     {
@@ -39,9 +39,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return $slug;
     }
 
-    public function findOneByApiToken(string $token): ?User
+    public function findOneByApiTokenId(string $tokenId): ?User
     {
-        return $this->findOneBy(['apiToken' => $token]);
+        return $this->findOneBy(['apiTokenId' => $tokenId]);
     }
 
     public function save(User $user, bool $flush = false): void

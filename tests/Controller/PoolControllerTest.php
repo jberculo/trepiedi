@@ -29,7 +29,9 @@ class PoolControllerTest extends FixturesWebTestCase
         // Anne zit in Algemeen én Kantoor; Bram/Diana alleen in Algemeen.
         $this->client->loginUser($this->user('anne@trepiedi.test'));
 
-        $this->client->request('GET', '/poule/wissel/kantoor');
+        $crawler = $this->client->request('GET', '/');
+        $form = $crawler->filter('form[action="/poule/wissel/kantoor"]')->form();
+        $this->client->submit($form);
         $this->assertResponseRedirects();
 
         $crawler = $this->client->request('GET', '/');
@@ -45,7 +47,9 @@ class PoolControllerTest extends FixturesWebTestCase
     {
         $this->client->loginUser($this->user('bram@trepiedi.test'));
 
-        $this->client->request('GET', '/poule/inschrijven/kantoor');
+        $crawler = $this->client->request('GET', '/poule/inschrijven/kantoor');
+        $form = $crawler->filter('form[action="/poule/inschrijven/kantoor"]')->form();
+        $this->client->submit($form);
         $this->assertResponseRedirects();
 
         $this->em->clear();
@@ -76,7 +80,7 @@ class PoolControllerTest extends FixturesWebTestCase
         // Bram zit niet in Kantoor.
         $this->client->loginUser($this->user('bram@trepiedi.test'));
 
-        $this->client->request('GET', '/poule/wissel/kantoor');
+        $this->client->request('POST', '/poule/wissel/kantoor');
         $this->assertResponseRedirects('/');
 
         $this->em->clear();
@@ -126,12 +130,67 @@ class PoolControllerTest extends FixturesWebTestCase
         // Anne (2 poules) ziet de switcher …
         $this->client->loginUser($this->user('anne@trepiedi.test'));
         $crawler = $this->client->request('GET', '/');
-        $this->assertGreaterThan(0, $crawler->filter('a[href="/poule/wissel/kantoor"]')->count());
+        $this->assertGreaterThan(0, $crawler->filter('form[action="/poule/wissel/kantoor"]')->count());
 
         // … Bram (1 poule) niet.
         $this->client->loginUser($this->user('bram@trepiedi.test'));
         $crawler = $this->client->request('GET', '/');
-        $this->assertSame(0, $crawler->filter('a[href^="/poule/wissel/"]')->count());
+        $this->assertSame(0, $crawler->filter('form[action^="/poule/wissel/"]')->count());
+    }
+
+    public function testLoggedInJoinGetShowsConfirmationInsteadOfMutatingState(): void
+    {
+        $this->client->loginUser($this->user('bram@trepiedi.test'));
+
+        $crawler = $this->client->request('GET', '/poule/inschrijven/kantoor');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertGreaterThan(0, $crawler->filter('form[action="/poule/inschrijven/kantoor"]')->count());
+
+        $this->em->clear();
+        $this->assertFalse($this->user('bram@trepiedi.test')->isInPool($this->poolByCode('kantoor')));
+    }
+
+    public function testSwitchRequiresPost(): void
+    {
+        $this->client->loginUser($this->user('anne@trepiedi.test'));
+
+        $this->client->request('GET', '/poule/wissel/kantoor');
+        $this->assertResponseStatusCodeSame(405);
+    }
+
+    public function testExternalRefererFallsBackToLeaderboard(): void
+    {
+        $this->client->loginUser($this->user('anne@trepiedi.test'));
+
+        $crawler = $this->client->request('GET', '/');
+        $form = $crawler->filter('form[action="/poule/wissel/kantoor"]')->form();
+        $this->client->submit($form, [], ['HTTP_REFERER' => 'https://evil.example/phish']);
+
+        $this->assertResponseRedirects('/');
+    }
+
+    public function testSwitchRejectsInvalidCsrfToken(): void
+    {
+        // Anne is lid van Kantoor, dus de afwijzing komt door de CSRF-token, niet door lidmaatschap.
+        $this->client->loginUser($this->user('anne@trepiedi.test'));
+
+        $this->client->request('POST', '/poule/wissel/kantoor', ['_token' => 'ongeldig']);
+        $this->assertResponseStatusCodeSame(403);
+
+        $this->em->clear();
+        $this->assertNull($this->user('anne@trepiedi.test')->getActivePool(), 'Geen wissel bij ongeldige token.');
+    }
+
+    public function testJoinRejectsInvalidCsrfToken(): void
+    {
+        $this->client->loginUser($this->user('bram@trepiedi.test'));
+
+        $this->client->request('POST', '/poule/inschrijven/kantoor', ['_token' => 'ongeldig']);
+        $this->assertResponseStatusCodeSame(403);
+
+        $this->em->clear();
+        $this->assertFalse($this->user('bram@trepiedi.test')->isInPool($this->poolByCode('kantoor')), 'Geen lidmaatschap bij ongeldige token.');
     }
 
     private function poolByCode(string $code): Pool

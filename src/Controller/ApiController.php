@@ -7,6 +7,7 @@ use App\Api\ApiException;
 use App\Api\ApiKeyResolver;
 use App\Api\ReadApi;
 use App\Api\WriteApi;
+use App\Entity\User;
 use App\Flag\FlagProvider;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -72,37 +73,41 @@ class ApiController extends AbstractController
     #[Route('/api/me', name: 'api_me', methods: ['GET'])]
     public function me(Request $request): JsonResponse
     {
-        return $this->run(fn (): array => $this->read->me($this->keys->fromRequest($request)));
+        return $this->runAuthenticated($request, fn (?User $user): array => $this->read->me($user));
     }
 
     #[Route('/api/matches/{id}/prediction', name: 'api_match_prediction', methods: ['POST', 'PUT'], requirements: ['id' => '\d+'])]
     public function prediction(int $id, Request $request): JsonResponse
     {
-        return $this->run(fn (): array => $this->write->submitPrediction($this->keys->fromRequest($request), $id, $this->body($request)));
+        return $this->runAuthenticatedWithBody($request, fn (?User $user, array $body): array => $this->write->submitPrediction($user, $id, $body));
     }
 
     #[Route('/api/matches/{id}/result', name: 'api_match_result', methods: ['POST', 'PUT'], requirements: ['id' => '\d+'])]
     public function result(int $id, Request $request): JsonResponse
     {
-        return $this->run(fn (): array => $this->write->setResult($this->keys->fromRequest($request), $id, $this->body($request)));
+        return $this->runAuthenticatedWithBody($request, fn (?User $user, array $body): array => $this->write->setResult($user, $id, $body));
     }
 
     #[Route('/api/matches/{id}', name: 'api_match_update', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function updateMatch(int $id, Request $request): JsonResponse
     {
-        return $this->run(fn (): array => $this->write->updateMatch($this->keys->fromRequest($request), $id, $this->body($request)));
+        return $this->runAuthenticatedWithBody($request, fn (?User $user, array $body): array => $this->write->updateMatch($user, $id, $body));
     }
 
     #[Route('/api/pools', name: 'api_pools', methods: ['GET'])]
     public function pools(Request $request): JsonResponse
     {
-        return $this->run(fn (): array => $this->write->poolsList($this->keys->fromRequest($request)));
+        return $this->runAuthenticated($request, fn (?User $user): array => $this->write->poolsList($user));
     }
 
     #[Route('/api/pools', name: 'api_pool_create', methods: ['POST'])]
     public function createPool(Request $request): JsonResponse
     {
-        return $this->run(fn (): array => $this->write->createPool($this->keys->fromRequest($request), $this->body($request)), Response::HTTP_CREATED);
+        return $this->runAuthenticatedWithBody(
+            $request,
+            fn (?User $user, array $body): array => $this->write->createPool($user, $body),
+            Response::HTTP_CREATED,
+        );
     }
 
     /**
@@ -117,6 +122,27 @@ class ApiController extends AbstractController
         } catch (ApiException $e) {
             return $this->json(['error' => $e->getMessage()], $this->statusFor($e->error));
         }
+    }
+
+    /**
+     * @param callable(?User): array $fn
+     */
+    private function runAuthenticated(Request $request, callable $fn, int $okStatus = Response::HTTP_OK): JsonResponse
+    {
+        return $this->run(fn (): array => $fn($this->apiUser($request)), $okStatus);
+    }
+
+    /**
+     * @param callable(?User, array<string, mixed>): array $fn
+     */
+    private function runAuthenticatedWithBody(Request $request, callable $fn, int $okStatus = Response::HTTP_OK): JsonResponse
+    {
+        return $this->run(fn (): array => $fn($this->apiUser($request), $this->body($request)), $okStatus);
+    }
+
+    private function apiUser(Request $request): ?User
+    {
+        return $this->keys->fromRequest($request);
     }
 
     private function statusFor(ApiError $error): int

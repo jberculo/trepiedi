@@ -4,10 +4,9 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Pool\PoolContext;
-use App\Repository\PredictionRepository;
-use App\Repository\RoundRepository;
 use App\Scoring\LeaderboardEntry;
 use App\Scoring\ScoringService;
+use App\User\UserProfileViewBuilder;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,50 +18,28 @@ class UserViewController extends AbstractController
     public function view(
         #[MapEntity(mapping: ['slug' => 'slug'])]
         User $profile,
-        RoundRepository $roundRepository,
-        PredictionRepository $predictionRepository,
         ScoringService $scoringService,
         PoolContext $poolContext,
+        UserProfileViewBuilder $profileView,
     ): Response {
         $viewer = $this->getUser();
         $isSelf = $viewer instanceof User && $viewer->getId() === $profile->getId();
-
-        $predictions = $predictionRepository->findByUserIndexedByMatch($profile);
-
-        $rounds = [];
-        foreach ($roundRepository->findAllOrdered() as $round) {
-            $items = [];
-            foreach ($round->getMatches() as $match) {
-                $prediction = $predictions[$match->getId()] ?? null;
-                // Andermans voorspelling pas zichtbaar vanaf de aftrap; eigen profiel altijd.
-                $visible = $isSelf || $match->isLocked();
-
-                $items[] = [
-                    'match' => $match,
-                    'prediction' => $visible ? $prediction : null,
-                    'visible' => $visible,
-                    'score' => ($visible && $prediction !== null && $match->hasResult())
-                        ? $scoringService->scorePrediction($prediction)
-                        : null,
-                ];
-            }
-            $rounds[] = ['round' => $round, 'items' => $items];
-        }
+        $leaderboard = $scoringService->buildLeaderboard(null, $poolContext->getMemberIds());
 
         return $this->render('user/view.html.twig', [
             'profile' => $profile,
             'isSelf' => $isSelf,
-            'entry' => $this->leaderboardEntryFor($scoringService, $profile, $poolContext->getMemberIds()),
-            'rounds' => $rounds,
+            'entry' => $this->entryFor($leaderboard, $profile),
+            'rounds' => $profileView->buildRounds($profile, $isSelf),
         ]);
     }
 
     /**
-     * @param list<int>|null $memberIds
+     * @param list<LeaderboardEntry> $leaderboard
      */
-    private function leaderboardEntryFor(ScoringService $scoringService, User $profile, ?array $memberIds): ?LeaderboardEntry
+    private function entryFor(array $leaderboard, User $profile): ?LeaderboardEntry
     {
-        foreach ($scoringService->buildLeaderboard(null, $memberIds) as $entry) {
+        foreach ($leaderboard as $entry) {
             if ($entry->user->getId() === $profile->getId()) {
                 return $entry;
             }

@@ -337,7 +337,7 @@ class ScoringService
 
         $playerIds = array_keys($players);
         $steps = [];
-        foreach ($this->footballMatchRepository->findBy(['finished' => true], ['kickoffAt' => 'ASC']) as $match) {
+        foreach ($this->finishedMatches() as $match) {
             $weight = $match->getRound() !== null && isset($rounds[$match->getRound()->getId()])
                 ? $rounds[$match->getRound()->getId()]->getWeight()
                 : 1.0;
@@ -403,7 +403,7 @@ class ScoringService
     public function lastMatchdayStart(): ?\DateTimeImmutable
     {
         $latest = null;
-        foreach ($this->footballMatchRepository->findBy(['finished' => true]) as $match) {
+        foreach ($this->finishedMatches() as $match) {
             $kickoff = $match->getKickoffAt();
             if ($kickoff !== null && ($latest === null || $kickoff > $latest)) {
                 $latest = $kickoff;
@@ -419,7 +419,7 @@ class ScoringService
     public function finishedCountPerRound(): array
     {
         $counts = [];
-        foreach ($this->footballMatchRepository->findBy(['finished' => true]) as $match) {
+        foreach ($this->finishedMatches() as $match) {
             if ($match->getRound() !== null) {
                 $id = $match->getRound()->getId();
                 $counts[$id] = ($counts[$id] ?? 0) + 1;
@@ -440,6 +440,14 @@ class ScoringService
         }
 
         return $rounds;
+    }
+
+    /**
+     * @return list<FootballMatch>
+     */
+    private function finishedMatches(): array
+    {
+        return $this->footballMatchRepository->findBy(['finished' => true], ['kickoffAt' => 'ASC']);
     }
 
     /**

@@ -2,13 +2,13 @@
 
 {% import 'leaderboard/_lb.html.twig' as lb %}
 
-{% block title %}{{ 'lb.title'|trans }} — Trepiedi{% endblock %}
+{% block title %}{{ 'lb.title'|trans }} - Trepiedi{% endblock %}
 
 {% block body %}
-    {% set maxNow = activeTab in ['points', 'animation'] ? lb.pts(maxPossible) : (activeTab == 'score' ? totalFinished * 3 : (activeTab == 'lantern' ? totalFinished * 3 : totalFinished)) %}
-    {% set maxTour = activeTab in ['points', 'animation'] ? lb.pts(maxTournament) : (activeTab == 'score' ? totalMatches * 3 : (activeTab == 'lantern' ? totalMatches * 3 : totalMatches)) %}
+    {% set maxNow = activeTab in ['points', 'animation'] ? lb.pts(maxPossible) : (activeRanking.max_now_kind == 'triple-finished' ? totalFinished * 3 : totalFinished) %}
+    {% set maxTour = activeTab in ['points', 'animation'] ? lb.pts(maxTournament) : (activeRanking.max_tour_kind == 'triple-total' ? totalMatches * 3 : totalMatches) %}
     <div class="lb-hero mb-3">
-        <h1 class="h3 mb-0">⚽ {{ 'lb.title'|trans }}</h1>
+        <h1 class="h3 mb-0">&#9917; {{ 'lb.title'|trans }}</h1>
         {% if activeTab != 'animation' %}
             <span class="lb-hero-max small">{{ 'lb.max'|trans({'%now%': maxNow, '%all%': maxTour}) }}</span>
         {% endif %}
@@ -23,7 +23,6 @@
         {tab: 'animation',    url: path('app_leaderboard_animation'),    label: 'lb.tab_animation'},
     ] %}
 
-    {# Mobiel: dropdown. Vanaf md: tabs. #}
     <div class="d-md-none mb-3">
         <select class="form-select" aria-label="{{ 'lb.choose_ranking'|trans }}" onchange="if (this.value) window.location.href = this.value;">
             {% for t in tabs %}
@@ -42,58 +41,25 @@
 
     {% if activeTab not in ['animation', 'lantern', 'inconsistent'] %}
         <p class="text-muted small">
-            <span class="rise">▲</span>/<span class="text-danger">▼</span> = {{ 'lb.movement_legend'|trans }}
+            <span class="rise">+</span>/<span class="text-danger">-</span> = {{ 'lb.movement_legend'|trans }}
         </p>
     {% endif %}
 
-    {# ============ Algemeen klassement (punten, gewogen) ============ #}
-    {% if activeTab == 'points' %}
-        {% embed 'leaderboard/_ranking_table.html.twig' with {entries: entries, intro: 'lb.general_intro', showArrow: true, arrowKey: 'points', rankField: null} %}
-            {% import 'leaderboard/_lb.html.twig' as lb %}
-            {% block round_header %}{{ round.name }}<br><span class="fw-normal text-muted">× {{ lb.pts(round.weight) }}</span>{% endblock %}
-            {% block round_cell %}{% if played > 0 %}{{ lb.pts(entry.roundWeighted(round.id)) }}<br><small class="text-muted">{{ lb.stat(entry.roundHome(round.id), entry.roundAway(round.id), entry.roundExact(round.id), entry.roundAdvance(round.id)) }}</small>{% else %}—{% endif %}{% endblock %}
-            {% block total_cell %}{{ lb.total(entry.weightedTotal, maxPossible) }}{% endblock %}
-        {% endembed %}
+    {% if activeTab != 'animation' %}
+        {% include 'leaderboard/_ranking_table.html.twig' with {
+            entries: activeRanking.entries,
+            intro: activeRanking.intro,
+            showArrow: activeRanking.showArrow,
+            arrowKey: activeRanking.arrowKey,
+            rankField: activeRanking.rankField,
+            mode: activeRanking.mode,
+            rounds: rounds,
+            finishedPerRound: finishedPerRound,
+            maxPossible: maxPossible,
+            totalFinished: totalFinished
+        } only %}
     {% endif %}
 
-    {# ============ Balletjestrui (score-onderdelen, ongewogen) ============ #}
-    {% if activeTab == 'score' %}
-        {% embed 'leaderboard/_ranking_table.html.twig' with {entries: byScore, intro: 'lb.balls_intro', showArrow: true, arrowKey: 'score', rankField: 'scorePoints'} %}
-            {% import 'leaderboard/_lb.html.twig' as lb %}
-            {% block round_header %}{{ round.name }}<br><span class="fw-normal text-muted">{{ 'lb.components'|trans }}</span>{% endblock %}
-            {% block round_cell %}{% if played > 0 %}{{ entry.roundHome(round.id) }} · {{ entry.roundAway(round.id) }} · {{ entry.roundExact(round.id) }}{% else %}—{% endif %}{% endblock %}
-            {% block total_cell %}{{ lb.total(entry.scorePoints, totalFinished * 3) }}{% endblock %}
-        {% endembed %}
-    {% endif %}
-
-    {# ============ De glazen bal (winnaars, ongewogen) ============ #}
-    {% if activeTab == 'winners' %}
-        {% embed 'leaderboard/_ranking_table.html.twig' with {entries: byWinners, intro: 'lb.oracle_intro', showArrow: true, arrowKey: 'winners', rankField: 'advanceCount'} %}
-            {% import 'leaderboard/_lb.html.twig' as lb %}
-            {% block round_cell %}{% if played > 0 %}{% set good = entry.roundAdvance(round.id) %}{{ good }}/{{ played }} <small class="text-muted">({{ (good / played * 100)|round }}%)</small>{% else %}—{% endif %}{% endblock %}
-            {% block total_cell %}{{ lb.total(entry.advanceCount, totalFinished) }}{% endblock %}
-        {% endembed %}
-    {% endif %}
-
-    {# ============ De rode lantaarn (gemiste voorspellingen) ============ #}
-    {% if activeTab == 'lantern' %}
-        {% embed 'leaderboard/_ranking_table.html.twig' with {entries: byLantern, intro: 'lb.lantern_intro', showArrow: false, arrowKey: null, rankField: 'lanternPoints'} %}
-            {% import 'leaderboard/_lb.html.twig' as lb %}
-            {% block round_cell %}{% if played > 0 %}{{ entry.roundLantern(round.id) }}{% else %}—{% endif %}{% endblock %}
-            {% block total_cell %}{{ lb.total(entry.lanternPoints, totalFinished * 3) }}{% endblock %}
-        {% endembed %}
-    {% endif %}
-
-    {# ============ Tegenstrijdig (voorspelde winnaar ≠ doorgang) ============ #}
-    {% if activeTab == 'inconsistent' %}
-        {% embed 'leaderboard/_ranking_table.html.twig' with {entries: byInconsistent, intro: 'lb.inconsistent_intro', showArrow: false, arrowKey: null, rankField: 'inconsistentCount'} %}
-            {% import 'leaderboard/_lb.html.twig' as lb %}
-            {% block round_cell %}{% if played > 0 %}{{ entry.roundInconsistent(round.id) }}{% else %}—{% endif %}{% endblock %}
-            {% block total_cell %}{{ lb.total(entry.inconsistentCount, totalFinished) }}{% endblock %}
-        {% endembed %}
-    {% endif %}
-
-    {# ============ Animatie ============ #}
     {% if activeTab == 'animation' %}
         <p class="text-muted small">{{ 'lb.anim_intro'|trans }}</p>
         {% set metrics = [
@@ -104,7 +70,6 @@
             {key: 'inconsistent', label: 'lb.tab_inconsistent'},
         ] %}
 
-        {# Mobiel: dropdown. Vanaf md: knoppenrij. #}
         <div class="d-md-none mb-3">
             <select class="form-select" id="anim-metric-select" aria-label="{{ 'lb.choose_ranking'|trans }}">
                 {% for mtr in metrics %}

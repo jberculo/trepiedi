@@ -21,7 +21,7 @@ class RoundRepository extends ServiceEntityRepository
      *
      * @return list<Round>
      */
-    public function findAllOrdered(): array
+    public function findAllForRoundViews(): array
     {
         return $this->createQueryBuilder('r')
             ->leftJoin('r.matches', 'm')->addSelect('m')
@@ -29,5 +29,13 @@ class RoundRepository extends ServiceEntityRepository
             ->addOrderBy('m.kickoffAt', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return list<Round>
+     */
+    public function findAllBySortOrder(): array
+    {
+        return $this->findBy([], ['sortOrder' => 'ASC']);
     }
 }

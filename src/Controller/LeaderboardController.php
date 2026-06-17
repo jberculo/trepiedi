@@ -20,28 +20,18 @@ class LeaderboardController extends AbstractController
     #[Route('/animatie', name: 'app_leaderboard_animation', defaults: ['tab' => 'animation'])]
     public function index(string $tab, ScoringService $scoringService, RoundRepository $roundRepository, PoolContext $poolContext): Response
     {
-        // Klassement scopen op de leden van de actieve poule.
         $memberIds = $poolContext->getMemberIds();
         $entries = $scoringService->leaderboardWithMovement($memberIds);
-
-        // Extra klassementen uit dezelfde data, elk op een eigen veld gesorteerd
-        // (aflopend; bij gelijke stand alfabetisch). Deze tellen ongewogen — alleen
-        // het algemeen klassement past de rondemultiplier toe.
-        $byScore = $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->scorePoints);
-        $byWinners = $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->advanceCount);
-        $byLantern = $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->lanternPoints);
-        $byInconsistent = $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->inconsistentCount);
-
+        $rankings = $this->rankings($entries);
+        $activeRanking = $rankings[$tab] ?? $rankings['points'];
         $finishedPerRound = $scoringService->finishedCountPerRound();
 
         return $this->render('leaderboard/index.html.twig', [
             'activeTab' => $tab,
             'entries' => $entries,
-            'byScore' => $byScore,
-            'byWinners' => $byWinners,
-            'byLantern' => $byLantern,
-            'byInconsistent' => $byInconsistent,
-            'rounds' => $roundRepository->findBy([], ['sortOrder' => 'ASC']),
+            'rankings' => $rankings,
+            'activeRanking' => $activeRanking,
+            'rounds' => $roundRepository->findAllBySortOrder(),
             'finishedPerRound' => $finishedPerRound,
             'totalFinished' => array_sum($finishedPerRound),
             'totalMatches' => $scoringService->tournamentMatchCount(),
@@ -52,9 +42,6 @@ class LeaderboardController extends AbstractController
         ]);
     }
 
-    /**
-     * Het klassement staat nu op de homepage; oude /klassement-links blijven werken.
-     */
     #[Route('/klassement', name: 'app_leaderboard_legacy')]
     public function legacy(): Response
     {
@@ -62,12 +49,68 @@ class LeaderboardController extends AbstractController
     }
 
     /**
-     * Sorteert een kopie van de entries aflopend op de waarde uit $value; bij een
-     * gelijke stand alfabetisch op spelernaam. De invoer blijft ongewijzigd.
-     *
-     * @param list<LeaderboardEntry>      $entries
+     * @param list<LeaderboardEntry> $entries
+     * @return array<string, array{entries: list<LeaderboardEntry>, intro: string, showArrow: bool, arrowKey: ?string, rankField: ?string, max_now_kind: string, max_tour_kind: string, mode: string}>
+     */
+    private function rankings(array $entries): array
+    {
+        return [
+            'points' => [
+                'entries' => $entries,
+                'intro' => 'lb.general_intro',
+                'showArrow' => true,
+                'arrowKey' => 'points',
+                'rankField' => null,
+                'max_now_kind' => 'points',
+                'max_tour_kind' => 'points',
+                'mode' => 'points',
+            ],
+            'score' => [
+                'entries' => $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->scorePoints),
+                'intro' => 'lb.balls_intro',
+                'showArrow' => true,
+                'arrowKey' => 'score',
+                'rankField' => 'scorePoints',
+                'max_now_kind' => 'triple-finished',
+                'max_tour_kind' => 'triple-total',
+                'mode' => 'score',
+            ],
+            'winners' => [
+                'entries' => $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->advanceCount),
+                'intro' => 'lb.oracle_intro',
+                'showArrow' => true,
+                'arrowKey' => 'winners',
+                'rankField' => 'advanceCount',
+                'max_now_kind' => 'finished',
+                'max_tour_kind' => 'total',
+                'mode' => 'winners',
+            ],
+            'lantern' => [
+                'entries' => $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->lanternPoints),
+                'intro' => 'lb.lantern_intro',
+                'showArrow' => false,
+                'arrowKey' => null,
+                'rankField' => 'lanternPoints',
+                'max_now_kind' => 'triple-finished',
+                'max_tour_kind' => 'triple-total',
+                'mode' => 'lantern',
+            ],
+            'inconsistent' => [
+                'entries' => $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->inconsistentCount),
+                'intro' => 'lb.inconsistent_intro',
+                'showArrow' => false,
+                'arrowKey' => null,
+                'rankField' => 'inconsistentCount',
+                'max_now_kind' => 'finished',
+                'max_tour_kind' => 'total',
+                'mode' => 'inconsistent',
+            ],
+        ];
+    }
+
+    /**
+     * @param list<LeaderboardEntry> $entries
      * @param \Closure(LeaderboardEntry): int $value
-     *
      * @return list<LeaderboardEntry>
      */
     private function sortedBy(array $entries, \Closure $value): array

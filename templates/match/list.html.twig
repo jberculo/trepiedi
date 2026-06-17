@@ -2,17 +2,17 @@
 
 {% import '_macros.html.twig' as m %}
 
-{% block title %}{{ 'matches.title'|trans }} — Trepiedi{% endblock %}
+{% block title %}{{ 'matches.title'|trans }} - Trepiedi{% endblock %}
 
 {% block body %}
     <div class="lb-hero mb-3">
-        <h1 class="h3 mb-0">⚽ {{ 'matches.title'|trans }}</h1>
+        <h1 class="h3 mb-0">&#9917; {{ 'matches.title'|trans }}</h1>
     </div>
 
     {% for group in groups %}
         <section class="mb-4">
             <h2 class="h5 text-success border-bottom pb-2">
-                {{ group.round.name }} <span class="text-muted fw-normal small">(× {{ group.round.weight }})</span>
+                {{ group.round.name }} <span class="text-muted fw-normal small">(&times; {{ group.round.weight }})</span>
             </h2>
             <div class="card shadow-sm">
                 <div class="table-responsive">
@@ -37,7 +37,7 @@
                                     </td>
                                     <td class="text-end text-nowrap">
                                         {% if match.finished %}
-                                            <strong>{{ match.homeScore }} – {{ match.awayScore }}</strong>
+                                            <strong>{{ match.homeScore }} &ndash; {{ match.awayScore }}</strong>
                                         {% else %}
                                             <span class="text-muted small">{{ 'matches.not_played'|trans }}</span>
                                         {% endif %}
@@ -46,7 +46,7 @@
                                         {% if match.finished and match.advancingTeam %}
                                             {{ m.team(match.advancingTeam) }}
                                         {% else %}
-                                            <span class="text-muted">—</span>
+                                            <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
                                 </tr>

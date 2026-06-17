@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{% block title %}Trepiedi — Voetbalpoule{% endblock %}</title>
+        <title>{% block title %}Trepiedi - Voetbalpoule{% endblock %}</title>
         <link rel="icon" href="{{ asset('images/trepiedi-icon.svg') }}">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css" rel="stylesheet">
@@ -39,25 +39,20 @@
                             <li class="nav-item">
                                 <span class="navbar-text small me-2">
                                     <a class="link-light text-decoration-none {{ app.request.locale == 'nl' ? 'fw-bold' }}" href="{{ path('app_locale', {_locale: 'nl'}) }}"><span class="fi fi-nl team-flag"></span>NL</a>
-                                    <span class="text-white-50">·</span>
+                                    <span class="text-white-50"> | </span>
                                     <a class="link-light text-decoration-none {{ app.request.locale == 'en' ? 'fw-bold' }}" href="{{ path('app_locale', {_locale: 'en'}) }}"><span class="fi fi-gb team-flag"></span>EN</a>
                                 </span>
                             </li>
                         {% endif %}
-                        {% if app.user and app.user.pools|length > 1 %}
-                            {% set current_pool = active_pool() %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    🏆 {{ current_pool ? current_pool.name }}
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    {% for p in app.user.pools %}
-                                        <li>
-                                            <a class="dropdown-item {{ current_pool and p.id == current_pool.id ? 'active' }}" href="{{ path('app_pool_switch', {code: p.code}) }}">{{ p.name }}</a>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            </li>
+                        {% if app.user %}
+                            {% set navbar_pools = switchable_pools() %}
+                        {% endif %}
+                        {% if app.user and navbar_pools|length > 1 %}
+                            {{ include('pool/_switcher.html.twig', {
+                                pools: navbar_pools,
+                                current_pool: active_pool(),
+                                switcher_variant: 'dropdown'
+                            }) }}
                         {% endif %}
                         {% if app.user %}
                             <li class="nav-item">
@@ -95,7 +90,7 @@
 
         <footer class="site-footer mt-5 py-4">
             <div class="container text-center small">
-                <div class="footer-brand fs-5">⚽ Trepiedi</div>
+                <div class="footer-brand fs-5">&#9917; Trepiedi</div>
                 <div class="text-white-50">{{ 'footer.tagline'|trans }}</div>
             </div>
         </footer>

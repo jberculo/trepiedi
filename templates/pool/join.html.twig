@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'pool.title_join'|trans }} - Trepiedi{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="h4 mb-3">{{ pool.name }}</h1>
+                    <p class="text-muted mb-4">{{ 'pool.join_intro'|trans }}</p>
+
+                    <form method="post" action="{{ path('app_pool_join', {code: pool.code}) }}" class="d-flex gap-2">
+                        <input type="hidden" name="_token" value="{{ csrf_token('join-pool-' ~ pool.code) }}">
+                        <button class="btn btn-success">{{ 'common.confirm'|trans }}</button>
+                        <a class="btn btn-outline-secondary" href="{{ back_path }}">{{ 'common.back'|trans }}</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

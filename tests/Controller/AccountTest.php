@@ -20,6 +20,35 @@ class AccountTest extends FixturesWebTestCase
         $this->assertResponseIsSuccessful();
     }
 
+    public function testApiKeyCanBeCreatedAndIsOnlyShownOnce(): void
+    {
+        $this->client->loginUser($this->user('anne@trepiedi.test'));
+
+        $crawler = $this->client->request('GET', '/account');
+        $this->assertStringContainsString('Er is nog geen API-sleutel aangemaakt.', $crawler->filter('body')->text());
+
+        $form = $crawler->filter('form[action="/account/api-sleutel"]')->form();
+        $this->client->submit($form);
+        $this->assertResponseRedirects('/account');
+
+        $crawler = $this->client->followRedirect();
+        $body = $crawler->filter('body')->text();
+        $this->assertStringContainsString('Nieuwe API-sleutel gegenereerd.', $body);
+        $this->assertStringContainsString('Hij wordt hierna niet meer volledig getoond.', $body);
+        $this->assertMatchesRegularExpression(
+            '/[a-f0-9]{16}\.[a-f0-9]{48}/',
+            (string) $crawler->filter('input.font-monospace')->attr('value')
+        );
+
+        $crawler = $this->client->request('GET', '/account');
+        $this->assertStringNotContainsString('Hij wordt hierna niet meer volledig getoond.', $crawler->filter('body')->text());
+
+        $this->em->clear();
+        $user = $this->em->getRepository(User::class)->findOneBy(['email' => 'anne@trepiedi.test']);
+        $this->assertNotNull($user->getApiTokenId());
+        $this->assertNotNull($user->getApiTokenHash());
+    }
+
     public function testAvatarUploadIsStored(): void
     {
         $avatarDir = self::getContainer()->getParameter('kernel.project_dir') . '/public/uploads/avatars';
