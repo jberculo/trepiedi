@@ -8,7 +8,7 @@
     {% set maxNow = activeTab in ['points', 'animation'] ? lb.pts(maxPossible) : (activeRanking.max_now_kind == 'triple-finished' ? totalFinished * 3 : totalFinished) %}
     {% set maxTour = activeTab in ['points', 'animation'] ? lb.pts(maxTournament) : (activeRanking.max_tour_kind == 'triple-total' ? totalMatches * 3 : totalMatches) %}
     <div class="lb-hero mb-3">
-        <h1 class="h3 mb-0">&#9917; {{ 'lb.title'|trans }}{% if activePool %} &mdash; {{ activePool.name }}{% endif %}</h1>
+        <h1 class="h3 mb-0">&#9917; {{ 'lb.title'|trans }}{% if activePool and not activePool.default %} - {{ activePool.name }}{% endif %}</h1>
         {% if activeTab != 'animation' %}
             <span class="lb-hero-max small">{{ 'lb.max'|trans({'%now%': maxNow, '%all%': maxTour}) }}</span>
         {% endif %}
