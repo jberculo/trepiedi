@@ -22,7 +22,7 @@
                 <tbody>
                     {% for user in users %}
                         <tr>
-                            <td>{{ user.displayName }}</td>
+                            <td><span class="d-inline-flex align-items-center gap-2">{{ m.avatar(user, 'sm') }}{{ user.displayName }}</span></td>
                             <td class="small text-muted">{{ user.email }}</td>
                             <td class="small">
                                 {% for pool in user.pools %}<span class="badge text-bg-light text-dark border">{{ pool.name }}</span> {% else %}<span class="text-muted">&mdash;</span>{% endfor %}

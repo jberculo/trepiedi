@@ -8,9 +8,11 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Image;
 
 /**
  * Beheerformulier voor een deelnemer: naam, e-mail, beheerrechten en poules.
@@ -26,6 +28,14 @@ class UserAdminType extends AbstractType
             ])
             ->add('email', EmailType::class, [
                 'label' => 'auth.email',
+            ])
+            ->add('avatar', FileType::class, [
+                'label' => 'account.photo',
+                'mapped' => false,
+                'required' => false,
+                'constraints' => [
+                    new Image(maxSize: '2M'),
+                ],
             ])
             ->add('isAdmin', CheckboxType::class, [
                 'label' => 'admin.is_admin',

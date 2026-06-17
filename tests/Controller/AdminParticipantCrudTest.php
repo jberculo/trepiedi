@@ -82,6 +82,35 @@ class AdminParticipantCrudTest extends FixturesWebTestCase
         $this->assertSame(0, $this->em->getRepository(Prediction::class)->count(['user' => $bramId]), 'Voorspellingen mee verwijderd.');
     }
 
+    public function testAdminCanUploadParticipantPhoto(): void
+    {
+        $avatarDir = self::getContainer()->getParameter('kernel.project_dir') . '/public/uploads/avatars';
+        $tmp = tempnam(sys_get_temp_dir(), 'avatar') . '.png';
+        file_put_contents($tmp, base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+        ));
+
+        $this->client->loginUser($this->user('admin@trepiedi.test'));
+        $bram = $this->user('bram@trepiedi.test');
+        $this->assertNull($bram->getAvatar());
+
+        $crawler = $this->client->request('GET', '/admin/deelnemers/' . $bram->getId() . '/bewerken');
+        $form = $crawler->selectButton('Opslaan')->form();
+        $form['user_admin[displayName]'] = 'Bram';
+        $form['user_admin[avatar]']->upload($tmp);
+        $this->client->submit($form);
+
+        $this->assertResponseRedirects('/admin/deelnemers');
+
+        $this->em->clear();
+        $bram = $this->user('bram@trepiedi.test');
+        $this->assertNotNull($bram->getAvatar(), 'Beheerder kon een foto opslaan voor de deelnemer.');
+
+        $stored = $avatarDir . '/' . $bram->getAvatar();
+        $this->assertFileExists($stored);
+        @unlink($stored);
+    }
+
     private function poolByCode(string $code): Pool
     {
         return $this->em->getRepository(Pool::class)->findOneBy(['code' => $code]);
