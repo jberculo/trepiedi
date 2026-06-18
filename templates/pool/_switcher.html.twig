@@ -19,7 +19,7 @@
             </ul>
         </li>
     {% else %}
-        <span class="form-label d-block">{{ 'account.default_pool'|trans }}</span>
+        <span class="form-label d-block">{{ 'account.pool'|trans }}</span>
         <div class="d-flex flex-wrap gap-2">
             {% for p in pools %}
                 <form method="post" action="{{ path('app_pool_switch', {code: p.code}) }}" class="d-inline">
