@@ -34,7 +34,8 @@ account:
     language_nl: Nederlands
     language_en: Engels
     pool: Poule
-    default_pool: Standaard poule
+    default_pool: Standaardpoule
+    default_pool_help: 'De poule waarin je terechtkomt als je inlogt.'
     api_token: API-sleutel
     api_token_help: 'Persoonlijke sleutel voor de API. Lezen (stand/wedstrijden) kan zonder sleutel; schrijven vereist een sleutel via de header X-API-Key.'
     api_token_generate: Nieuwe sleutel aanmaken

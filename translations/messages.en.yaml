@@ -35,6 +35,7 @@ account:
     language_en: English
     pool: Pool
     default_pool: Default pool
+    default_pool_help: 'The pool you land in when you log in.'
     api_token: API key
     api_token_help: 'Personal key for the API. Reading (standings/matches) needs no key; writing requires a key via the X-API-Key header.'
     api_token_generate: Create new key
