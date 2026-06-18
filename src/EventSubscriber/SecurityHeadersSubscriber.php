@@ -30,6 +30,21 @@ class SecurityHeadersSubscriber implements EventSubscriberInterface
         $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
+        // Strikte CSP: alles is self-hosted en er zijn geen inline scripts/handlers of
+        // statische style-attributen meer (zie public/js/app.js). blob: voor de
+        // crop-preview (Cropper.js leest het gekozen bestand via een blob-URL).
+        $headers->set('Content-Security-Policy', implode('; ', [
+            "default-src 'self'",
+            "img-src 'self' data: blob:",
+            "style-src 'self'",
+            "script-src 'self'",
+            "font-src 'self'",
+            "object-src 'none'",
+            "base-uri 'self'",
+            "frame-ancestors 'none'",
+            "form-action 'self'",
+        ]));
+
         if ($event->getRequest()->isSecure()) {
             $headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }

@@ -24,7 +24,7 @@
     ] %}
 
     <div class="d-md-none mb-3">
-        <select class="form-select" aria-label="{{ 'lb.choose_ranking'|trans }}" onchange="if (this.value) window.location.href = this.value;">
+        <select class="form-select" aria-label="{{ 'lb.choose_ranking'|trans }}" data-navigate-on-change>
             {% for t in tabs %}
                 <option value="{{ t.url }}" {{ activeTab == t.tab ? 'selected' }}>{{ t.label|trans }}</option>
             {% endfor %}
@@ -100,6 +100,10 @@
         </div></div>
         <script type="application/json" id="anim-data">{{ timeline|json_encode|raw }}</script>
     {% endif %}
+{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset('css/leaderboard.css') }}?v={{ asset_version('css/leaderboard.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block javascripts %}

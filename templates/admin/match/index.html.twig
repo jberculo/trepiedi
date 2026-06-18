@@ -22,7 +22,7 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th><input type="checkbox" id="select-all" class="form-check-input" title="{{ 'admin.select_all'|trans }}"></th>
+                        <th><input type="checkbox" class="form-check-input" title="{{ 'admin.select_all'|trans }}" data-check-all="ids[]"></th>
                         <th>{{ 'admin.round'|trans }}</th><th>{{ 'admin.kickoff'|trans }}</th><th>{{ 'admin.match'|trans }}</th><th>{{ 'admin.result'|trans }}</th><th>{{ 'admin.winner'|trans }}</th><th>{{ 'admin.status'|trans }}</th>
                         <th class="text-end">{{ 'admin.actions'|trans }}</th>
                     </tr>
@@ -58,14 +58,4 @@
         </div>
     </div>
     <a class="btn btn-link mt-3" href="{{ path('admin_dashboard') }}">{{ 'admin.back'|trans }}</a>
-{% endblock %}
-
-{% block javascripts %}
-    <script>
-        document.getElementById('select-all')?.addEventListener('change', function (e) {
-            document.querySelectorAll('input[name="ids[]"]').forEach(function (cb) {
-                cb.checked = e.target.checked;
-            });
-        });
-    </script>
 {% endblock %}

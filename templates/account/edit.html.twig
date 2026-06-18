@@ -37,10 +37,10 @@
                     <span class="form-label d-block">{{ 'account.language'|trans }}</span>
                     <div class="d-flex gap-2">
                         <a class="btn btn-sm d-flex align-items-center {{ app.request.locale == 'nl' ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_locale', {_locale: 'nl'}) }}">
-                            <span class="fi fi-nl team-flag"></span>{{ 'account.language_nl'|trans }}
+                            {{ 'account.language_nl'|trans }}
                         </a>
                         <a class="btn btn-sm d-flex align-items-center {{ app.request.locale == 'en' ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_locale', {_locale: 'en'}) }}">
-                            <span class="fi fi-gb team-flag"></span>{{ 'account.language_en'|trans }}
+                            {{ 'account.language_en'|trans }}
                         </a>
                     </div>
 
@@ -60,7 +60,7 @@
                     {% if plainApiToken %}
                         <div class="alert alert-warning small" role="alert">{{ 'account.api_token_once'|trans }}</div>
                         <div class="input-group input-group-sm mb-2">
-                            <input type="text" class="form-control font-monospace" value="{{ plainApiToken }}" readonly onclick="this.select()">
+                            <input type="text" class="form-control font-monospace" value="{{ plainApiToken }}" readonly data-select-on-click>
                         </div>
                     {% elseif app.user.hasApiToken %}
                         <p class="small text-muted mb-2">{{ 'account.api_token_exists'|trans({'%id%': app.user.apiTokenId}) }}</p>
@@ -68,7 +68,7 @@
                         <p class="small text-muted mb-2">{{ 'account.api_token_missing'|trans }}</p>
                     {% endif %}
                     <form method="post" action="{{ path('app_account_api_token') }}"
-                          onsubmit="return confirm('{{ 'account.api_token_confirm'|trans }}');">
+                          data-confirm="{{ 'account.api_token_confirm'|trans }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('api-token-' ~ app.user.id) }}">
                         <button class="btn btn-sm btn-outline-secondary">{{ 'account.api_token_generate'|trans }}</button>
                     </form>
@@ -79,10 +79,10 @@
 {% endblock %}
 
 {% block stylesheets %}
-    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
+    <link href="{{ asset('vendor/cropperjs/cropper.min.css') }}?v={{ asset_version('vendor/cropperjs/cropper.min.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block javascripts %}
-    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+    <script src="{{ asset('vendor/cropperjs/cropper.min.js') }}?v={{ asset_version('vendor/cropperjs/cropper.min.js') }}"></script>
     <script src="{{ asset('js/avatar-crop.js') }}?v={{ asset_version('js/avatar-crop.js') }}" defer></script>
 {% endblock %}

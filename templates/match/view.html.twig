@@ -42,7 +42,7 @@
                             <span>{{ m.team(match.homeTeam) }}</span><span>{{ advanceHome }}</span>
                         </div>
                         <div class="progress" role="progressbar">
-                            <div class="progress-bar bg-success" style="width: {{ total ? (advanceHome / total * 100)|round : 0 }}%"></div>
+                            <div class="progress-bar bg-success" data-width="{{ total ? (advanceHome / total * 100)|round : 0 }}"></div>
                         </div>
                     </div>
                     <div>
@@ -50,7 +50,7 @@
                             <span>{{ m.team(match.awayTeam) }}</span><span>{{ advanceAway }}</span>
                         </div>
                         <div class="progress" role="progressbar">
-                            <div class="progress-bar bg-secondary" style="width: {{ total ? (advanceAway / total * 100)|round : 0 }}%"></div>
+                            <div class="progress-bar bg-secondary" data-width="{{ total ? (advanceAway / total * 100)|round : 0 }}"></div>
                         </div>
                     </div>
                 </div></div>

@@ -32,7 +32,7 @@
 
 {# POST-knop met CSRF-token (en optioneel een bevestiging). variant = bootstrap-outline-kleur. #}
 {% macro csrf_button(action, token, label, variant, confirm) %}
-    <form method="post" action="{{ action }}" class="d-inline"{% if confirm %} onsubmit="return confirm('{{ confirm }}');"{% endif %}>
+    <form method="post" action="{{ action }}" class="d-inline"{% if confirm %} data-confirm="{{ confirm }}"{% endif %}>
         <input type="hidden" name="_token" value="{{ token }}">
         <button class="btn btn-sm btn-outline-{{ variant|default('danger') }}">{{ label }}</button>
     </form>
