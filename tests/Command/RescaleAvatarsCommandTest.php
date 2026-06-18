@@ -39,4 +39,40 @@ class RescaleAvatarsCommandTest extends FixturesWebTestCase
         @unlink($avatarDir . '/' . $base . '-lg.jpg');
         @unlink($avatarDir . '/' . $base . '-orig.png');
     }
+
+    public function testSkipsUnreadableAvatarAndContinues(): void
+    {
+        $avatarDir = self::getContainer()->getParameter('kernel.project_dir') . '/public/uploads/avatars';
+
+        // Bram: een onleesbaar "bestand" (geen geldige afbeelding).
+        $bad = 'bram-bad.png';
+        file_put_contents($avatarDir . '/' . $bad, 'dit-is-geen-afbeelding');
+        $this->user('bram@trepiedi.test')->setAvatar($bad);
+
+        // Anne: een geldig oud bestand.
+        $good = 'anne-legacy.png';
+        $img = imagecreatetruecolor(20, 20);
+        imagepng($img, $avatarDir . '/' . $good);
+        imagedestroy($img);
+        $this->user('anne@trepiedi.test')->setAvatar($good);
+        $this->em->flush();
+
+        $tester = new CommandTester((new Application(self::$kernel))->find('app:rescale-avatars'));
+        $tester->execute([]);
+        $tester->assertCommandIsSuccessful();
+
+        $this->em->clear();
+        // Bram is overgeslagen: avatar en bestand ongewijzigd.
+        $this->assertSame($bad, $this->user('bram@trepiedi.test')->getAvatar(), 'Onleesbare avatar overgeslagen.');
+        $this->assertFileExists($avatarDir . '/' . $bad);
+        // Anne is wél gemigreerd.
+        $anneBase = $this->user('anne@trepiedi.test')->getAvatar();
+        $this->assertNotSame($good, $anneBase, 'Geldige avatar gaat gewoon door.');
+        $this->assertFileExists($avatarDir . '/' . $anneBase . '-sm.jpg');
+
+        @unlink($avatarDir . '/' . $bad);
+        @unlink($avatarDir . '/' . $anneBase . '-sm.jpg');
+        @unlink($avatarDir . '/' . $anneBase . '-lg.jpg');
+        @unlink($avatarDir . '/' . $anneBase . '-orig.png');
+    }
 }

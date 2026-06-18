@@ -37,6 +37,7 @@ class RescaleAvatarsCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $rescaled = 0;
+        $skipped = 0;
 
         foreach ($this->users->findAll() as $user) {
             $old = $user->getAvatar();
@@ -50,7 +51,15 @@ class RescaleAvatarsCommand extends Command
                 continue;
             }
 
-            $this->avatars->storeFromPath($user, $oldPath);
+            try {
+                $this->avatars->storeFromPath($user, $oldPath);
+            } catch (\Throwable $e) {
+                // Eén onleesbaar bestand mag de rest van de migratie niet stoppen.
+                $io->warning(sprintf('%s: overgeslagen (%s)', $user->getEmail(), $e->getMessage()));
+                ++$skipped;
+                continue;
+            }
+
             @unlink($oldPath);
             ++$rescaled;
             $io->writeln(sprintf('%s: %s -> %s', $user->getEmail(), $old, $user->getAvatar()));
@@ -58,6 +67,9 @@ class RescaleAvatarsCommand extends Command
 
         $this->em->flush();
         $io->success(sprintf('%d avatar(s) herschaald.', $rescaled));
+        if ($skipped > 0) {
+            $io->warning(sprintf('%d avatar(s) overgeslagen door een leesfout.', $skipped));
+        }
 
         return Command::SUCCESS;
     }
