@@ -60,3 +60,7 @@
         <div class="alert alert-info">{{ 'matches.none'|trans }}</div>
     {% endfor %}
 {% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset('css/leaderboard.css') }}?v={{ asset_version('css/leaderboard.css') }}" rel="stylesheet">
+{% endblock %}

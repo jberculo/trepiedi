@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Flag\FlagProvider;
 use App\Reference\Countries;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -13,6 +14,10 @@ use Twig\TwigFunction;
  */
 class FlagExtension extends AbstractExtension
 {
+    public function __construct(private FlagProvider $flags)
+    {
+    }
+
     public function getFunctions(): array
     {
         return [
@@ -32,10 +37,18 @@ class FlagExtension extends AbstractExtension
             );
         }
 
+        $svg = $this->flags->svg($code);
+        if ($svg === null) {
+            return sprintf(
+                '<span class="team-flag team-flag-unknown" title="%s" aria-hidden="true">?</span>',
+                $title
+            );
+        }
+
         return sprintf(
-            '<span class="fi fi-%s team-flag" title="%s"></span>',
-            htmlspecialchars($code, ENT_QUOTES),
-            $title
+            '<span class="team-flag" title="%s" aria-hidden="true">%s</span>',
+            $title,
+            $svg
         );
     }
 }

@@ -1,0 +1,33 @@
+.country-autocomplete {
+    position: relative;
+}
+
+.country-autocomplete-list {
+    position: absolute;
+    z-index: 1080;
+    left: 0;
+    right: 0;
+    margin-top: 2px;
+    max-height: 16rem;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: .375rem;
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
+    list-style: none;
+    padding: .25rem 0;
+}
+
+.country-autocomplete-list li {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .35rem .75rem;
+    cursor: pointer;
+}
+
+.country-autocomplete-list li.active,
+.country-autocomplete-list li:hover {
+    background: var(--bs-success);
+    color: #fff;
+}
