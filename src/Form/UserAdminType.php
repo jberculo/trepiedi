@@ -9,6 +9,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -33,9 +34,15 @@ class UserAdminType extends AbstractType
                 'label' => 'account.photo',
                 'mapped' => false,
                 'required' => false,
+                'attr' => ['accept' => 'image/*', 'data-avatar-crop' => true],
                 'constraints' => [
                     new Image(maxSize: '2M'),
                 ],
+            ])
+            ->add('crop', HiddenType::class, [
+                'mapped' => false,
+                'required' => false,
+                'attr' => ['data-avatar-crop-data' => true],
             ])
             ->add('isAdmin', CheckboxType::class, [
                 'label' => 'admin.is_admin',

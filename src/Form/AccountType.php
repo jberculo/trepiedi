@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -22,9 +23,16 @@ class AccountType extends AbstractType
                 'label' => 'account.photo',
                 'mapped' => false,
                 'required' => false,
+                'attr' => ['accept' => 'image/*', 'data-avatar-crop' => true],
                 'constraints' => [
                     new Image(maxSize: '2M'),
                 ],
+            ])
+            // Door de crop-UI gevuld met "x,y,size" (bronpixels); leeg = midden-crop.
+            ->add('crop', HiddenType::class, [
+                'mapped' => false,
+                'required' => false,
+                'attr' => ['data-avatar-crop-data' => true],
             ]);
     }
 

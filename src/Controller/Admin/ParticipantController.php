@@ -42,7 +42,7 @@ class ParticipantController extends AbstractController
 
             $avatar = $form->get('avatar')->getData();
             if ($avatar instanceof UploadedFile) {
-                $avatars->store($user, $avatar);
+                $avatars->store($user, $avatar, AvatarStorage::parseCrop($form->get('crop')->getData()));
             }
         }, avatarPreview: $user);
     }

@@ -36,7 +36,7 @@ class AccountController extends AbstractController
 
             $file = $form->get('avatar')->getData();
             if ($file instanceof UploadedFile) {
-                $avatars->store($user, $file);
+                $avatars->store($user, $file, AvatarStorage::parseCrop($form->get('crop')->getData()));
             }
 
             $em->flush();

@@ -25,18 +25,23 @@ final class AvatarStorage
     ) {
     }
 
-    public function store(User $user, UploadedFile $file): void
+    /**
+     * @param array{x: int, y: int, size: int}|null $crop Door de gebruiker gekozen vierkante uitsnede (bronpixels).
+     */
+    public function store(User $user, UploadedFile $file, ?array $crop = null): void
     {
-        $this->storeFromPath($user, $file->getPathname());
+        $this->storeFromPath($user, $file->getPathname(), $crop);
     }
 
     /**
      * Genereert de varianten uit een bestaand afbeeldingsbestand. Verwijdert de oude
      * varianten en zet de nieuwe basisnaam op de gebruiker.
+     *
+     * @param array{x: int, y: int, size: int}|null $crop
      */
-    public function storeFromPath(User $user, string $sourcePath): void
+    public function storeFromPath(User $user, string $sourcePath, ?array $crop = null): void
     {
-        $source = $this->loadSquare($sourcePath);
+        $source = $this->loadSquare($sourcePath, $crop);
         $base = $user->getSlug() . '-' . uniqid();
 
         foreach (self::SIZES as $name => $px) {
@@ -83,9 +88,36 @@ final class AvatarStorage
     }
 
     /**
-     * Leest de upload in en snijdt 'm vierkant bij vanuit het midden (cover).
+     * Parseert "x,y,size" (bronpixels) naar een crop-array, of null bij ontbreken/ongeldig.
+     *
+     * @return array{x: int, y: int, size: int}|null
      */
-    private function loadSquare(string $path): \GdImage
+    public static function parseCrop(?string $value): ?array
+    {
+        if ($value === null || trim($value) === '') {
+            return null;
+        }
+
+        $parts = explode(',', $value);
+        if (count($parts) !== 3) {
+            return null;
+        }
+
+        $size = (int) $parts[2];
+        if ($size < 1) {
+            return null;
+        }
+
+        return ['x' => max(0, (int) $parts[0]), 'y' => max(0, (int) $parts[1]), 'size' => $size];
+    }
+
+    /**
+     * Leest de upload in en snijdt 'm vierkant bij: op de gekozen uitsnede ($crop,
+     * bronpixels) of anders vanuit het midden (cover).
+     *
+     * @param array{x: int, y: int, size: int}|null $crop
+     */
+    private function loadSquare(string $path, ?array $crop = null): \GdImage
     {
         $image = @imagecreatefromstring((string) file_get_contents($path));
         if ($image === false) {
@@ -94,6 +126,22 @@ final class AvatarStorage
 
         $width = imagesx($image);
         $height = imagesy($image);
+
+        // Gekozen uitsnede, geklemd binnen de afbeelding.
+        if ($crop !== null) {
+            $x = min($crop['x'], $width - 1);
+            $y = min($crop['y'], $height - 1);
+            $size = min($crop['size'], $width - $x, $height - $y);
+            if ($size >= 1) {
+                $square = imagecreatetruecolor($size, $size);
+                imagecopy($square, $image, 0, 0, $x, $y, $size, $size);
+                imagedestroy($image);
+
+                return $square;
+            }
+        }
+
+        // Standaard: vierkant vanuit het midden.
         $side = min($width, $height);
         if ($width === $height) {
             return $image;

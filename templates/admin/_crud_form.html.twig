@@ -29,8 +29,18 @@
     </div>
 {% endblock %}
 
+{% block stylesheets %}
+    {% if avatar_preview is defined and avatar_preview %}
+        <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
+    {% endif %}
+{% endblock %}
+
 {% block javascripts %}
     {% if include_country_autocomplete|default(false) %}
         <script src="{{ asset('js/country-autocomplete.js') }}?v={{ asset_version('js/country-autocomplete.js') }}" defer></script>
+    {% endif %}
+    {% if avatar_preview is defined and avatar_preview %}
+        <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+        <script src="{{ asset('js/avatar-crop.js') }}?v={{ asset_version('js/avatar-crop.js') }}" defer></script>
     {% endif %}
 {% endblock %}

@@ -26,6 +26,7 @@
                             {{ form_label(form.avatar, null, {label_attr: {class: 'form-label'}}) }}
                             {{ form_widget(form.avatar, {attr: {class: 'form-control'}}) }}
                             {{ form_errors(form.avatar) }}
+                            {{ form_widget(form.crop) }}
                         </div>
 
                         <button class="btn btn-success">{{ 'common.save'|trans }}</button>
@@ -75,4 +76,13 @@
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block stylesheets %}
+    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+    <script src="{{ asset('js/avatar-crop.js') }}?v={{ asset_version('js/avatar-crop.js') }}" defer></script>
 {% endblock %}
