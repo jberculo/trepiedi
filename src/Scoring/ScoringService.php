@@ -5,6 +5,7 @@ namespace App\Scoring;
 use App\Entity\FootballMatch;
 use App\Entity\Prediction;
 use App\Entity\Round;
+use App\Entity\User;
 use App\Repository\FootballMatchRepository;
 use App\Repository\PredictionRepository;
 use App\Repository\RoundRepository;
@@ -17,10 +18,12 @@ use App\Repository\UserRepository;
  *   - 1 extra punt als beide kloppen (exacte uitslag na reguliere speeltijd én verlenging, zonder penalty's);
  *   - 3 punten als je de winnaar (het team dat doorgaat) goed hebt.
  *
- * Elke wedstrijd telt standaard even zwaar (maximaal 6 punten). Het rondegewicht
- * is de expliciete vermenigvuldiger: de gewogen score van een wedstrijd is
- * "punten × rondegewicht". Met gewicht 1 is de gewogen score dus gelijk aan de
- * ruwe punten.
+ * Elke wedstrijd telt standaard even zwaar (maximaal 6 punten). Het rondegewicht is
+ * de expliciete vermenigvuldiger: de gewogen score is "punten × rondegewicht" (met
+ * gewicht 1 dus gelijk aan de ruwe punten).
+ *
+ * Dure lookups (ronden, wedstrijden, voorspellingen, klassement) worden per request
+ * gememoiseerd; de service is request-scoped en de data is read-only binnen een render.
  */
 class ScoringService
 {
@@ -28,11 +31,38 @@ class ScoringService
     public const EXACT_BONUS = 1;
     public const ADVANCE_POINTS = 3;
 
-    /** Maximaal haalbare ruwe punten per wedstrijd: 1 + 1 + 1 + 3 = 6. */
+    /** Max raw points per match: 1 + 1 + 1 + 3 = 6. */
     public const MAX_RAW_PER_MATCH = self::POINTS_PER_GOAL_SIDE * 2 + self::EXACT_BONUS + self::ADVANCE_POINTS;
 
-    /** Maximale strafpunten (ronde lantaarn) per wedstrijd: 2 omgekeerd + 1 verkeerde winnaar. */
+    /** Max lantern penalty per match: 2 reversed + 1 wrong winner. */
     public const MAX_LANTERN_PER_MATCH = 3;
+
+    /** @var array<int, Round>|null */
+    private ?array $roundsByIdCache = null;
+
+    /** @var list<FootballMatch>|null */
+    private ?array $allMatchesCache = null;
+
+    /** @var list<FootballMatch>|null */
+    private ?array $finishedMatchesCache = null;
+
+    /** @var list<Prediction>|null */
+    private ?array $scoringPredictionsCache = null;
+
+    /** @var array<int, true>|null */
+    private ?array $participantIdsCache = null;
+
+    /** @var list<User>|null */
+    private ?array $usersCache = null;
+
+    /** @var array{count: array<int, int>, max: float, latest: ?\DateTimeImmutable}|null */
+    private ?array $finishedSummaryCache = null;
+
+    /** @var array{count: int, max: float}|null */
+    private ?array $tournamentSummaryCache = null;
+
+    /** @var array<string, list<LeaderboardEntry>> */
+    private array $leaderboardCache = [];
 
     public function __construct(
         private PredictionRepository $predictionRepository,
@@ -42,9 +72,6 @@ class ScoringService
     ) {
     }
 
-    /**
-     * Punten van één voorspelling. Levert nul punten als de wedstrijd nog geen uitslag heeft.
-     */
     public function scorePrediction(Prediction $prediction): MatchScore
     {
         $match = $prediction->getFootballMatch();
@@ -67,71 +94,40 @@ class ScoringService
         return new MatchScore($home, $away, $bonus, $advance);
     }
 
-    /**
-     * Maximaal haalbare gewogen score over alle reeds gespeelde wedstrijden:
-     * per gespeelde wedstrijd 6 punten × het rondegewicht.
-     */
     public function maxAchievableTotal(): float
     {
-        $rounds = $this->roundsById();
-        $max = 0.0;
-        foreach ($this->finishedCountPerRound() as $roundId => $count) {
-            $weight = isset($rounds[$roundId]) ? $rounds[$roundId]->getWeight() : 1.0;
-            $max += $count * self::MAX_RAW_PER_MATCH * $weight;
-        }
-
-        return $max;
+        return $this->finishedSummary()['max'];
     }
 
-    /**
-     * Maximaal haalbare gewogen score over het hele toernooi (alle wedstrijden,
-     * inclusief open en inactieve).
-     */
     public function maxTournamentTotal(): float
     {
-        $rounds = $this->roundsById();
-        $max = 0.0;
-        foreach ($this->footballMatchRepository->findAll() as $match) {
-            if ($match->getRound() === null) {
-                continue;
-            }
-            $weight = isset($rounds[$match->getRound()->getId()])
-                ? $rounds[$match->getRound()->getId()]->getWeight()
-                : 1.0;
-            $max += self::MAX_RAW_PER_MATCH * $weight;
-        }
-
-        return $max;
+        return $this->tournamentSummary()['max'];
     }
 
-    /**
-     * Aantal wedstrijden in het hele toernooi (alle, inclusief inactieve).
-     */
     public function tournamentMatchCount(): int
     {
-        return count($this->footballMatchRepository->findAll());
+        return $this->tournamentSummary()['count'];
     }
 
     /**
-     * Bouwt het volledige klassement, gesorteerd op gewogen totaal (aflopend).
-     * Met $userIds wordt het klassement beperkt tot die spelers (poule-scope);
-     * null = alle spelers.
-     *
      * @param list<int>|null $userIds
      *
      * @return list<LeaderboardEntry>
      */
     public function buildLeaderboard(?\DateTimeImmutable $before = null, ?array $userIds = null): array
     {
+        $cacheKey = $this->leaderboardCacheKey($before, $userIds);
+        if (isset($this->leaderboardCache[$cacheKey])) {
+            return $this->leaderboardCache[$cacheKey];
+        }
+
         $rounds = $this->roundsById();
         $allowed = $userIds === null ? null : array_flip($userIds);
-
-        // Alleen spelers die daadwerkelijk hebben meegedaan (≥ 1 voorspelling).
-        $participantIds = array_flip($this->predictionRepository->userIdsWithPredictions());
+        $participantIds = $this->participantIds();
 
         /** @var array<int, LeaderboardEntry> $entries */
         $entries = [];
-        foreach ($this->userRepository->findAll() as $user) {
+        foreach ($this->users() as $user) {
             if (!isset($participantIds[$user->getId()])) {
                 continue;
             }
@@ -141,8 +137,7 @@ class ScoringService
             $entries[$user->getId()] = new LeaderboardEntry($user);
         }
 
-        // Punten verzamelen: per wedstrijd "ruwe punten × rondegewicht".
-        foreach ($this->predictionRepository->findAllForScoring() as $prediction) {
+        foreach ($this->scoringPredictions() as $prediction) {
             $user = $prediction->getUser();
             $match = $prediction->getFootballMatch();
             if ($user === null || $match === null || $match->getRound() === null) {
@@ -154,13 +149,12 @@ class ScoringService
                 continue;
             }
 
-            // Voor een historische stand: wedstrijden vanaf de cutoff niet meetellen.
             if ($before !== null && ($match->getKickoffAt() === null || $match->getKickoffAt() >= $before)) {
                 continue;
             }
 
             $roundId = $match->getRound()->getId();
-            $weight = isset($rounds[$roundId]) ? $rounds[$roundId]->getWeight() : 1.0;
+            $weight = ($rounds[$roundId] ?? null)?->getWeight() ?? 1.0;
             $score = $this->scorePrediction($prediction);
             $points = $score->total();
             $weighted = $points * $weight;
@@ -170,7 +164,6 @@ class ScoringService
             $entry->rawTotal += $points;
             $entry->weightedTotal += $weighted;
 
-            // Score-onderdelen (thuis, uit, exacte eindstand) los bijhouden, ook per ronde.
             $entry->scorePoints += $score->homeGoalsPoint + $score->awayGoalsPoint + $score->exactBonusPoint;
             $entry->homeCorrect += $score->homeGoalsPoint;
             $entry->awayCorrect += $score->awayGoalsPoint;
@@ -186,8 +179,6 @@ class ScoringService
                 $entry->rounds[$roundId]['advance'] = ($entry->rounds[$roundId]['advance'] ?? 0) + 1;
             }
 
-            // Tegenstrijdige voorspelling: de voorspelde uitslag wijst een kant als winnaar aan,
-            // maar de speler laat de andere kant doorgaan.
             $scoreWinner = $this->predictedWinnerSide($prediction);
             if ($match->hasResult()
                 && $scoreWinner !== null
@@ -197,8 +188,6 @@ class ScoringService
                 $entry->rounds[$roundId]['inconsistent'] = ($entry->rounds[$roundId]['inconsistent'] ?? 0) + 1;
             }
 
-            // Ronde lantaarn: strafpunten voor een slechte voorspelling op een
-            // gespeelde wedstrijd. Niet-ingevulde wedstrijden tellen niet mee.
             $penalty = $this->lanternPenalty($prediction);
             if ($penalty > 0) {
                 $entry->lanternPoints += $penalty;
@@ -207,7 +196,7 @@ class ScoringService
         }
 
         $list = array_values($entries);
-        usort($list, function (LeaderboardEntry $a, LeaderboardEntry $b): int {
+        usort($list, static function (LeaderboardEntry $a, LeaderboardEntry $b): int {
             return [$b->weightedTotal, $b->rawTotal, $a->user->getDisplayName()]
                 <=> [$a->weightedTotal, $a->rawTotal, $b->user->getDisplayName()];
         });
@@ -222,13 +211,10 @@ class ScoringService
             $entry->rank = $rank;
         }
 
-        return $list;
+        return $this->leaderboardCache[$cacheKey] = $list;
     }
 
     /**
-     * Het algemeen klassement met de positieverandering sinds de vorige speeldag
-     * (de laatste dag waarop wedstrijden zijn gespeeld) ingevuld per speler.
-     *
      * @param list<int>|null $userIds
      *
      * @return list<LeaderboardEntry>
@@ -252,12 +238,10 @@ class ScoringService
             }
         }
 
-        // Eerste speeldag: geen vorige stand om mee te vergelijken.
         if (!$hasHistory) {
             return $current;
         }
 
-        // Voor elk klassement de positieverandering bepalen (sorteersleutel per ranking).
         $rankings = [
             'points' => static fn (LeaderboardEntry $e): array => [$e->weightedTotal, $e->rawTotal],
             'score' => static fn (LeaderboardEntry $e): array => [$e->scorePoints, $e->weightedTotal],
@@ -279,14 +263,24 @@ class ScoringService
     }
 
     /**
-     * Strikte (unieke) lijstpositie op basis van een sorteersleutel (aflopend),
-     * met de weergavenaam als beslisser. Strikte posities zorgen dat de
-     * positieverandering behoudend is: elke daler heeft een stijger.
+     * @param list<int>|null $userIds
+     */
+    public function leaderboardEntryForUser(User $user, ?array $userIds = null): ?LeaderboardEntry
+    {
+        foreach ($this->buildLeaderboard(null, $userIds) as $entry) {
+            if ($entry->user->getId() === $user->getId()) {
+                return $entry;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param list<LeaderboardEntry> $entries
+     * @param callable(LeaderboardEntry): list<int|float> $metric
      *
-     * @param list<LeaderboardEntry>                       $entries
-     * @param callable(LeaderboardEntry): list<int|float>  $metric
-     *
-     * @return array<int, int> gebruiker-id => positie (1-gebaseerd)
+     * @return array<int, int>
      */
     private function positionMap(array $entries, callable $metric): array
     {
@@ -304,22 +298,18 @@ class ScoringService
     }
 
     /**
-     * Tijdlijn voor de animatie: per afgeronde wedstrijd (chronologisch) de punten
-     * die elke speler behaalde, voor elk klassement (algemeen/score/winnaars),
-     * plus het maximaal haalbare per wedstrijd per klassement.
-     *
      * @param list<int>|null $userIds
      *
-     * @return array{players: list<array{name: string, slug: ?string}>, steps: list<array<string, mixed>>}
+     * @return array{players: list<array{name: string, slug: ?string, avatar: ?string}>, steps: list<array<string, mixed>>}
      */
     public function matchTimeline(?array $userIds = null): array
     {
         $rounds = $this->roundsById();
-        $participantIds = array_flip($this->predictionRepository->userIdsWithPredictions());
+        $participantIds = $this->participantIds();
         $allowed = $userIds === null ? null : array_flip($userIds);
 
         $players = [];
-        foreach ($this->userRepository->findAll() as $user) {
+        foreach ($this->users() as $user) {
             if (!isset($participantIds[$user->getId()])) {
                 continue;
             }
@@ -329,17 +319,16 @@ class ScoringService
             $players[$user->getId()] = $user;
         }
 
-        // Voorspellingen indexeren op wedstrijd-id en gebruiker-id.
         $byMatch = [];
-        foreach ($this->predictionRepository->findAllForScoring() as $prediction) {
+        foreach ($this->scoringPredictions() as $prediction) {
             $byMatch[$prediction->getFootballMatch()->getId()][$prediction->getUser()->getId()] = $prediction;
         }
 
         $playerIds = array_keys($players);
         $steps = [];
         foreach ($this->finishedMatches() as $match) {
-            $weight = $match->getRound() !== null && isset($rounds[$match->getRound()->getId()])
-                ? $rounds[$match->getRound()->getId()]->getWeight()
+            $weight = $match->getRound() !== null
+                ? (($rounds[$match->getRound()->getId()] ?? null)?->getWeight() ?? 1.0)
                 : 1.0;
 
             $points = [];
@@ -347,6 +336,7 @@ class ScoringService
             $winners = [];
             $lantern = [];
             $inconsistent = [];
+
             foreach ($playerIds as $uid) {
                 $prediction = $byMatch[$match->getId()][$uid] ?? null;
                 if ($prediction === null) {
@@ -357,6 +347,7 @@ class ScoringService
                     $inconsistent[] = 0;
                     continue;
                 }
+
                 $ms = $this->scorePrediction($prediction);
                 $points[] = $ms->total() * $weight;
                 $score[] = $ms->homeGoalsPoint + $ms->awayGoalsPoint + $ms->exactBonusPoint;
@@ -397,36 +388,17 @@ class ScoringService
         return ['players' => $playerData, 'steps' => $steps];
     }
 
-    /**
-     * Begin (00:00) van de laatste dag waarop een afgeronde wedstrijd is gespeeld.
-     */
     public function lastMatchdayStart(): ?\DateTimeImmutable
     {
-        $latest = null;
-        foreach ($this->finishedMatches() as $match) {
-            $kickoff = $match->getKickoffAt();
-            if ($kickoff !== null && ($latest === null || $kickoff > $latest)) {
-                $latest = $kickoff;
-            }
-        }
-
-        return $latest?->setTime(0, 0, 0);
+        return $this->finishedSummary()['latest']?->setTime(0, 0, 0);
     }
 
     /**
-     * @return array<int, int> aantal afgeronde wedstrijden per ronde-id
+     * @return array<int, int>
      */
     public function finishedCountPerRound(): array
     {
-        $counts = [];
-        foreach ($this->finishedMatches() as $match) {
-            if ($match->getRound() !== null) {
-                $id = $match->getRound()->getId();
-                $counts[$id] = ($counts[$id] ?? 0) + 1;
-            }
-        }
-
-        return $counts;
+        return $this->finishedSummary()['count'];
     }
 
     /**
@@ -434,12 +406,28 @@ class ScoringService
      */
     private function roundsById(): array
     {
+        if ($this->roundsByIdCache !== null) {
+            return $this->roundsByIdCache;
+        }
+
         $rounds = [];
-        foreach ($this->roundRepository->findAll() as $round) {
+        foreach ($this->roundRepository->findAllBySortOrder() as $round) {
             $rounds[$round->getId()] = $round;
         }
 
-        return $rounds;
+        return $this->roundsByIdCache = $rounds;
+    }
+
+    /**
+     * @return list<FootballMatch>
+     */
+    private function allMatches(): array
+    {
+        if ($this->allMatchesCache !== null) {
+            return $this->allMatchesCache;
+        }
+
+        return $this->allMatchesCache = $this->footballMatchRepository->findAllForOverview();
     }
 
     /**
@@ -447,13 +435,129 @@ class ScoringService
      */
     private function finishedMatches(): array
     {
-        return $this->footballMatchRepository->findBy(['finished' => true], ['kickoffAt' => 'ASC']);
+        if ($this->finishedMatchesCache !== null) {
+            return $this->finishedMatchesCache;
+        }
+
+        return $this->finishedMatchesCache = array_values(array_filter(
+            $this->allMatches(),
+            static fn (FootballMatch $match): bool => $match->isFinished(),
+        ));
     }
 
     /**
-     * De kant ('home'/'away') die volgens de voorspelde uitslag wint (méér doelpunten).
-     * Geeft null bij een voorspeld gelijkspel of een onvolledige voorspelling.
+     * @return list<Prediction>
      */
+    private function scoringPredictions(): array
+    {
+        if ($this->scoringPredictionsCache !== null) {
+            return $this->scoringPredictionsCache;
+        }
+
+        return $this->scoringPredictionsCache = $this->predictionRepository->findAllForScoring();
+    }
+
+    /**
+     * @return array<int, true>
+     */
+    private function participantIds(): array
+    {
+        if ($this->participantIdsCache !== null) {
+            return $this->participantIdsCache;
+        }
+
+        return $this->participantIdsCache = array_fill_keys($this->predictionRepository->userIdsWithPredictions(), true);
+    }
+
+    /**
+     * @return list<User>
+     */
+    private function users(): array
+    {
+        if ($this->usersCache !== null) {
+            return $this->usersCache;
+        }
+
+        return $this->usersCache = $this->userRepository->findAll();
+    }
+
+    /**
+     * @return array{count: array<int, int>, max: float, latest: ?\DateTimeImmutable}
+     */
+    private function finishedSummary(): array
+    {
+        if ($this->finishedSummaryCache !== null) {
+            return $this->finishedSummaryCache;
+        }
+
+        $rounds = $this->roundsById();
+        $counts = [];
+        $max = 0.0;
+        $latest = null;
+
+        foreach ($this->finishedMatches() as $match) {
+            $kickoff = $match->getKickoffAt();
+            if ($kickoff !== null && ($latest === null || $kickoff > $latest)) {
+                $latest = $kickoff;
+            }
+
+            if ($match->getRound() === null) {
+                continue;
+            }
+
+            $roundId = $match->getRound()->getId();
+            $counts[$roundId] = ($counts[$roundId] ?? 0) + 1;
+            $max += self::MAX_RAW_PER_MATCH * (($rounds[$roundId] ?? null)?->getWeight() ?? 1.0);
+        }
+
+        return $this->finishedSummaryCache = [
+            'count' => $counts,
+            'max' => $max,
+            'latest' => $latest,
+        ];
+    }
+
+    /**
+     * @return array{count: int, max: float}
+     */
+    private function tournamentSummary(): array
+    {
+        if ($this->tournamentSummaryCache !== null) {
+            return $this->tournamentSummaryCache;
+        }
+
+        $rounds = $this->roundsById();
+        $count = 0;
+        $max = 0.0;
+
+        foreach ($this->allMatches() as $match) {
+            ++$count;
+            if ($match->getRound() === null) {
+                continue;
+            }
+
+            $roundId = $match->getRound()->getId();
+            $max += self::MAX_RAW_PER_MATCH * (($rounds[$roundId] ?? null)?->getWeight() ?? 1.0);
+        }
+
+        return $this->tournamentSummaryCache = [
+            'count' => $count,
+            'max' => $max,
+        ];
+    }
+
+    /**
+     * @param list<int>|null $userIds
+     */
+    private function leaderboardCacheKey(?\DateTimeImmutable $before, ?array $userIds): string
+    {
+        if ($userIds !== null) {
+            sort($userIds);
+        }
+
+        return ($before?->format(\DateTimeInterface::ATOM) ?? 'all') . '|' . json_encode($userIds);
+    }
+
     private function predictedWinnerSide(Prediction $prediction): ?string
     {
         $home = $prediction->getHomeScore();
@@ -492,7 +596,6 @@ class ScoringService
             if ($predDiff === 0 && $actualDiff !== 0) {
                 $penalty += 1;
             } elseif ($predDiff !== 0 && $actualDiff === 0) {
-                // Winst/verlies voorspeld, maar het werd een gelijkspel.
                 $penalty += 1;
             } elseif ($predDiff !== 0 && $actualDiff !== 0 && $predDiff !== $actualDiff) {
                 $penalty += 2;

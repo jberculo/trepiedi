@@ -60,7 +60,7 @@ class ReadApi
 
         $data = $this->normalizer->match($match);
         $data['flags'] = $this->normalizer->flagSvgs([$data]);
-        $data['predictionCount'] = count($this->predictions->findByMatch($match));
+        $data['predictionCount'] = $this->predictions->countByMatch($match);
 
         // Voorspellingen worden pas zichtbaar zodra de wedstrijd is begonnen.
         if ($match->isLocked()) {

@@ -68,6 +68,16 @@ class PredictionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function countByMatch(FootballMatch $match): int
+    {
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->where('p.footballMatch = :match')
+            ->setParameter('match', $match)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     /**
      * Alle voorspellingen voor afgeronde wedstrijden, met user, wedstrijd en ronde.
      *

@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Pool\PoolContext;
-use App\Scoring\LeaderboardEntry;
 use App\Scoring\ScoringService;
 use App\User\UserProfileViewBuilder;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
@@ -24,27 +23,13 @@ class UserViewController extends AbstractController
     ): Response {
         $viewer = $this->getUser();
         $isSelf = $viewer instanceof User && $viewer->getId() === $profile->getId();
-        $leaderboard = $scoringService->buildLeaderboard(null, $poolContext->getMemberIds());
+        $memberIds = $poolContext->getMemberIds();
 
         return $this->render('user/view.html.twig', [
             'profile' => $profile,
             'isSelf' => $isSelf,
-            'entry' => $this->entryFor($leaderboard, $profile),
+            'entry' => $scoringService->leaderboardEntryForUser($profile, $memberIds),
             'rounds' => $profileView->buildRounds($profile, $isSelf),
         ]);
-    }
-
-    /**
-     * @param list<LeaderboardEntry> $leaderboard
-     */
-    private function entryFor(array $leaderboard, User $profile): ?LeaderboardEntry
-    {
-        foreach ($leaderboard as $entry) {
-            if ($entry->user->getId() === $profile->getId()) {
-                return $entry;
-            }
-        }
-
-        return null;
     }
 }
