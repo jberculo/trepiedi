@@ -33,7 +33,6 @@ account:
     language: Taal
     language_nl: Nederlands
     language_en: Engels
-    pool: Poule
     default_pool: Standaardpoule
     default_pool_help: 'De poule waarin je terechtkomt als je inlogt.'
     api_token: API-sleutel

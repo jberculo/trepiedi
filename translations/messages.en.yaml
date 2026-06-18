@@ -33,7 +33,6 @@ account:
     language: Language
     language_nl: Dutch
     language_en: English
-    pool: Pool
     default_pool: Default pool
     default_pool_help: 'The pool you land in when you log in.'
     api_token: API key
