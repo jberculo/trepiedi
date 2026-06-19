@@ -36,10 +36,10 @@
 
                     <span class="form-label d-block">{{ 'account.language'|trans }}</span>
                     <div class="d-flex gap-2">
-                        <a class="btn btn-sm d-flex align-items-center {{ app.request.locale == 'nl' ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_locale', {_locale: 'nl'}) }}">
+                        <a class="btn btn-sm d-flex align-items-center {{ app.request.locale == 'nl' ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_locale', {_locale: 'nl'}) }}" data-keep-scroll>
                             {{ 'account.language_nl'|trans }}
                         </a>
-                        <a class="btn btn-sm d-flex align-items-center {{ app.request.locale == 'en' ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_locale', {_locale: 'en'}) }}">
+                        <a class="btn btn-sm d-flex align-items-center {{ app.request.locale == 'en' ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_locale', {_locale: 'en'}) }}" data-keep-scroll>
                             {{ 'account.language_en'|trans }}
                         </a>
                     </div>

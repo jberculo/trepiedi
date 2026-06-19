@@ -23,7 +23,7 @@
         <p class="text-muted small mb-2">{{ 'account.default_pool_help'|trans }}</p>
         <div class="d-flex flex-wrap gap-2">
             {% for p in pools %}
-                <form method="post" action="{{ path('app_pool_switch', {code: p.code}) }}" class="d-inline">
+                <form method="post" action="{{ path('app_pool_switch', {code: p.code}) }}" class="d-inline" data-keep-scroll>
                     <input type="hidden" name="_token" value="{{ csrf_token('switch-pool-' ~ p.code) }}">
                     <button class="btn btn-sm {{ current_pool and p.id == current_pool.id ? 'btn-success' : 'btn-outline-secondary' }}">
                         {{ p.name }}
