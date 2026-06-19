@@ -10,6 +10,7 @@ use App\Security\ApiTokenService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
  * Basis voor functionele tests: verse test-database met fixtures.
@@ -38,6 +39,22 @@ abstract class FixturesWebTestCase extends WebTestCase
     protected function user(string $email): User
     {
         return $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
+    }
+
+    /**
+     * Controleert (met een verse lezing) dat het opgegeven wachtwoord geldig is
+     * voor de gebruiker.
+     */
+    protected function assertPasswordIs(string $email, string $plainPassword): void
+    {
+        $this->em->clear();
+        $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
+        $hasher = static::getContainer()->get(UserPasswordHasherInterface::class);
+
+        $this->assertTrue(
+            $hasher->isPasswordValid($user, $plainPassword),
+            sprintf('Verwacht dat "%s" als wachtwoord geldt voor %s.', $plainPassword, $email)
+        );
     }
 
     protected function lockedMatch(): FootballMatch

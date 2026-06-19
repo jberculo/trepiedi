@@ -3,14 +3,13 @@
 namespace App\Form;
 
 use App\Entity\User;
+use App\Validator\PasswordPolicy;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\Length;
-use Symfony\Component\Validator\Constraints\NotBlank;
 
 class RegistrationFormType extends AbstractType
 {
@@ -27,14 +26,7 @@ class RegistrationFormType extends AbstractType
                 'label' => 'auth.password',
                 'mapped' => false,
                 'attr' => ['autocomplete' => 'new-password'],
-                'constraints' => [
-                    new NotBlank(message: 'validation.enter_password'),
-                    new Length(
-                        min: 8,
-                        minMessage: 'validation.password_min',
-                        max: 4096,
-                    ),
-                ],
+                'constraints' => PasswordPolicy::constraints(),
             ]);
     }
 

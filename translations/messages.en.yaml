@@ -30,6 +30,12 @@ account:
     heading: Account settings
     photo: Profile photo
     current_photo: Current photo
+    password_heading: Password
+    current_password: Current password
+    new_password: New password
+    new_password_repeat: Repeat new password
+    password_change: Change password
+    password_changed: Your password has been changed.
     language: Language
     language_nl: Dutch
     language_en: English
@@ -255,5 +261,6 @@ admin:
     no_participants: No participants yet.
     role: Role
     is_admin: Admin
+    password_reset_help: Leave blank to keep the current password.
     confirm_delete_participant: 'Delete participant and all their predictions?'
     cannot_delete_self: You cannot delete yourself.

@@ -34,6 +34,28 @@
 
                     <hr class="my-4">
 
+                    <span class="form-label d-block mb-2">{{ 'account.password_heading'|trans }}</span>
+                    {{ form_start(passwordForm) }}
+                        <div class="mb-3">
+                            {{ form_label(passwordForm.currentPassword, null, {label_attr: {class: 'form-label'}}) }}
+                            {{ form_widget(passwordForm.currentPassword, {attr: {class: 'form-control'}}) }}
+                            {{ form_errors(passwordForm.currentPassword) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(passwordForm.newPassword.first, null, {label_attr: {class: 'form-label'}}) }}
+                            {{ form_widget(passwordForm.newPassword.first, {attr: {class: 'form-control'}}) }}
+                            {{ form_errors(passwordForm.newPassword.first) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(passwordForm.newPassword.second, null, {label_attr: {class: 'form-label'}}) }}
+                            {{ form_widget(passwordForm.newPassword.second, {attr: {class: 'form-control'}}) }}
+                        </div>
+                        {{ form_errors(passwordForm.newPassword) }}
+                        <button class="btn btn-success">{{ 'account.password_change'|trans }}</button>
+                    {{ form_end(passwordForm) }}
+
+                    <hr class="my-4">
+
                     <span class="form-label d-block">{{ 'account.language'|trans }}</span>
                     <div class="d-flex gap-2">
                         <a class="btn btn-sm d-flex align-items-center {{ app.request.locale == 'nl' ? 'btn-success' : 'btn-outline-secondary' }}" href="{{ path('app_locale', {_locale: 'nl'}) }}" data-keep-scroll>
