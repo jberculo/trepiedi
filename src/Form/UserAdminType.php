@@ -58,10 +58,27 @@ class UserAdminType extends AbstractType
                 'by_reference' => false,
                 'label' => 'admin.pools',
             ]);
+
+        // Een beheerder mag het wachtwoord van een gewone gebruiker resetten, maar
+        // niet dat van een andere beheerder (en dus ook niet van zichzelf).
+        if ($options['allow_password_reset']) {
+            $builder->add('newPassword', NewPasswordType::class, [
+                'required' => false,
+                'first_options' => [
+                    'label' => 'account.new_password',
+                    'attr' => ['autocomplete' => 'new-password'],
+                    'help' => 'admin.password_reset_help',
+                ],
+            ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => User::class]);
+        $resolver->setDefaults([
+            'data_class' => User::class,
+            'allow_password_reset' => false,
+        ]);
+        $resolver->setAllowedTypes('allow_password_reset', 'bool');
     }
 }

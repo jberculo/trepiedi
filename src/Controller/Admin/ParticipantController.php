@@ -12,6 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -30,19 +31,28 @@ class ParticipantController extends AbstractController
     }
 
     #[Route('/{id}/bewerken', name: 'admin_participant_edit', methods: ['GET', 'POST'])]
-    public function edit(User $user, Request $request, EntityManagerInterface $em, UserRepository $users, AvatarStorage $avatars): Response
+    public function edit(User $user, Request $request, EntityManagerInterface $em, UserRepository $users, AvatarStorage $avatars, UserPasswordHasherInterface $passwordHasher): Response
     {
-        $form = $this->createForm(UserAdminType::class, $user);
+        $form = $this->createForm(UserAdminType::class, $user, [
+            'allow_password_reset' => !$user->isAdmin(),
+        ]);
         // Checkbox vooraf vullen (moet voor handleRequest gebeuren).
         $form->get('isAdmin')->setData($user->isAdmin());
 
-        return $this->handleCrudForm($form, $request, $em, 'admin.participant_updated', 'admin_participant_index', 'admin.participant_edit', onValid: function (User $user) use ($form, $users, $avatars): void {
+        return $this->handleCrudForm($form, $request, $em, 'admin.participant_updated', 'admin_participant_index', 'admin.participant_edit', onValid: function (User $user) use ($form, $users, $avatars, $passwordHasher): void {
             $user->setRoles($form->get('isAdmin')->getData() ? ['ROLE_ADMIN'] : []);
             $user->setSlug($users->uniqueSlug($user->getDisplayName(), $user));
 
             $avatar = $form->get('avatar')->getData();
             if ($avatar instanceof UploadedFile) {
                 $avatars->store($user, $avatar, AvatarStorage::parseCrop($form->get('crop')->getData()));
+            }
+
+            if ($form->has('newPassword')) {
+                $newPassword = $form->get('newPassword')->getData();
+                if (is_string($newPassword) && $newPassword !== '') {
+                    $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
+                }
             }
         }, avatarPreview: $user);
     }
