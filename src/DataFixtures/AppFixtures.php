@@ -19,7 +19,10 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        $now = new \DateTimeImmutable('2026-06-12 12:00:00');
+        // Anker op de echte huidige dag (12:00), zodat de "open" wedstrijden altijd
+        // in de toekomst blijven liggen. Een vaste datum zou na verloop van tijd in
+        // het verleden komen, waardoor geen enkele wedstrijd nog te voorspellen is.
+        $now = (new \DateTimeImmutable('today'))->setTime(12, 0);
 
         $pools = $this->createPools($manager);
         $players = $this->createUsers($manager, $pools);

@@ -85,7 +85,7 @@ class AdminCrudTest extends FixturesWebTestCase
         $form['football_match[round]'] = (string) $round->getId();
         $form['football_match[homeTeam]'] = 'Testland';
         $form['football_match[awayTeam]'] = 'Andersland';
-        $form['football_match[kickoffAt]'] = '2026-07-01T20:00';
+        $form['football_match[kickoffAt]'] = (new \DateTimeImmutable('+1 month'))->format('Y-m-d\TH:i');
         $this->client->submit($form);
 
         $this->assertResponseRedirects('/admin/wedstrijden');
