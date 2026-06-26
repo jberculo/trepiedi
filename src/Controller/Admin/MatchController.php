@@ -70,7 +70,7 @@ class MatchController extends AbstractController
     #[Route('/{id}/uitslag', name: 'admin_match_result', methods: ['GET', 'POST'])]
     public function result(FootballMatch $match, Request $request, EntityManagerInterface $em, TranslatorInterface $translator): Response
     {
-        $resultBefore = [$match->getHomeScore(), $match->getAwayScore(), $match->getAdvancingSide()];
+        $resultBefore = [$match->getHomeScore(), $match->getAwayScore(), $match->getAdvancingSide(), $match->isFinished()];
 
         $form = $this->createForm(MatchResultType::class, $match, ['match' => $match]);
         $form->handleRequest($request);
@@ -85,9 +85,9 @@ class MatchController extends AbstractController
 
             if ($form->isValid()) {
                 // Een handmatige backend-wijziging van de uitslag haalt de API/MCP-vlag weg.
-                $resultAfter = [$match->getHomeScore(), $match->getAwayScore(), $match->getAdvancingSide()];
+                $resultAfter = [$match->getHomeScore(), $match->getAwayScore(), $match->getAdvancingSide(), $match->isFinished()];
                 if ($resultAfter !== $resultBefore) {
-                    $match->setResultViaApi(false);
+                    $match->setResultViaExternalApi(false);
                 }
 
                 $em->flush();

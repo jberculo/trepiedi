@@ -77,13 +77,13 @@ class FootballMatch
     private bool $active = true;
 
     /**
-     * Of de huidige uitslag via de API/MCP is binnengekomen (true) of handmatig via
-     * de backend is ingevoerd/aangepast (false). Wordt op true gezet door de
+     * Of de huidige uitslag via de externe API/MCP is binnengekomen (true) of handmatig
+     * via de backend is ingevoerd/aangepast (false). Wordt op true gezet door de
      * API/MCP-uitslag en teruggezet op false zodra de uitslag in de backend naar een
      * afwijkende waarde wordt aangepast.
      */
     #[ORM\Column(options: ['default' => false])]
-    private bool $resultViaApi = false;
+    private bool $resultViaExternalApi = false;
 
     /**
      * @var Collection<int, Prediction>
@@ -229,14 +229,14 @@ class FootballMatch
         return $this;
     }
 
-    public function isResultViaApi(): bool
+    public function isResultViaExternalApi(): bool
     {
-        return $this->resultViaApi;
+        return $this->resultViaExternalApi;
     }
 
-    public function setResultViaApi(bool $resultViaApi): static
+    public function setResultViaExternalApi(bool $resultViaExternalApi): static
     {
-        $this->resultViaApi = $resultViaApi;
+        $this->resultViaExternalApi = $resultViaExternalApi;
 
         return $this;
     }

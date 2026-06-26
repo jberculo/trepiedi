@@ -158,7 +158,7 @@ class AdminCrudTest extends FixturesWebTestCase
     public function testBackendResultChangeClearsApiFlag(): void
     {
         $open = $this->openMatch();
-        $open->setHomeScore(1)->setAwayScore(0)->setAdvancingSide(FootballMatch::SIDE_HOME)->setResultViaApi(true);
+        $open->setHomeScore(1)->setAwayScore(0)->setAdvancingSide(FootballMatch::SIDE_HOME)->setResultViaExternalApi(true);
         $this->em->flush();
         $matchId = $open->getId();
 
@@ -174,13 +174,38 @@ class AdminCrudTest extends FixturesWebTestCase
 
         $this->em->clear();
         $match = $this->em->getRepository(FootballMatch::class)->find($matchId);
-        $this->assertFalse($match->isResultViaApi(), 'Een afwijkende backend-wijziging haalt de API/MCP-vlag weg.');
+        $this->assertFalse($match->isResultViaExternalApi(), 'Een afwijkende backend-wijziging haalt de API/MCP-vlag weg.');
+    }
+
+    public function testBackendMarkingFinishedClearsApiFlag(): void
+    {
+        $open = $this->openMatch();
+        $open->setHomeScore(1)->setAwayScore(0)->setAdvancingSide(FootballMatch::SIDE_HOME)->setResultViaExternalApi(true);
+        $this->em->flush();
+        $matchId = $open->getId();
+
+        $this->client->loginUser($this->user('admin@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/admin/wedstrijden/' . $matchId . '/uitslag');
+
+        // Zelfde score, maar nu definitief maken: ook dat is een uitslag-aanpassing.
+        $form = $crawler->selectButton('Opslaan')->form();
+        $form['match_result[homeScore]'] = '1';
+        $form['match_result[awayScore]'] = '0';
+        $form['match_result[advancingSide]'] = 'home';
+        $form['match_result[finished]']->tick();
+        $this->client->submit($form);
+        $this->assertResponseRedirects('/admin/wedstrijden');
+
+        $this->em->clear();
+        $match = $this->em->getRepository(FootballMatch::class)->find($matchId);
+        $this->assertTrue($match->isFinished());
+        $this->assertFalse($match->isResultViaExternalApi(), 'Handmatig definitief maken haalt de API/MCP-vlag weg.');
     }
 
     public function testBackendResultSaveWithoutChangeKeepsApiFlag(): void
     {
         $open = $this->openMatch();
-        $open->setHomeScore(1)->setAwayScore(0)->setAdvancingSide(FootballMatch::SIDE_HOME)->setResultViaApi(true);
+        $open->setHomeScore(1)->setAwayScore(0)->setAdvancingSide(FootballMatch::SIDE_HOME)->setResultViaExternalApi(true);
         $this->em->flush();
         $matchId = $open->getId();
 
@@ -197,7 +222,7 @@ class AdminCrudTest extends FixturesWebTestCase
 
         $this->em->clear();
         $match = $this->em->getRepository(FootballMatch::class)->find($matchId);
-        $this->assertTrue($match->isResultViaApi(), 'Opnieuw opslaan zonder wijziging laat de vlag staan.');
+        $this->assertTrue($match->isResultViaExternalApi(), 'Opnieuw opslaan zonder wijziging laat de vlag staan.');
     }
 
     public function testFinalResultRequiresWinner(): void

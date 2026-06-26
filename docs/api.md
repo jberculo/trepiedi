@@ -92,7 +92,7 @@ curl "https://trepiedi.online/api/timeline?pool=kantoor"
           "homeScore": 2,
           "awayScore": 1,
           "advancingSide": "home",
-          "points": 6,
+          "points": 6.0,
           "rawPoints": 6,
           "scorePoints": 3,
           "winner": true
@@ -104,7 +104,7 @@ curl "https://trepiedi.online/api/timeline?pool=kantoor"
 ```
 
 - elke deelnemer van de poule staat per wedstrijd in `predictions`; zonder voorspelling zijn `homeScore`/`awayScore`/`advancingSide` `null` en de punten 0
-- `points`: gewogen punten (ruwe punten × rondegewicht); `rawPoints`: ongewogen
+- `points`: gewogen punten als getal met decimaal (ruwe punten × rondegewicht); `rawPoints`: ongewogen geheel getal
 - `scorePoints`: punten voor de uitslag (doelpunten thuis + uit + exacte-bonus, max 3); `winner`: of de doorgaande ploeg goed voorspeld is (+3)
 - per ronde groeperen kan client-side op het veld `round`
 
@@ -134,6 +134,7 @@ Elk item bevat onder meer:
   "advancingSide": "home",
   "finished": true,
   "open": false,
+  "resultViaExternalApi": false,
   "active": true,
   "locked": true,
   "predictable": false
@@ -141,6 +142,7 @@ Elk item bevat onder meer:
 ```
 
 - `homeFlag` / `awayFlag` / `advancingFlag`: [flag-icons](https://github.com/lipis/flag-icons)-code per ploeg, bijvoorbeeld `nl` of `gb-eng`, of `null` bij een placeholder zoals `2A`
+- `resultViaExternalApi`: of de huidige uitslag via de externe API/MCP is binnengekomen (`true`) of handmatig via de backend (`false`); wordt `false` zodra de uitslag in de backend naar een afwijkende waarde wordt aangepast
 - de respons bevat daarnaast een gededupliceerde `flags`-map `{ code: "<svg...>" }` met de SVG per voorkomende code, zodat de client de vlaggen zelf kan renderen
 - `open`: uitslag is nog niet definitief
 - `predictable`: je kunt nu nog een voorspelling indienen of aanpassen (`active` en niet `locked`)

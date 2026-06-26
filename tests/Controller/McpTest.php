@@ -82,6 +82,22 @@ class McpTest extends FixturesWebTestCase
         $this->assertSame(3, $prediction->getHomeScore());
     }
 
+    public function testCallSetResultViaMcpMarksResultAsExternal(): void
+    {
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
+        $id = $this->openMatch()->getId();
+
+        $res = $this->rpc(
+            ['jsonrpc' => '2.0', 'id' => 8, 'method' => 'tools/call', 'params' => ['name' => 'set_match_result', 'arguments' => ['matchId' => $id, 'homeScore' => 2, 'awayScore' => 1, 'advancingSide' => 'home']]],
+            $adminKey,
+        );
+        $this->assertArrayNotHasKey('isError', $res['result']);
+
+        $this->em->clear();
+        $match = $this->em->getRepository(FootballMatch::class)->find($id);
+        $this->assertTrue($match->isResultViaExternalApi(), 'Een uitslag via de MCP-tool krijgt ook de API/MCP-vlag.');
+    }
+
     public function testCallSubmitPredictionWithoutKeyIsError(): void
     {
         $id = $this->openMatch()->getId();

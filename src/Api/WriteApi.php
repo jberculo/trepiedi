@@ -75,7 +75,7 @@ class WriteApi
         }
 
         $match->setHomeScore($homeScore)->setAwayScore($awayScore)->setAdvancingSide($advancingSide)->setFinished($finished);
-        $match->setResultViaApi(true);
+        $match->setResultViaExternalApi(true);
         $this->em->flush();
 
         return $this->normalizer->match($match);

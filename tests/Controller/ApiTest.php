@@ -80,14 +80,14 @@ class ApiTest extends FixturesWebTestCase
 
         $this->em->clear();
         $this->assertTrue(
-            $this->em->getRepository(FootballMatch::class)->find($id)->isResultViaApi(),
+            $this->em->getRepository(FootballMatch::class)->find($id)->isResultViaExternalApi(),
             'Een via de API gezette uitslag krijgt de API/MCP-vlag.'
         );
 
         // De vlag is ook zichtbaar in de wedstrijd-API.
         $this->client->request('GET', '/api/matches/' . $id);
         $data = json_decode((string) $this->client->getResponse()->getContent(), true);
-        $this->assertTrue($data['resultViaApi']);
+        $this->assertTrue($data['resultViaExternalApi']);
     }
 
     public function testStandingsForSpecificPoolAreScoped(): void
