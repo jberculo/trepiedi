@@ -33,6 +33,7 @@ final class Countries
         ['code' => 'ie', 'nl' => 'Ierland', 'en' => 'Ireland'],
         ['code' => 'hr', 'nl' => 'Kroatië', 'en' => 'Croatia'],
         ['code' => 'rs', 'nl' => 'Servië', 'en' => 'Serbia'],
+        ['code' => 'ba', 'nl' => 'Bosnië en Herzegovina', 'en' => 'Bosnia and Herzegovina'],
         ['code' => 'ch', 'nl' => 'Zwitserland', 'en' => 'Switzerland'],
         ['code' => 'at', 'nl' => 'Oostenrijk', 'en' => 'Austria'],
         ['code' => 'pl', 'nl' => 'Polen', 'en' => 'Poland'],
