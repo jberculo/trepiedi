@@ -305,24 +305,8 @@ class ScoringService
     public function matchTimeline(?array $userIds = null): array
     {
         $rounds = $this->roundsById();
-        $participantIds = $this->participantIds();
-        $allowed = $userIds === null ? null : array_flip($userIds);
-
-        $players = [];
-        foreach ($this->users() as $user) {
-            if (!isset($participantIds[$user->getId()])) {
-                continue;
-            }
-            if ($allowed !== null && !isset($allowed[$user->getId()])) {
-                continue;
-            }
-            $players[$user->getId()] = $user;
-        }
-
-        $byMatch = [];
-        foreach ($this->scoringPredictions() as $prediction) {
-            $byMatch[$prediction->getFootballMatch()->getId()][$prediction->getUser()->getId()] = $prediction;
-        }
+        $players = $this->participantPlayers($userIds);
+        $byMatch = $this->predictionsByMatch();
 
         $playerIds = array_keys($players);
         $steps = [];
@@ -386,6 +370,65 @@ class ScoringService
         }
 
         return ['players' => $playerData, 'steps' => $steps];
+    }
+
+    /**
+     * Per afgeronde wedstrijd, per (meegegeven) speler: de voorspelde uitslag en de
+     * gescoorde punten. Bedoeld voor de API/MCP, zodat de gescoorde punten en de
+     * voorspelling per speler per wedstrijd opgehaald kunnen worden zonder zelf na te
+     * rekenen. Alleen afgeronde wedstrijden, dus voorspellingen lekken niet vóór de aftrap.
+     *
+     * @param list<int>|null $userIds
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function matchBreakdown(?array $userIds = null): array
+    {
+        $rounds = $this->roundsById();
+        $players = $this->participantPlayers($userIds);
+        $byMatch = $this->predictionsByMatch();
+
+        $matches = [];
+        foreach ($this->finishedMatches() as $match) {
+            $weight = $match->getRound() !== null
+                ? (($rounds[$match->getRound()->getId()] ?? null)?->getWeight() ?? 1.0)
+                : 1.0;
+
+            $predictions = [];
+            foreach ($players as $uid => $user) {
+                $prediction = $byMatch[$match->getId()][$uid] ?? null;
+                $score = $prediction !== null ? $this->scorePrediction($prediction) : null;
+
+                $predictions[] = [
+                    'player' => $user->getDisplayName(),
+                    'slug' => $user->getSlug(),
+                    'homeScore' => $prediction?->getHomeScore(),
+                    'awayScore' => $prediction?->getAwayScore(),
+                    'advancingSide' => $prediction?->getAdvancingSide(),
+                    'points' => $score !== null ? $score->total() * $weight : 0.0,
+                    'rawPoints' => $score?->total() ?? 0,
+                    'scorePoints' => $score !== null
+                        ? $score->homeGoalsPoint + $score->awayGoalsPoint + $score->exactBonusPoint
+                        : 0,
+                    'winner' => $score !== null && $score->advancePoints > 0,
+                ];
+            }
+
+            $matches[] = [
+                'matchId' => $match->getId(),
+                'round' => $match->getRound()?->getName(),
+                'weight' => $weight,
+                'home' => $match->getHomeTeam(),
+                'away' => $match->getAwayTeam(),
+                'homeScore' => $match->getHomeScore(),
+                'awayScore' => $match->getAwayScore(),
+                'advancingSide' => $match->getAdvancingSide(),
+                'advancingTeam' => $match->getAdvancingTeam(),
+                'predictions' => $predictions,
+            ];
+        }
+
+        return $matches;
     }
 
     public function lastMatchdayStart(): ?\DateTimeImmutable
@@ -479,6 +522,47 @@ class ScoringService
         }
 
         return $this->usersCache = $this->userRepository->findAll();
+    }
+
+    /**
+     * De deelnemende spelers (optioneel beperkt tot $userIds), gekeyd op gebruikers-id.
+     *
+     * @param list<int>|null $userIds
+     *
+     * @return array<int, User>
+     */
+    private function participantPlayers(?array $userIds): array
+    {
+        $participantIds = $this->participantIds();
+        $allowed = $userIds === null ? null : array_flip($userIds);
+
+        $players = [];
+        foreach ($this->users() as $user) {
+            if (!isset($participantIds[$user->getId()])) {
+                continue;
+            }
+            if ($allowed !== null && !isset($allowed[$user->getId()])) {
+                continue;
+            }
+            $players[$user->getId()] = $user;
+        }
+
+        return $players;
+    }
+
+    /**
+     * De te scoren voorspellingen, geïndexeerd op wedstrijd-id en daarbinnen op speler-id.
+     *
+     * @return array<int, array<int, Prediction>>
+     */
+    private function predictionsByMatch(): array
+    {
+        $byMatch = [];
+        foreach ($this->scoringPredictions() as $prediction) {
+            $byMatch[$prediction->getFootballMatch()->getId()][$prediction->getUser()->getId()] = $prediction;
+        }
+
+        return $byMatch;
     }
 
     /**

@@ -38,6 +38,15 @@ class ApiController extends AbstractController
         return $this->run(fn (): array => $this->read->standings($code));
     }
 
+    #[Route('/api/timeline', name: 'api_timeline_default', methods: ['GET'])]
+    #[Route('/api/timeline/{code}', name: 'api_timeline', methods: ['GET'])]
+    public function timeline(?string $code, Request $request): JsonResponse
+    {
+        $code ??= $request->query->get('pool');
+
+        return $this->run(fn (): array => $this->read->timeline($code));
+    }
+
     #[Route('/api/matches', name: 'api_matches', methods: ['GET'])]
     public function matches(): JsonResponse
     {

@@ -33,6 +33,7 @@ class ToolRegistry
 
         return [
             $this->tool('get_standings', 'Stand van een poule (zonder poolCode: de standaardpoule).', ['poolCode' => $str]),
+            $this->tool('get_timeline', 'Per afgeronde wedstrijd, per speler de gescoorde (gewogen) punten en de voorspelde uitslag (zonder poolCode: de standaardpoule).', ['poolCode' => $str]),
             $this->tool('list_matches', 'Alle wedstrijden met uitslag, open en of ze te voorspellen zijn (incl. id).', []),
             $this->tool('get_match', 'Eén wedstrijd met detail (en na de aftrap de voorspellingen).', ['matchId' => $int], ['matchId']),
             $this->tool('get_rounds', 'Ronden met gewicht en aantal wedstrijden.', []),
@@ -54,6 +55,7 @@ class ToolRegistry
     {
         return match ($name) {
             'get_standings' => $this->read->standings(isset($args['poolCode']) ? (string) $args['poolCode'] : null),
+            'get_timeline' => $this->read->timeline(isset($args['poolCode']) ? (string) $args['poolCode'] : null),
             'list_matches' => $this->read->matchesList(),
             'get_match' => $this->read->matchDetail((int) ($args['matchId'] ?? 0)),
             'get_rounds' => $this->read->roundsList(),

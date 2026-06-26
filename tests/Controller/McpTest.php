@@ -25,7 +25,7 @@ class McpTest extends FixturesWebTestCase
         $res = $this->rpc(['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tools/list']);
 
         $names = array_column($res['result']['tools'], 'name');
-        foreach (['get_standings', 'list_matches', 'submit_prediction', 'set_match_result', 'create_pool'] as $tool) {
+        foreach (['get_standings', 'get_timeline', 'list_matches', 'submit_prediction', 'set_match_result', 'create_pool'] as $tool) {
             $this->assertContains($tool, $names);
         }
     }
@@ -49,6 +49,17 @@ class McpTest extends FixturesWebTestCase
         $this->assertArrayNotHasKey('isError', $res['result']);
         $payload = json_decode($res['result']['content'][0]['text'], true);
         $this->assertSame('algemeen', $payload['pool']['code']);
+    }
+
+    public function testCallGetTimelineWithoutKey(): void
+    {
+        $res = $this->rpc(['jsonrpc' => '2.0', 'id' => 7, 'method' => 'tools/call', 'params' => ['name' => 'get_timeline', 'arguments' => []]]);
+
+        $this->assertArrayNotHasKey('isError', $res['result']);
+        $payload = json_decode($res['result']['content'][0]['text'], true);
+        $this->assertSame('algemeen', $payload['pool']['code']);
+        $this->assertNotEmpty($payload['matches']);
+        $this->assertArrayHasKey('predictions', $payload['matches'][0]);
     }
 
     public function testCallSubmitPredictionWithKey(): void

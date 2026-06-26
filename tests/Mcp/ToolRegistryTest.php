@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
 class ToolRegistryTest extends TestCase
 {
     private const EXPECTED_TOOLS = [
-        'get_standings', 'list_matches', 'get_match', 'get_rounds', 'whoami',
+        'get_standings', 'get_timeline', 'list_matches', 'get_match', 'get_rounds', 'whoami',
         'submit_prediction', 'set_match_result', 'update_match', 'list_pools', 'create_pool',
     ];
 

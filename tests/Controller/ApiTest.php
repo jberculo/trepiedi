@@ -32,6 +32,44 @@ class ApiTest extends FixturesWebTestCase
         $this->assertSame('🔴', $emoji['lantern']);
     }
 
+    public function testTimelineExposesScoredPredictionsPerMatch(): void
+    {
+        $this->client->request('GET', '/api/timeline');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('Content-Type', 'application/json');
+        $data = json_decode((string) $this->client->getResponse()->getContent(), true);
+
+        $this->assertSame('algemeen', $data['pool']['code']);
+        $this->assertNotEmpty($data['matches']);
+
+        foreach ($data['matches'] as $match) {
+            $this->assertNotNull($match['homeScore'], 'Alleen afgeronde wedstrijden staan in de timeline.');
+        }
+
+        $match = $data['matches'][0];
+        foreach (['matchId', 'round', 'weight', 'home', 'away', 'homeScore', 'awayScore', 'predictions'] as $key) {
+            $this->assertArrayHasKey($key, $match);
+        }
+
+        $byPlayer = array_column($match['predictions'], null, 'player');
+        $this->assertArrayHasKey('Anne', $byPlayer, 'Iedere deelnemer staat per wedstrijd in de timeline.');
+
+        // Anne voorspelt in de fixtures elke afgeronde wedstrijd perfect: exacte uitslag + winnaar = 6 punten.
+        $anne = $byPlayer['Anne'];
+        $this->assertSame($match['homeScore'], $anne['homeScore'], 'De voorspelde uitslag wordt meegegeven.');
+        $this->assertSame($match['awayScore'], $anne['awayScore']);
+        $this->assertTrue($anne['winner']);
+        $this->assertSame(3, $anne['scorePoints']);
+        $this->assertSame(6.0, (float) $anne['points']);
+    }
+
+    public function testTimelineUnknownPoolIs404(): void
+    {
+        $this->client->request('GET', '/api/timeline/bestaat-niet');
+        $this->assertResponseStatusCodeSame(404);
+    }
+
     public function testStandingsForSpecificPoolAreScoped(): void
     {
         $this->client->request('GET', '/api/standings/kantoor');

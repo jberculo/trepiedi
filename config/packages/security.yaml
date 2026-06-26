@@ -45,6 +45,7 @@ security:
         - { path: ^/wedstrijd, roles: PUBLIC_ACCESS }
         - { path: ^/poule, roles: PUBLIC_ACCESS }
         - { path: ^/api/standings, roles: PUBLIC_ACCESS }
+        - { path: ^/api/timeline, roles: PUBLIC_ACCESS }
         - { path: ^/api/matches, roles: PUBLIC_ACCESS }
         - { path: ^/api/rounds, roles: PUBLIC_ACCESS }
         - { path: ^/api/flags, roles: PUBLIC_ACCESS }

@@ -61,6 +61,53 @@ curl "https://trepiedi.online/api/standings?pool=kantoor"
 - `movement`: positieverandering sinds de vorige speeldag (`+` = gestegen, `null` = nieuw of geen vergelijking)
 - `types`: de klassement-types met hun emoji en het veld waarop ze sorteren
 
+### `GET /api/timeline`
+
+Per **afgeronde** wedstrijd, per speler de gescoorde punten én de voorspelde uitslag. Bedoeld om de punten "per wedstrijd / per ronde / per speler" op te halen zonder zelf na te rekenen. Alleen afgeronde wedstrijden, dus voorspellingen lekken niet vóór de aftrap. Standaard de standaardpoule; een andere poule via het pad of `?pool=` (zelfde scoping als `/api/standings`).
+
+```bash
+curl https://trepiedi.online/api/timeline
+curl https://trepiedi.online/api/timeline/kantoor
+curl "https://trepiedi.online/api/timeline?pool=kantoor"
+```
+
+```json
+{
+  "pool": { "name": "Tremani", "code": "algemeen" },
+  "matches": [
+    {
+      "matchId": 42,
+      "round": "16e finales",
+      "weight": 1,
+      "home": "Nederland",
+      "away": "Polen",
+      "homeScore": 2,
+      "awayScore": 1,
+      "advancingSide": "home",
+      "advancingTeam": "Nederland",
+      "predictions": [
+        {
+          "player": "Anne",
+          "slug": "anne",
+          "homeScore": 2,
+          "awayScore": 1,
+          "advancingSide": "home",
+          "points": 6,
+          "rawPoints": 6,
+          "scorePoints": 3,
+          "winner": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+- elke deelnemer van de poule staat per wedstrijd in `predictions`; zonder voorspelling zijn `homeScore`/`awayScore`/`advancingSide` `null` en de punten 0
+- `points`: gewogen punten (ruwe punten × rondegewicht); `rawPoints`: ongewogen
+- `scorePoints`: punten voor de uitslag (doelpunten thuis + uit + exacte-bonus, max 3); `winner`: of de doorgaande ploeg goed voorspeld is (+3)
+- per ronde groeperen kan client-side op het veld `round`
+
 ### `GET /api/matches`
 
 Alle wedstrijden.
@@ -232,6 +279,7 @@ claude mcp add --transport http trepiedi https://trepiedi.online/mcp --header "X
 
 Beschikbare tools:
 - `get_standings`
+- `get_timeline`
 - `list_matches`
 - `get_match`
 - `get_rounds`

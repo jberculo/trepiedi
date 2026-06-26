@@ -44,6 +44,19 @@ class ReadApi
         ];
     }
 
+    public function timeline(?string $code): array
+    {
+        $pool = ($code !== null && $code !== '') ? $this->pools->findOneActiveByCode($code) : $this->pools->findDefault();
+        if ($pool === null) {
+            throw new ApiException(ApiError::NotFound, 'Onbekende of gearchiveerde poule.');
+        }
+
+        return [
+            'pool' => ['name' => $pool->getName(), 'code' => $pool->getCode()],
+            'matches' => $this->scoring->matchBreakdown($pool->memberIds()),
+        ];
+    }
+
     public function matchesList(): array
     {
         $matches = array_map($this->normalizer->match(...), $this->matches->findAllChronological());
