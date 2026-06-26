@@ -197,6 +197,8 @@ admin:
     actions: Acties
     inactive: inactief
     final: definitief
+    via_api: via API/MCP
+    via_api_title: Deze uitslag is via de API/MCP binnengekomen
     confirm_delete_match: Wedstrijd verwijderen?
     no_matches: Nog geen wedstrijden.
     enter_result: Uitslag invoeren

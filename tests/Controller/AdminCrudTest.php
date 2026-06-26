@@ -155,6 +155,51 @@ class AdminCrudTest extends FixturesWebTestCase
         }
     }
 
+    public function testBackendResultChangeClearsApiFlag(): void
+    {
+        $open = $this->openMatch();
+        $open->setHomeScore(1)->setAwayScore(0)->setAdvancingSide(FootballMatch::SIDE_HOME)->setResultViaApi(true);
+        $this->em->flush();
+        $matchId = $open->getId();
+
+        $this->client->loginUser($this->user('admin@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/admin/wedstrijden/' . $matchId . '/uitslag');
+
+        $form = $crawler->selectButton('Opslaan')->form();
+        $form['match_result[homeScore]'] = '3';
+        $form['match_result[awayScore]'] = '0';
+        $form['match_result[advancingSide]'] = 'home';
+        $this->client->submit($form);
+        $this->assertResponseRedirects('/admin/wedstrijden');
+
+        $this->em->clear();
+        $match = $this->em->getRepository(FootballMatch::class)->find($matchId);
+        $this->assertFalse($match->isResultViaApi(), 'Een afwijkende backend-wijziging haalt de API/MCP-vlag weg.');
+    }
+
+    public function testBackendResultSaveWithoutChangeKeepsApiFlag(): void
+    {
+        $open = $this->openMatch();
+        $open->setHomeScore(1)->setAwayScore(0)->setAdvancingSide(FootballMatch::SIDE_HOME)->setResultViaApi(true);
+        $this->em->flush();
+        $matchId = $open->getId();
+
+        $this->client->loginUser($this->user('admin@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/admin/wedstrijden/' . $matchId . '/uitslag');
+
+        // Dezelfde uitslag opnieuw opslaan mag de vlag niet wijzigen.
+        $form = $crawler->selectButton('Opslaan')->form();
+        $form['match_result[homeScore]'] = '1';
+        $form['match_result[awayScore]'] = '0';
+        $form['match_result[advancingSide]'] = 'home';
+        $this->client->submit($form);
+        $this->assertResponseRedirects('/admin/wedstrijden');
+
+        $this->em->clear();
+        $match = $this->em->getRepository(FootballMatch::class)->find($matchId);
+        $this->assertTrue($match->isResultViaApi(), 'Opnieuw opslaan zonder wijziging laat de vlag staan.');
+    }
+
     public function testFinalResultRequiresWinner(): void
     {
         $open = $this->openMatch();

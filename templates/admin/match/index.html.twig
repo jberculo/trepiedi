@@ -43,6 +43,7 @@
                             <td class="text-nowrap">
                                 {% if not match.active %}<span class="badge text-bg-light text-dark border">{{ 'admin.inactive'|trans }}</span>{% endif %}
                                 {% if match.finished %}<span class="badge text-bg-secondary">{{ 'admin.final'|trans }}</span>{% endif %}
+                                {% if match.resultViaApi %}<span class="badge text-bg-info" title="{{ 'admin.via_api_title'|trans }}">🚩 {{ 'admin.via_api'|trans }}</span>{% endif %}
                             </td>
                             <td class="text-end text-nowrap">
                                 <a class="btn btn-sm btn-success" href="{{ path('admin_match_result', {id: match.id}) }}">{{ 'admin.result'|trans }}</a>

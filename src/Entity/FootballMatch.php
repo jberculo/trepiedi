@@ -77,6 +77,15 @@ class FootballMatch
     private bool $active = true;
 
     /**
+     * Of de huidige uitslag via de API/MCP is binnengekomen (true) of handmatig via
+     * de backend is ingevoerd/aangepast (false). Wordt op true gezet door de
+     * API/MCP-uitslag en teruggezet op false zodra de uitslag in de backend naar een
+     * afwijkende waarde wordt aangepast.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    private bool $resultViaApi = false;
+
+    /**
      * @var Collection<int, Prediction>
      */
     #[ORM\OneToMany(targetEntity: Prediction::class, mappedBy: 'footballMatch', cascade: ['remove'])]
@@ -216,6 +225,18 @@ class FootballMatch
     public function setActive(bool $active): static
     {
         $this->active = $active;
+
+        return $this;
+    }
+
+    public function isResultViaApi(): bool
+    {
+        return $this->resultViaApi;
+    }
+
+    public function setResultViaApi(bool $resultViaApi): static
+    {
+        $this->resultViaApi = $resultViaApi;
 
         return $this;
     }

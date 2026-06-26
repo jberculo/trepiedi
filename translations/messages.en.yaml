@@ -197,6 +197,8 @@ admin:
     actions: Actions
     inactive: inactive
     final: final
+    via_api: via API/MCP
+    via_api_title: This result came in via the API/MCP
     confirm_delete_match: Delete match?
     no_matches: No matches yet.
     enter_result: Enter result

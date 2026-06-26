@@ -70,6 +70,26 @@ class ApiTest extends FixturesWebTestCase
         $this->assertResponseStatusCodeSame(404);
     }
 
+    public function testSetResultViaApiMarksResultAsApiSourced(): void
+    {
+        $adminKey = $this->issueApiToken($this->user('admin@trepiedi.test'));
+        $id = $this->openMatch()->getId();
+
+        $this->post($id, $adminKey, ['homeScore' => 2, 'awayScore' => 1, 'advancingSide' => 'home']);
+        $this->assertResponseIsSuccessful();
+
+        $this->em->clear();
+        $this->assertTrue(
+            $this->em->getRepository(FootballMatch::class)->find($id)->isResultViaApi(),
+            'Een via de API gezette uitslag krijgt de API/MCP-vlag.'
+        );
+
+        // De vlag is ook zichtbaar in de wedstrijd-API.
+        $this->client->request('GET', '/api/matches/' . $id);
+        $data = json_decode((string) $this->client->getResponse()->getContent(), true);
+        $this->assertTrue($data['resultViaApi']);
+    }
+
     public function testStandingsForSpecificPoolAreScoped(): void
     {
         $this->client->request('GET', '/api/standings/kantoor');

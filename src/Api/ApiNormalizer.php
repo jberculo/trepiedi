@@ -59,6 +59,7 @@ class ApiNormalizer
             'advancingSide' => $match->getAdvancingSide(),
             'finished' => $match->isFinished(),
             'open' => !$match->isFinished(),
+            'resultViaApi' => $match->isResultViaApi(),
             'active' => $match->isActive(),
             'locked' => $match->isLocked(),
             'predictable' => $match->isActive() && !$match->isLocked(),
