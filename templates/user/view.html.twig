@@ -22,7 +22,7 @@
             </div>
             {% if entry %}
                 <div class="text-end">
-                    <div class="h3 mb-0">{{ entry.weightedTotal|number_format(1, ',', '.') }}</div>
+                    <div class="h3 mb-0">{{ m.pts(entry.weightedTotal) }}</div>
                     <small class="text-muted">{{ 'prof.points_raw'|trans({'%raw%': entry.rawTotal}) }}</small>
                 </div>
             {% endif %}

@@ -27,8 +27,11 @@
 {# Doorgaande ploeg (vlag + naam), of een streepje als die er (nog) niet is. #}
 {% macro team_or_dash(name) %}{% if name %}{{ _self.team(name) }}{% else %}&mdash;{% endif %}{% endmacro %}
 
+{# Puntenweergave: hele getallen zonder decimaal (4 i.p.v. 4,0), anders één decimaal. #}
+{% macro pts(v) %}{{ v == v|round ? v|number_format(0, ',', '.') : v|number_format(1, ',', '.') }}{% endmacro %}
+
 {# Score-badge: +punten (de aanroeper rekent het rondegewicht al mee). #}
-{% macro points_badge(points) %}<span class="badge text-bg-success">+{{ points }}</span>{% endmacro %}
+{% macro points_badge(points) %}<span class="badge text-bg-success">+{{ _self.pts(points) }}</span>{% endmacro %}
 
 {# POST-knop met CSRF-token (en optioneel een bevestiging). variant = bootstrap-outline-kleur. #}
 {% macro csrf_button(action, token, label, variant, confirm) %}

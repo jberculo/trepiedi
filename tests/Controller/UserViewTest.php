@@ -20,6 +20,18 @@ class UserViewTest extends FixturesWebTestCase
         $this->assertSelectorExists('.badge.text-bg-success');
     }
 
+    public function testWeightedTotalHasNoTrailingDecimal(): void
+    {
+        $anneSlug = $this->user('anne@trepiedi.test')->getSlug();
+
+        $this->client->loginUser($this->user('anne@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/speler/' . $anneSlug);
+
+        $this->assertResponseIsSuccessful();
+        // Gehele punten horen als "30" te tonen, niet als "30,0".
+        $this->assertStringNotContainsString(',0', $crawler->filter('.text-end .h3')->text());
+    }
+
     public function testOtherProfileHidesUpcomingPredictions(): void
     {
         $anneSlug = $this->user('anne@trepiedi.test')->getSlug();

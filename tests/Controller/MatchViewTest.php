@@ -70,4 +70,24 @@ class MatchViewTest extends FixturesWebTestCase
         $this->assertSelectorExists('.progress-bar');
         $this->assertGreaterThan(0, $crawler->filter('tbody tr')->count());
     }
+
+    public function testPredictionsSortedByPointsWhenResultKnown(): void
+    {
+        $match = $this->lockedMatch();
+        $this->assertTrue($match->hasResult(), 'Testaanname: deze fixture-wedstrijd heeft een uitslag.');
+
+        $this->client->loginUser($this->user('bram@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/wedstrijd/' . $match->getId());
+
+        $this->assertResponseIsSuccessful();
+
+        $points = $crawler->filter('tbody .badge.text-bg-success')->each(
+            static fn ($node): int => (int) ltrim($node->text(), '+')
+        );
+        $this->assertNotEmpty($points);
+
+        $sorted = $points;
+        rsort($sorted);
+        $this->assertSame($sorted, $points, 'Voorspellingen horen op aflopend aantal punten te staan (meeste eerst).');
+    }
 }

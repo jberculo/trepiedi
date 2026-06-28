@@ -53,6 +53,14 @@ class MatchViewController extends AbstractController
                 ];
             }
             arsort($scoreCounts);
+
+            // Met een uitslag: de voorspellingen op aflopend aantal punten tonen
+            // (meeste eerst), bij gelijk aantal op spelernaam.
+            if ($match->hasResult()) {
+                usort($rows, static fn (array $a, array $b): int =>
+                    [$b['score']->total(), $a['prediction']->getUser()->getDisplayName()]
+                    <=> [$a['score']->total(), $b['prediction']->getUser()->getDisplayName()]);
+            }
         }
 
         return $this->render('match/view.html.twig', [
