@@ -49,3 +49,16 @@ Verder voor productie:
 - Maak de beheerder aan met `php bin/console app:create-admin <email> <wachtwoord>`.
 
 > Let op: draai **niet** `doctrine:fixtures:load` op productie — dat leegt de database.
+
+## Tijdzone
+
+De poule draait op Nederlandse tijd: ingevoerde aftraptijden zijn wandtijd in
+`Europe/Amsterdam`. De applicatie pint die tijdzone zelf vast (`App\Util\AppTime`,
+aangeroepen in `Kernel::__construct()`), zodat het gedrag niet afhangt van de
+tijdzone van de server of `php.ini`.
+
+Dit is belangrijk: zonder die pin interpreteert een server die in UTC draait een
+ingevoerde "21:00" als 21:00 UTC (23:00 NL). Dan geldt een wedstrijd pas twee uur
+te laat als "begonnen" en blijven de voorspellingen onterecht verborgen. Wijzig de
+vastgepinde zone dus niet zonder reden; een afwijkende `date.timezone` in `php.ini`
+heeft geen effect (de app overschrijft die bewust).
