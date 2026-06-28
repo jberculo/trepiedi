@@ -2,6 +2,7 @@
 
 namespace App\Tests\Controller;
 
+use App\Entity\FootballMatch;
 use App\Entity\Prediction;
 use App\Tests\FixturesWebTestCase;
 
@@ -156,6 +157,89 @@ class PredictionLockTest extends FixturesWebTestCase
         $this->assertResponseStatusCodeSame(422);
         $data = json_decode((string) $this->client->getResponse()->getContent(), true);
         $this->assertFalse($data['ok']);
+    }
+
+    public function testInconsistentPredictionNeedsConfirmation(): void
+    {
+        $match = $this->openMatch();
+        $matchId = $match->getId();
+        $bramId = $this->user('bram@trepiedi.test')->getId();
+
+        $this->client->loginUser($this->user('bram@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/voorspellen');
+        $form = $crawler->filter('form[action$="/voorspelling/' . $matchId . '/opslaan"]')->form([
+            'prediction[homeScore]' => '2',
+            'prediction[awayScore]' => '3', // uit wint op doelpunten...
+            'prediction[advancingSide]' => 'home', // ...maar thuis als doorgaande ploeg → tegenstrijdig
+        ]);
+
+        $this->client->xmlHttpRequest('POST', $form->getUri(), $form->getPhpValues());
+
+        $this->assertResponseIsSuccessful();
+        $data = json_decode((string) $this->client->getResponse()->getContent(), true);
+        $this->assertFalse($data['ok']);
+        $this->assertTrue($data['needsConfirmation'] ?? false, 'Een tegenstrijdige voorspelling vraagt om bevestiging.');
+
+        $this->em->clear();
+        $count = $this->em->getRepository(Prediction::class)->count(['user' => $bramId, 'footballMatch' => $matchId]);
+        $this->assertSame(0, $count, 'Zonder bevestiging mag de tegenstrijdige voorspelling niet worden opgeslagen.');
+    }
+
+    public function testInconsistentPredictionIsSavedAfterConfirmation(): void
+    {
+        $match = $this->openMatch();
+        $matchId = $match->getId();
+        $bramId = $this->user('bram@trepiedi.test')->getId();
+
+        $this->client->loginUser($this->user('bram@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/voorspellen');
+        $form = $crawler->filter('form[action$="/voorspelling/' . $matchId . '/opslaan"]')->form([
+            'prediction[homeScore]' => '2',
+            'prediction[awayScore]' => '3',
+            'prediction[advancingSide]' => 'home',
+        ]);
+
+        $values = $form->getPhpValues();
+        $values['confirm_inconsistent'] = '1';
+        $this->client->xmlHttpRequest('POST', $form->getUri(), $values);
+
+        $this->assertResponseIsSuccessful();
+        $data = json_decode((string) $this->client->getResponse()->getContent(), true);
+        $this->assertTrue($data['ok'], 'Na bevestiging wordt de tegenstrijdige voorspelling opgeslagen.');
+
+        $this->em->clear();
+        $prediction = $this->em->getRepository(Prediction::class)
+            ->findOneBy(['user' => $bramId, 'footballMatch' => $matchId]);
+        $this->assertNotNull($prediction);
+        $this->assertSame(2, $prediction->getHomeScore());
+        $this->assertSame(3, $prediction->getAwayScore());
+        $this->assertSame(FootballMatch::SIDE_HOME, $prediction->getAdvancingSide());
+    }
+
+    public function testDrawPredictionIsNotInconsistent(): void
+    {
+        $match = $this->openMatch();
+        $matchId = $match->getId();
+        $bramId = $this->user('bram@trepiedi.test')->getId();
+
+        $this->client->loginUser($this->user('bram@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/voorspellen');
+        // Gelijkspel met een doorgaande ploeg (penalty's) is niet tegenstrijdig.
+        $form = $crawler->filter('form[action$="/voorspelling/' . $matchId . '/opslaan"]')->form([
+            'prediction[homeScore]' => '1',
+            'prediction[awayScore]' => '1',
+            'prediction[advancingSide]' => 'home',
+        ]);
+
+        $this->client->xmlHttpRequest('POST', $form->getUri(), $form->getPhpValues());
+
+        $this->assertResponseIsSuccessful();
+        $data = json_decode((string) $this->client->getResponse()->getContent(), true);
+        $this->assertTrue($data['ok'], 'Een gelijkspel-voorspelling wordt direct opgeslagen.');
+
+        $this->em->clear();
+        $count = $this->em->getRepository(Prediction::class)->count(['user' => $bramId, 'footballMatch' => $matchId]);
+        $this->assertSame(1, $count);
     }
 
     public function testPredictionOnOpenMatchIsSaved(): void

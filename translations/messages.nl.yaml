@@ -111,6 +111,7 @@ dash:
     not_available_flash: 'Deze wedstrijd is nog niet beschikbaar om te voorspellen.'
     locked_flash: 'Deze wedstrijd is gestart; je voorspelling kan niet meer worden aangepast.'
     saved_flash: 'Voorspelling voor %match% opgeslagen.'
+    inconsistent_warning: 'Je voorspelling is tegenstrijdig: de score wijst een andere winnaar aan dan de doorgaande ploeg die je koos. Toch opslaan?'
 form:
     winner: Winnaar
     choose_team: '- kies team -'
@@ -230,8 +231,7 @@ admin:
     bulk_activated: '%count% wedstrijd(en) geactiveerd.'
     bulk_deactivated: '%count% wedstrijd(en) gedeactiveerd.'
     result_incomplete: 'Voor een definitieve uitslag moeten beide scores en de winnaar zijn ingevuld.'
-    result_inconsistent_warning: 'Let op: de score wijst een andere winnaar aan dan de doorgaande ploeg die je hebt gekozen. Weet je zeker dat dit klopt?'
-    result_save_anyway: 'Toch opslaan'
+    result_inconsistent_error: 'Tegenstrijdige uitslag: de score wijst een andere winnaar aan dan de doorgaande ploeg. Zonder penalty''s kan dat niet — pas de score of de doorgaande ploeg aan.'
     pools: Poules
     manage_pools: 'Poules beheren'
     new_pool: '+ Nieuwe poule'

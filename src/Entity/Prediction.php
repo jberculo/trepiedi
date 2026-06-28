@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\PredictionRepository;
+use App\Util\MatchOutcome;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -116,6 +117,15 @@ class Prediction
     public function getAdvancingTeam(): ?string
     {
         return $this->footballMatch?->teamForSide($this->advancingSide);
+    }
+
+    /**
+     * Tegenstrijdige voorspelling: de voorspelde score wijst een andere winnaar
+     * aan dan de gekozen doorgaande ploeg.
+     */
+    public function isInconsistent(): bool
+    {
+        return MatchOutcome::isInconsistent($this->homeScore, $this->awayScore, $this->advancingSide);
     }
 
     public function getUpdatedAt(): ?\DateTimeImmutable

@@ -55,6 +55,20 @@ class DashboardController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Een tegenstrijdige voorspelling (score-winnaar ≠ doorgaande ploeg) wordt
+            // pas opgeslagen nadat de speler die expliciet bevestigt.
+            $confirmed = $request->getPayload()->getBoolean('confirm_inconsistent');
+            if ($prediction->isInconsistent() && !$confirmed) {
+                $warning = $translator->trans('dash.inconsistent_warning');
+                if ($ajax) {
+                    return $this->jsonStatus(['ok' => false, 'needsConfirmation' => true, 'message' => $warning]);
+                }
+
+                $this->addFlash('warning', $warning);
+
+                return $this->dashboardRedirect($match);
+            }
+
             $prediction->setUser($user);
             $prediction->setFootballMatch($match);
             $prediction->setUpdatedAt(new \DateTimeImmutable());

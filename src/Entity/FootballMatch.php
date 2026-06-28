@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\FootballMatchRepository;
+use App\Util\MatchOutcome;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -286,23 +287,11 @@ class FootballMatch
     }
 
     /**
-     * Een tegenstrijdige uitslag: er is een duidelijke score-winnaar (geen
-     * gelijkspel), maar de doorgaande ploeg is juist de andere kant. Een
-     * gelijkspel is nooit tegenstrijdig (penalty's bepalen dan de winnaar).
+     * Een tegenstrijdige uitslag: de score-winnaar is niet de doorgaande ploeg.
      */
     public function hasInconsistentResult(): bool
     {
-        if ($this->homeScore === null || $this->awayScore === null || $this->advancingSide === null) {
-            return false;
-        }
-
-        if ($this->homeScore === $this->awayScore) {
-            return false;
-        }
-
-        $scoreWinner = $this->homeScore > $this->awayScore ? self::SIDE_HOME : self::SIDE_AWAY;
-
-        return $scoreWinner !== $this->advancingSide;
+        return MatchOutcome::isInconsistent($this->homeScore, $this->awayScore, $this->advancingSide);
     }
 
     public function __toString(): string

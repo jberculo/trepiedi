@@ -111,6 +111,7 @@ dash:
     not_available_flash: 'This match cannot be predicted yet.'
     locked_flash: 'This match has started; your prediction can no longer be changed.'
     saved_flash: 'Prediction for %match% saved.'
+    inconsistent_warning: 'Your prediction is inconsistent: the score points to a different winner than the advancing team you picked. Save anyway?'
 form:
     winner: Winner
     choose_team: '- choose team -'
@@ -230,8 +231,7 @@ admin:
     bulk_activated: '%count% match(es) activated.'
     bulk_deactivated: '%count% match(es) deactivated.'
     result_incomplete: 'A final result requires both scores and the winner to be filled in.'
-    result_inconsistent_warning: 'Heads up: the score points to a different winner than the advancing team you selected. Are you sure this is correct?'
-    result_save_anyway: 'Save anyway'
+    result_inconsistent_error: 'Inconsistent result: the score points to a different winner than the advancing team. Without penalties that is impossible — adjust the score or the advancing team.'
     pools: Pools
     manage_pools: 'Manage pools'
     new_pool: '+ New pool'

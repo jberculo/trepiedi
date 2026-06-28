@@ -10,6 +10,7 @@ use App\Repository\FootballMatchRepository;
 use App\Repository\PredictionRepository;
 use App\Repository\RoundRepository;
 use App\Repository\UserRepository;
+use App\Util\MatchOutcome;
 
 /**
  * Berekent punten volgens de poule-regels (vanaf de 16e finales):
@@ -644,13 +645,7 @@ class ScoringService
 
     private function predictedWinnerSide(Prediction $prediction): ?string
     {
-        $home = $prediction->getHomeScore();
-        $away = $prediction->getAwayScore();
-        if ($home === null || $away === null || $home === $away) {
-            return null;
-        }
-
-        return $home > $away ? FootballMatch::SIDE_HOME : FootballMatch::SIDE_AWAY;
+        return MatchOutcome::scoreWinner($prediction->getHomeScore(), $prediction->getAwayScore());
     }
 
     /**

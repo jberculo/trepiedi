@@ -11,20 +11,12 @@
             <div class="card shadow-sm"><div class="card-body">
                 <p class="small text-muted">{{ 'admin.result_help'|trans }}</p>
                 {{ form_start(form) }}
+                    {{ form_errors(form) }}
                     {{ form_widget(form) }}
-                    {% if needsConfirmation %}
-                        <div class="alert alert-warning mt-3 mb-0">{{ 'admin.result_inconsistent_warning'|trans }}</div>
-                        <input type="hidden" name="confirm_inconsistent" value="1">
-                        <div class="mt-3">
-                            <button class="btn btn-warning">{{ 'admin.result_save_anyway'|trans }}</button>
-                            <a class="btn btn-link" href="{{ path('admin_match_index') }}">{{ 'common.cancel'|trans }}</a>
-                        </div>
-                    {% else %}
-                        <div class="mt-3">
-                            <button class="btn btn-success">{{ 'common.save'|trans }}</button>
-                            <a class="btn btn-link" href="{{ path('admin_match_index') }}">{{ 'common.cancel'|trans }}</a>
-                        </div>
-                    {% endif %}
+                    <div class="mt-3">
+                        <button class="btn btn-success">{{ 'common.save'|trans }}</button>
+                        <a class="btn btn-link" href="{{ path('admin_match_index') }}">{{ 'common.cancel'|trans }}</a>
+                    </div>
                 {{ form_end(form) }}
             </div></div>
         </div>

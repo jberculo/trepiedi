@@ -83,18 +83,16 @@ class MatchController extends AbstractController
                 ));
             }
 
-            if ($form->isValid()) {
-                // Een tegenstrijdige uitslag (score-winnaar ≠ doorgaande ploeg) wordt
-                // pas opgeslagen nadat de beheerder die expliciet bevestigt.
-                $confirmed = $request->getPayload()->getBoolean('confirm_inconsistent');
-                if ($match->hasInconsistentResult() && !$confirmed) {
-                    return $this->render('admin/match/result.html.twig', [
-                        'form' => $form,
-                        'match' => $match,
-                        'needsConfirmation' => true,
-                    ]);
-                }
+            // Een tegenstrijdige uitslag (score-winnaar ≠ doorgaande ploeg) kan niet
+            // bestaan: zonder penalty's gaat de ploeg die op doelpunten wint door.
+            // Dit is dus een invoerfout en wordt geweigerd.
+            if ($match->hasInconsistentResult()) {
+                $form->addError(new \Symfony\Component\Form\FormError(
+                    $translator->trans('admin.result_inconsistent_error')
+                ));
+            }
 
+            if ($form->isValid()) {
                 // Een handmatige backend-wijziging van de uitslag haalt de API/MCP-vlag weg.
                 $resultAfter = [$match->getHomeScore(), $match->getAwayScore(), $match->getAdvancingSide(), $match->isFinished()];
                 if ($resultAfter !== $resultBefore) {
@@ -111,7 +109,6 @@ class MatchController extends AbstractController
         return $this->render('admin/match/result.html.twig', [
             'form' => $form,
             'match' => $match,
-            'needsConfirmation' => false,
         ]);
     }
 
