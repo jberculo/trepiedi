@@ -250,6 +250,12 @@ class FootballMatch
     }
 
     /**
+     * Aantal uur na de aftrap waarna een nog niet afgeronde wedstrijd niet meer
+     * als "gestart" maar als "wachtend op uitslag" geldt.
+     */
+    public const RESULT_GRACE_HOURS = 2;
+
+    /**
      * Voorspellingen kunnen niet meer worden aangepast vanaf de aftrap.
      */
     public function isLocked(?\DateTimeImmutable $now = null): bool
@@ -259,9 +265,44 @@ class FootballMatch
         return $this->kickoffAt !== null && $now >= $this->kickoffAt;
     }
 
+    /**
+     * De wedstrijd is begonnen, de reguliere speeltijd is ruimschoots voorbij,
+     * maar er is nog geen definitieve uitslag ingevoerd.
+     */
+    public function isAwaitingResult(?\DateTimeImmutable $now = null): bool
+    {
+        if ($this->kickoffAt === null || $this->finished) {
+            return false;
+        }
+
+        $now ??= new \DateTimeImmutable();
+
+        return $now >= $this->kickoffAt->modify(sprintf('+%d hours', self::RESULT_GRACE_HOURS));
+    }
+
     public function hasResult(): bool
     {
         return $this->finished && $this->homeScore !== null && $this->awayScore !== null;
+    }
+
+    /**
+     * Een tegenstrijdige uitslag: er is een duidelijke score-winnaar (geen
+     * gelijkspel), maar de doorgaande ploeg is juist de andere kant. Een
+     * gelijkspel is nooit tegenstrijdig (penalty's bepalen dan de winnaar).
+     */
+    public function hasInconsistentResult(): bool
+    {
+        if ($this->homeScore === null || $this->awayScore === null || $this->advancingSide === null) {
+            return false;
+        }
+
+        if ($this->homeScore === $this->awayScore) {
+            return false;
+        }
+
+        $scoreWinner = $this->homeScore > $this->awayScore ? self::SIDE_HOME : self::SIDE_AWAY;
+
+        return $scoreWinner !== $this->advancingSide;
     }
 
     public function __toString(): string

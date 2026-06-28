@@ -94,6 +94,7 @@ dash:
     status_soon: Soon
     status_finished: Finished
     status_started: Started
+    status_awaiting: 'Awaiting result'
     status_open: Open
     kickoff: Kick-off
     predictions_link: predictions
@@ -229,6 +230,8 @@ admin:
     bulk_activated: '%count% match(es) activated.'
     bulk_deactivated: '%count% match(es) deactivated.'
     result_incomplete: 'A final result requires both scores and the winner to be filled in.'
+    result_inconsistent_warning: 'Heads up: the score points to a different winner than the advancing team you selected. Are you sure this is correct?'
+    result_save_anyway: 'Save anyway'
     pools: Pools
     manage_pools: 'Manage pools'
     new_pool: '+ New pool'

@@ -24,7 +24,7 @@ final class DashboardViewBuilder
     }
 
     /**
-     * @return list<array{round: Round, matches: list<array{match: FootballMatch, prediction: ?Prediction, locked: bool, score: ?PredictionScore, form: ?FormView}>}>
+     * @return list<array{round: Round, matches: list<array{match: FootballMatch, prediction: ?Prediction, locked: bool, awaitingResult: bool, score: ?PredictionScore, form: ?FormView}>}>
      */
     public function buildForUser(User $user): array
     {
@@ -36,6 +36,7 @@ final class DashboardViewBuilder
                 'match' => $match,
                 'prediction' => $prediction,
                 'locked' => $match->isLocked(),
+                'awaitingResult' => $match->isAwaitingResult(),
                 'score' => $prediction !== null ? $this->scoringService->scorePrediction($prediction) : null,
                 'form' => $this->buildFormView($match, $prediction),
             ];

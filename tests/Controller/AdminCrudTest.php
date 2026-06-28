@@ -247,4 +247,78 @@ class AdminCrudTest extends FixturesWebTestCase
         $match = $this->em->getRepository(FootballMatch::class)->find($matchId);
         $this->assertFalse($match->isFinished(), 'Wedstrijd zonder winnaar mag niet definitief worden.');
     }
+
+    public function testInconsistentResultNeedsConfirmation(): void
+    {
+        $open = $this->openMatch();
+        $matchId = $open->getId();
+
+        $this->client->loginUser($this->user('admin@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/admin/wedstrijden/' . $matchId . '/uitslag');
+
+        // Thuis wint de score (2-1), maar de uitploeg wordt als doorgaand gekozen.
+        $form = $crawler->selectButton('Opslaan')->form();
+        $form['match_result[homeScore]'] = '2';
+        $form['match_result[awayScore]'] = '1';
+        $form['match_result[advancingSide]'] = 'away';
+        $this->client->submit($form);
+
+        // Geen redirect, maar een bevestigingsmelding; nog niets opgeslagen.
+        $this->assertSelectorExists('.alert-warning');
+        $this->assertSelectorExists('input[name="confirm_inconsistent"]');
+
+        $this->em->clear();
+        $match = $this->em->getRepository(FootballMatch::class)->find($matchId);
+        $this->assertNull($match->getHomeScore(), 'Tegenstrijdige uitslag mag niet zonder bevestiging worden opgeslagen.');
+    }
+
+    public function testInconsistentResultIsSavedAfterConfirmation(): void
+    {
+        $open = $this->openMatch();
+        $matchId = $open->getId();
+
+        $this->client->loginUser($this->user('admin@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/admin/wedstrijden/' . $matchId . '/uitslag');
+
+        $form = $crawler->selectButton('Opslaan')->form();
+        $form['match_result[homeScore]'] = '2';
+        $form['match_result[awayScore]'] = '1';
+        $form['match_result[advancingSide]'] = 'away';
+        $crawler = $this->client->submit($form);
+
+        // De beheerder bevestigt via "Toch opslaan".
+        $confirm = $crawler->selectButton('Toch opslaan')->form();
+        $this->client->submit($confirm);
+
+        $this->assertResponseRedirects('/admin/wedstrijden');
+
+        $this->em->clear();
+        $match = $this->em->getRepository(FootballMatch::class)->find($matchId);
+        $this->assertSame(2, $match->getHomeScore());
+        $this->assertSame(1, $match->getAwayScore());
+        $this->assertSame(FootballMatch::SIDE_AWAY, $match->getAdvancingSide(), 'Na bevestiging wordt de tegenstrijdige uitslag opgeslagen.');
+    }
+
+    public function testConsistentResultSavesWithoutConfirmation(): void
+    {
+        $open = $this->openMatch();
+        $matchId = $open->getId();
+
+        $this->client->loginUser($this->user('admin@trepiedi.test'));
+        $crawler = $this->client->request('GET', '/admin/wedstrijden/' . $matchId . '/uitslag');
+
+        // Score-winnaar (thuis) gaat ook door → geen bevestiging nodig.
+        $form = $crawler->selectButton('Opslaan')->form();
+        $form['match_result[homeScore]'] = '2';
+        $form['match_result[awayScore]'] = '1';
+        $form['match_result[advancingSide]'] = 'home';
+        $this->client->submit($form);
+
+        $this->assertResponseRedirects('/admin/wedstrijden');
+
+        $this->em->clear();
+        $match = $this->em->getRepository(FootballMatch::class)->find($matchId);
+        $this->assertSame(2, $match->getHomeScore());
+        $this->assertSame(FootballMatch::SIDE_HOME, $match->getAdvancingSide());
+    }
 }

@@ -94,6 +94,7 @@ dash:
     status_soon: Binnenkort
     status_finished: Afgelopen
     status_started: Gestart
+    status_awaiting: 'Wachten op uitslag'
     status_open: Open
     kickoff: Aftrap
     predictions_link: voorspellingen
@@ -229,6 +230,8 @@ admin:
     bulk_activated: '%count% wedstrijd(en) geactiveerd.'
     bulk_deactivated: '%count% wedstrijd(en) gedeactiveerd.'
     result_incomplete: 'Voor een definitieve uitslag moeten beide scores en de winnaar zijn ingevuld.'
+    result_inconsistent_warning: 'Let op: de score wijst een andere winnaar aan dan de doorgaande ploeg die je hebt gekozen. Weet je zeker dat dit klopt?'
+    result_save_anyway: 'Toch opslaan'
     pools: Poules
     manage_pools: 'Poules beheren'
     new_pool: '+ Nieuwe poule'

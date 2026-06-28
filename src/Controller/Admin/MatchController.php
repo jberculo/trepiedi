@@ -84,6 +84,17 @@ class MatchController extends AbstractController
             }
 
             if ($form->isValid()) {
+                // Een tegenstrijdige uitslag (score-winnaar ≠ doorgaande ploeg) wordt
+                // pas opgeslagen nadat de beheerder die expliciet bevestigt.
+                $confirmed = $request->getPayload()->getBoolean('confirm_inconsistent');
+                if ($match->hasInconsistentResult() && !$confirmed) {
+                    return $this->render('admin/match/result.html.twig', [
+                        'form' => $form,
+                        'match' => $match,
+                        'needsConfirmation' => true,
+                    ]);
+                }
+
                 // Een handmatige backend-wijziging van de uitslag haalt de API/MCP-vlag weg.
                 $resultAfter = [$match->getHomeScore(), $match->getAwayScore(), $match->getAdvancingSide(), $match->isFinished()];
                 if ($resultAfter !== $resultBefore) {
@@ -100,6 +111,7 @@ class MatchController extends AbstractController
         return $this->render('admin/match/result.html.twig', [
             'form' => $form,
             'match' => $match,
+            'needsConfirmation' => false,
         ]);
     }
 

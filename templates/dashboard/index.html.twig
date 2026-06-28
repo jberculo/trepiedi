@@ -30,6 +30,8 @@
                                             <span class="badge text-bg-light text-dark border">{{ 'dash.status_soon'|trans }}</span>
                                         {% elseif match.finished %}
                                             <span class="badge text-bg-secondary">{{ 'dash.status_finished'|trans }}</span>
+                                        {% elseif item.awaitingResult %}
+                                            <span class="badge text-bg-info">{{ 'dash.status_awaiting'|trans }}</span>
                                         {% elseif item.locked %}
                                             <span class="badge text-bg-warning">{{ 'dash.status_started'|trans }}</span>
                                         {% else %}
