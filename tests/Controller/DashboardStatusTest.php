@@ -36,4 +36,15 @@ class DashboardStatusTest extends FixturesWebTestCase
         $this->assertStringContainsString('Wachten op uitslag', $card);
         $this->assertStringNotContainsString('Gestart', $card);
     }
+
+    public function testDashboardRendersInconsistencyModal(): void
+    {
+        $this->client->loginUser($this->user('bram@trepiedi.test'));
+        $this->client->request('GET', '/voorspellen');
+
+        $this->assertResponseIsSuccessful();
+        // De bevestigings-modal (geen js-confirm) staat klaar in de pagina.
+        $this->assertSelectorExists('#inconsistent-modal');
+        $this->assertSelectorExists('#inconsistent-modal-confirm');
+    }
 }

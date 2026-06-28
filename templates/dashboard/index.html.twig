@@ -101,6 +101,22 @@
             <div class="alert alert-info">{{ 'dash.nothing_yet'|trans }}</div>
         {% endfor %}
     </div>
+
+    <div class="modal fade" id="inconsistent-modal" tabindex="-1" aria-labelledby="inconsistent-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title h5" id="inconsistent-modal-title">{{ 'dash.inconsistent_title'|trans }}</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ 'common.cancel'|trans }}"></button>
+                </div>
+                <div class="modal-body" id="inconsistent-modal-message"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link" data-bs-dismiss="modal">{{ 'common.cancel'|trans }}</button>
+                    <button type="button" class="btn btn-warning" id="inconsistent-modal-confirm">{{ 'dash.inconsistent_confirm'|trans }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block javascripts %}

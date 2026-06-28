@@ -261,10 +261,14 @@ class AdminCrudTest extends FixturesWebTestCase
         $form['match_result[homeScore]'] = '2';
         $form['match_result[awayScore]'] = '1';
         $form['match_result[advancingSide]'] = 'away';
-        $this->client->submit($form);
+        $crawler = $this->client->submit($form);
 
         // Geweigerd: geen redirect, formulier opnieuw getoond met de fout.
         $this->assertResponseStatusCodeSame(422);
+
+        // De foutmelding mag maar één keer verschijnen.
+        $occurrences = substr_count($crawler->filter('form')->html(), 'pas de score of de doorgaande ploeg aan');
+        $this->assertSame(1, $occurrences, 'De tegenstrijdigheidsfout hoort precies één keer te tonen.');
 
         $this->em->clear();
         $match = $this->em->getRepository(FootballMatch::class)->find($matchId);

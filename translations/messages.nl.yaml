@@ -112,6 +112,8 @@ dash:
     locked_flash: 'Deze wedstrijd is gestart; je voorspelling kan niet meer worden aangepast.'
     saved_flash: 'Voorspelling voor %match% opgeslagen.'
     inconsistent_warning: 'Je voorspelling is tegenstrijdig: de score wijst een andere winnaar aan dan de doorgaande ploeg die je koos. Toch opslaan?'
+    inconsistent_title: 'Tegenstrijdige voorspelling'
+    inconsistent_confirm: 'Toch opslaan'
 form:
     winner: Winnaar
     choose_team: '- kies team -'
