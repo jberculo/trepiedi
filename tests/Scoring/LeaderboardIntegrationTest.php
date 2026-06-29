@@ -176,6 +176,44 @@ class LeaderboardIntegrationTest extends KernelTestCase
         $this->fail('Geen geschikte afgeronde wedstrijd gevonden.');
     }
 
+    public function testTiedPlayersGetNoSpuriousMovement(): void
+    {
+        // Anne en Bram voorspellen elke winnaar goed (gelijk op 'winners'), maar de
+        // gewogen-totaal-volgorde flipt tussen de twee speeldagen: Bram exact in de
+        // achtste, Anne exact in de (zwaar wegende) kwart. Met strikte posities gaf
+        // dat spookbewegingen (+1/-1) terwijl beiden gedeeld eerste staan.
+        $rounds = static::getContainer()->get(RoundRepository::class);
+        $rounds->findOneBy(['name' => 'Kwartfinales'])->setWeight(5.0);
+
+        foreach ($this->em->getRepository(Prediction::class)->findAll() as $prediction) {
+            $name = $prediction->getUser()->getDisplayName();
+            $match = $prediction->getFootballMatch();
+            if (!in_array($name, ['Anne', 'Bram'], true) || !$match->isFinished()) {
+                continue;
+            }
+
+            $isKwart = $match->getRound()->getName() === 'Kwartfinales';
+            $prediction->setAdvancingSide($match->getAdvancingSide());
+
+            $exact = ($name === 'Bram') !== $isKwart;
+            $prediction->setHomeScore($match->getHomeScore());
+            $prediction->setAwayScore($exact ? $match->getAwayScore() : $match->getAwayScore() + 5);
+        }
+        $this->em->flush();
+
+        $scoring = static::getContainer()->get(ScoringService::class);
+        $board = $scoring->leaderboardWithMovement();
+        $anne = $this->entryFor($board, 'Anne');
+        $bram = $this->entryFor($board, 'Bram');
+
+        // Beiden alle 12 winnaars goed: ze delen rang 1 in de vorige én de huidige
+        // stand, dus geen positieverandering.
+        $this->assertSame(12, $anne->advanceCount);
+        $this->assertSame(12, $bram->advanceCount);
+        $this->assertSame(0, $anne->change('winners'));
+        $this->assertSame(0, $bram->change('winners'));
+    }
+
     private function entryFor(array $leaderboard, string $displayName): ?object
     {
         foreach ($leaderboard as $entry) {

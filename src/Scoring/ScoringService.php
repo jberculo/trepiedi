@@ -278,6 +278,11 @@ class ScoringService
     }
 
     /**
+     * Positie per speler in dit klassement, tie-aware: spelers met dezelfde
+     * hoofdwaarde (eerste element van $metric) delen een positie, net als de
+     * getoonde rang. Zonder dit zou een volledig gelijke stand spookbewegingen
+     * opleveren (iedereen "1", maar pijlen die plaatsen aangeven).
+     *
      * @param list<LeaderboardEntry> $entries
      * @param callable(LeaderboardEntry): list<int|float> $metric
      *
@@ -291,8 +296,15 @@ class ScoringService
         });
 
         $map = [];
+        $rank = 0;
+        $prevPrimary = null;
         foreach ($list as $i => $entry) {
-            $map[$entry->user->getId()] = $i + 1;
+            $primary = (float) $metric($entry)[0];
+            if ($prevPrimary === null || abs($primary - $prevPrimary) > 0.0001) {
+                $rank = $i + 1;
+                $prevPrimary = $primary;
+            }
+            $map[$entry->user->getId()] = $rank;
         }
 
         return $map;
