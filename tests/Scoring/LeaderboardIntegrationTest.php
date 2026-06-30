@@ -176,6 +176,18 @@ class LeaderboardIntegrationTest extends KernelTestCase
         $this->fail('Geen geschikte afgeronde wedstrijd gevonden.');
     }
 
+    public function testLanternRankingHasMovement(): void
+    {
+        // Default fixtures: in de achtste hebben Chris en Diana allebei 8 strafpunten
+        // (gedeeld 1e in de lantaarn). Na de kwart loopt Chris uit naar 12 (Diana blijft
+        // 8), dus Diana zakt van gedeeld 1e naar 2e en Chris blijft 1e.
+        $scoring = static::getContainer()->get(ScoringService::class);
+        $board = $scoring->leaderboardWithMovement();
+
+        $this->assertSame(0, $this->entryFor($board, 'Chris')->change('lantern'));
+        $this->assertSame(-1, $this->entryFor($board, 'Diana')->change('lantern'));
+    }
+
     public function testTiedPlayersGetNoSpuriousMovement(): void
     {
         // Anne en Bram voorspellen elke winnaar goed (gelijk op 'winners'), maar de

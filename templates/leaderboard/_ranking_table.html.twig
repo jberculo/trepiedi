@@ -5,6 +5,7 @@
      intro            (vertaalsleutel boven de tabel)
      showArrow        (positiepijl tonen?)
      arrowKey         (sleutel voor entry.change(), bij showArrow)
+     invertArrow      (kleuren omdraaien: stijgen = rood, bij straf-klassementen)
      rankField        (veld voor dense-rang; null = entry.rank gebruiken)
      mode             (points|score|winners|lantern|inconsistent)
      maxPossible, totalFinished #}
@@ -42,7 +43,7 @@
                         {% if prev is null or value != prev %}{% set rank = loop.index %}{% set prev = value %}{% endif %}
                     {% endif %}
                     <tr {% if app.user and entry.user.id == app.user.id %}class="table-success"{% endif %}>
-                        <td class="fw-bold {{ lb.medal(rank) }}">{{ rank }}{% if showArrow %} {{ lb.arrow(entry.change(arrowKey)) }}{% endif %}</td>
+                        <td class="fw-bold {{ lb.medal(rank) }}">{{ rank }}{% if showArrow %} {{ lb.arrow(entry.change(arrowKey), invertArrow) }}{% endif %}</td>
                         <td>{{ m.player(entry.user) }}</td>
                         {% for round in rounds %}
                             {% set played = finishedPerRound[round.id] ?? 0 %}

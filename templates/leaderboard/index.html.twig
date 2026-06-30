@@ -39,9 +39,9 @@
         {% endfor %}
     </ul>
 
-    {% if activeTab not in ['animation', 'lantern', 'inconsistent'] %}
+    {% if activeTab != 'animation' %}
         <p class="text-muted small">
-            <span class="rise">&#9650;</span>/<span class="text-danger">&#9660;</span> = {{ 'lb.movement_legend'|trans }}
+            <span class="{{ activeRanking.invertArrow ? 'text-danger' : 'rise' }}">&#9650;</span>/<span class="{{ activeRanking.invertArrow ? 'rise' : 'text-danger' }}">&#9660;</span> = {{ 'lb.movement_legend'|trans }}
         </p>
     {% endif %}
 
@@ -51,6 +51,7 @@
             intro: activeRanking.intro,
             showArrow: activeRanking.showArrow,
             arrowKey: activeRanking.arrowKey,
+            invertArrow: activeRanking.invertArrow,
             rankField: activeRanking.rankField,
             mode: activeRanking.mode,
             rounds: rounds,

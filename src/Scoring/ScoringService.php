@@ -247,6 +247,8 @@ class ScoringService
             'points' => static fn (LeaderboardEntry $e): array => [$e->weightedTotal, $e->rawTotal],
             'score' => static fn (LeaderboardEntry $e): array => [$e->scorePoints, $e->weightedTotal],
             'winners' => static fn (LeaderboardEntry $e): array => [$e->advanceCount, $e->weightedTotal],
+            'lantern' => static fn (LeaderboardEntry $e): array => [$e->lanternPoints, $e->weightedTotal],
+            'inconsistent' => static fn (LeaderboardEntry $e): array => [$e->inconsistentCount, $e->weightedTotal],
         ];
 
         foreach ($rankings as $key => $metric) {

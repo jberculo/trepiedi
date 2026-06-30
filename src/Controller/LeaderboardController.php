@@ -50,7 +50,7 @@ class LeaderboardController extends AbstractController
 
     /**
      * @param list<LeaderboardEntry> $entries
-     * @return array<string, array{entries: list<LeaderboardEntry>, intro: string, showArrow: bool, arrowKey: ?string, rankField: ?string, max_now_kind: string, max_tour_kind: string, mode: string}>
+     * @return array<string, array{entries: list<LeaderboardEntry>, intro: string, showArrow: bool, arrowKey: ?string, invertArrow: bool, rankField: ?string, max_now_kind: string, max_tour_kind: string, mode: string}>
      */
     private function rankings(array $entries): array
     {
@@ -60,6 +60,7 @@ class LeaderboardController extends AbstractController
                 'intro' => 'lb.general_intro',
                 'showArrow' => true,
                 'arrowKey' => 'points',
+                'invertArrow' => false,
                 'rankField' => null,
                 'max_now_kind' => 'points',
                 'max_tour_kind' => 'points',
@@ -70,6 +71,7 @@ class LeaderboardController extends AbstractController
                 'intro' => 'lb.balls_intro',
                 'showArrow' => true,
                 'arrowKey' => 'score',
+                'invertArrow' => false,
                 'rankField' => 'scorePoints',
                 'max_now_kind' => 'triple-finished',
                 'max_tour_kind' => 'triple-total',
@@ -80,6 +82,7 @@ class LeaderboardController extends AbstractController
                 'intro' => 'lb.oracle_intro',
                 'showArrow' => true,
                 'arrowKey' => 'winners',
+                'invertArrow' => false,
                 'rankField' => 'advanceCount',
                 'max_now_kind' => 'finished',
                 'max_tour_kind' => 'total',
@@ -88,8 +91,9 @@ class LeaderboardController extends AbstractController
             'lantern' => [
                 'entries' => $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->lanternPoints),
                 'intro' => 'lb.lantern_intro',
-                'showArrow' => false,
-                'arrowKey' => null,
+                'showArrow' => true,
+                'arrowKey' => 'lantern',
+                'invertArrow' => true,
                 'rankField' => 'lanternPoints',
                 'max_now_kind' => 'triple-finished',
                 'max_tour_kind' => 'triple-total',
@@ -98,8 +102,9 @@ class LeaderboardController extends AbstractController
             'inconsistent' => [
                 'entries' => $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->inconsistentCount),
                 'intro' => 'lb.inconsistent_intro',
-                'showArrow' => false,
-                'arrowKey' => null,
+                'showArrow' => true,
+                'arrowKey' => 'inconsistent',
+                'invertArrow' => true,
                 'rankField' => 'inconsistentCount',
                 'max_now_kind' => 'finished',
                 'max_tour_kind' => 'total',
