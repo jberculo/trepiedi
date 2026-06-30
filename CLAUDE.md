@@ -71,6 +71,17 @@ Twee sporen: sessie-login voor de web-UI (`LoginFormAuthenticator`) en `X-API-Ke
 - `src/Util/MatchOutcome.php` — gedeelde winnaar-/gelijkspel-/tegenstrijdigheidslogica; hergebruikt door scoring én entity.
 - i18n via `translations/` en `LocaleSubscriber`.
 
+## Deploy
+
+Productie draait op `https://trepiedi.online` (server `jb-01`, 178.62.186.250). Er is **geen** CI/CD of deploy-script in de repo; de uitrol is een gedocumenteerde handmatige tar-deploy. De volledige procedure + een log per uitrol (met valkuilen) staat **buiten de repo** in `C:\www\AiCli\docs\trepiedi-online-deploy.md` — lees dat vóór een deploy.
+
+Kort, voor een **code-only** wijziging (geen migratie/nieuwe classes):
+1. `git archive --format=tar.gz -o deploy.tar.gz HEAD` → `pscp` naar `/tmp` op de server.
+2. `cd /var/www/trepiedi.online && tar --exclude='public/uploads' -xzf /tmp/deploy.tar.gz`
+3. `sudo rm -rf var/cache/prod && sudo -u www-data php8.4 bin/console cache:clear && sudo chown -R www-data:www-data var`
+
+Bij een migratie: extra `sudo -u www-data php8.4 bin/console doctrine:migrations:migrate`. Bij nieuwe/verwijderde classes: `composer dump-autoload --no-dev --optimize` en verwijderde bestanden expliciet `rm`-en op de server (tar voegt alleen toe).
+
 ## Conventies
 
 - PHP volgt **PSR-12**: 4 spaties, geen decoratieve uitlijning van `=>`/`=`, opening brace van methodes/classes op eigen regel, van control-structures op dezelfde regel.
