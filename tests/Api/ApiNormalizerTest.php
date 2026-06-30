@@ -137,6 +137,21 @@ class ApiNormalizerTest extends TestCase
         $this->assertSame(0, $rankings['score']['entries'][1]['movement'], 'Annes score-movement uit rankChange[score].');
     }
 
+    public function testPointsRankingBreaksTiesOnRawTotalLikeTheSite(): void
+    {
+        // Gelijke gewogen stand, maar verschillende ruwe punten: net als op de site
+        // staat de speler met meer ruwe punten eerst, ook al delen ze rang 1.
+        $low = $this->entry('Laag', 10.0, 0, 0, 0, 0);
+        $low->rawTotal = 5;
+        $high = $this->entry('Hoog', 10.0, 0, 0, 0, 0);
+        $high->rawTotal = 9;
+
+        $entries = $this->normalizer->rankings([$low, $high])['points']['entries'];
+
+        $this->assertSame(['Hoog', 'Laag'], array_column($entries, 'player'), 'Meer ruwe punten eerst.');
+        $this->assertSame([1, 1], array_column($entries, 'rank'), 'Toch gedeelde rang 1 (gelijke gewogen stand).');
+    }
+
     public function testRankingsLanternRanksMostPenaltiesFirst(): void
     {
         $anne = $this->entry('Anne', 12.0, 5, 3, 0, 0);

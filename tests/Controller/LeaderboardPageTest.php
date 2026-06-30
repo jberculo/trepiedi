@@ -77,7 +77,7 @@ class LeaderboardPageTest extends FixturesWebTestCase
         $this->client->request('GET', '/ronde-lantaarn');
         $this->assertResponseIsSuccessful();
         $this->assertStringContainsString(
-            '<span class="text-danger">&#9650;</span>/<span class="rise">&#9660;</span>',
+            '<span class="text-danger">▲</span>',
             (string) $this->client->getResponse()->getContent(),
             'Lantaarn: omhoog = rood (omgekeerd).'
         );
@@ -86,7 +86,7 @@ class LeaderboardPageTest extends FixturesWebTestCase
         $this->client->request('GET', '/tegenstrijdig');
         $this->assertResponseIsSuccessful();
         $this->assertStringContainsString(
-            '<span class="rise">&#9650;</span>/<span class="text-danger">&#9660;</span>',
+            '<span class="rise">▲</span>',
             (string) $this->client->getResponse()->getContent(),
             'Tegenstrijdig: omhoog = groen (normaal).'
         );

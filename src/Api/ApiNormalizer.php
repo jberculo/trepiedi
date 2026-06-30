@@ -7,6 +7,8 @@ use App\Entity\Prediction;
 use App\Flag\FlagProvider;
 use App\Reference\Countries;
 use App\Scoring\LeaderboardEntry;
+use App\Scoring\Ranker;
+use App\Scoring\RankingType;
 
 /**
  * Zet domeinobjecten om naar de API-data-arrays (presentatie), zodat de
@@ -31,34 +33,23 @@ class ApiNormalizer
     public function rankings(array $entries): array
     {
         $rankings = [];
-        foreach ($this->rankingDefinitions() as $def) {
-            $key = $def['key'];
-            $value = $def['value'];
-
+        foreach (RankingType::cases() as $type) {
             $sorted = $entries;
-            usort($sorted, static fn (LeaderboardEntry $a, LeaderboardEntry $b): int =>
-                [$value($b), $a->user->getDisplayName()] <=> [$value($a), $b->user->getDisplayName()]);
+            usort($sorted, $type->compare(...));
+            $ranks = Ranker::assign($sorted, $type->valueFor(...));
 
             $rows = [];
-            $rank = 0;
-            $prev = null;
             foreach ($sorted as $i => $e) {
-                $v = $value($e);
-                if ($prev === null || abs((float) $v - (float) $prev) > 0.0001) {
-                    $rank = $i + 1;
-                    $prev = $v;
-                }
-
                 $rows[] = [
-                    'rank' => $rank,
-                    'movement' => $e->rankChange[$key] ?? null,
+                    'rank' => $ranks[$i],
+                    'movement' => $e->rankChange[$type->value] ?? null,
                     'player' => $e->user->getDisplayName(),
                     'slug' => $e->user->getSlug(),
-                    'value' => $v,
+                    'value' => $type->valueFor($e),
                 ];
             }
 
-            $rankings[$key] = ['field' => $def['field'], 'entries' => $rows];
+            $rankings[$type->value] = ['field' => $type->field(), 'entries' => $rows];
         }
 
         return $rankings;
@@ -125,44 +116,23 @@ class ApiNormalizer
     }
 
     /**
-     * De klassement-types met hun emoji en het bijbehorende veld in de stand
-     * (presentatie-metadata bij `rankings`).
+     * De klassement-types met hun emoji, label, bijbehorende veld en of een hogere
+     * positie ongunstig is (`invertedMovement`). Afgeleid uit `RankingType`, de enige
+     * bron die ook de web-weergave voedt.
      *
      * @return list<array{key: string, emoji: string, label: string, field: string, invertedMovement: bool}>
      */
     public function rankingTypes(): array
     {
         return array_map(
-            static fn (array $def): array => [
-                'key' => $def['key'],
-                'emoji' => $def['emoji'],
-                'label' => $def['label'],
-                'field' => $def['field'],
-                'invertedMovement' => $def['invertedMovement'],
+            static fn (RankingType $type): array => [
+                'key' => $type->value,
+                'emoji' => $type->emoji(),
+                'label' => $type->label(),
+                'field' => $type->field(),
+                'invertedMovement' => $type->invertedMovement(),
             ],
-            $this->rankingDefinitions(),
+            RankingType::cases(),
         );
-    }
-
-    /**
-     * De enige bron van de klassementen: presentatie-metadata plus hoe je de waarde
-     * van dat klassement uit een stand-entry haalt. Gedeeld door `rankingTypes()`
-     * (metadata) en `rankings()` (sorteren + waarde per speler).
-     *
-     * `invertedMovement` = true bij een straf-klassement waar een hogere positie
-     * ongunstig is: een positieve `movement` (richting plek 1) is dan "slechter".
-     * Moet gelijklopen met `invertArrow` in LeaderboardController (de web-weergave).
-     *
-     * @return list<array{key: string, emoji: string, label: string, field: string, invertedMovement: bool, value: callable(LeaderboardEntry): (int|float)}>
-     */
-    private function rankingDefinitions(): array
-    {
-        return [
-            ['key' => 'points', 'emoji' => '🟡', 'label' => 'Algemeen', 'field' => 'weightedTotal', 'invertedMovement' => false, 'value' => static fn (LeaderboardEntry $e): float => $e->weightedTotal],
-            ['key' => 'score', 'emoji' => '⚽', 'label' => 'Balletjestrui', 'field' => 'scorePoints', 'invertedMovement' => false, 'value' => static fn (LeaderboardEntry $e): int => $e->scorePoints],
-            ['key' => 'winners', 'emoji' => '🔮', 'label' => 'Glazen bal', 'field' => 'winners', 'invertedMovement' => false, 'value' => static fn (LeaderboardEntry $e): int => $e->advanceCount],
-            ['key' => 'lantern', 'emoji' => '🔴', 'label' => 'Ronde lantaarn', 'field' => 'lanternPoints', 'invertedMovement' => true, 'value' => static fn (LeaderboardEntry $e): int => $e->lanternPoints],
-            ['key' => 'inconsistent', 'emoji' => '🤔', 'label' => 'Tegenstrijdig', 'field' => 'inconsistent', 'invertedMovement' => false, 'value' => static fn (LeaderboardEntry $e): int => $e->inconsistentCount],
-        ];
     }
 }

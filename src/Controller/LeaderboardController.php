@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Pool\PoolContext;
 use App\Repository\RoundRepository;
 use App\Scoring\LeaderboardEntry;
+use App\Scoring\RankingType;
 use App\Scoring\ScoringService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -60,51 +61,51 @@ class LeaderboardController extends AbstractController
                 'intro' => 'lb.general_intro',
                 'showArrow' => true,
                 'arrowKey' => 'points',
-                'invertArrow' => false,
+                'invertArrow' => RankingType::Points->invertedMovement(),
                 'rankField' => null,
                 'max_now_kind' => 'points',
                 'max_tour_kind' => 'points',
                 'mode' => 'points',
             ],
             'score' => [
-                'entries' => $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->scorePoints),
+                'entries' => $this->sortedByType($entries, RankingType::Score),
                 'intro' => 'lb.balls_intro',
                 'showArrow' => true,
                 'arrowKey' => 'score',
-                'invertArrow' => false,
+                'invertArrow' => RankingType::Score->invertedMovement(),
                 'rankField' => 'scorePoints',
                 'max_now_kind' => 'triple-finished',
                 'max_tour_kind' => 'triple-total',
                 'mode' => 'score',
             ],
             'winners' => [
-                'entries' => $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->advanceCount),
+                'entries' => $this->sortedByType($entries, RankingType::Winners),
                 'intro' => 'lb.oracle_intro',
                 'showArrow' => true,
                 'arrowKey' => 'winners',
-                'invertArrow' => false,
+                'invertArrow' => RankingType::Winners->invertedMovement(),
                 'rankField' => 'advanceCount',
                 'max_now_kind' => 'finished',
                 'max_tour_kind' => 'total',
                 'mode' => 'winners',
             ],
             'lantern' => [
-                'entries' => $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->lanternPoints),
+                'entries' => $this->sortedByType($entries, RankingType::Lantern),
                 'intro' => 'lb.lantern_intro',
                 'showArrow' => true,
                 'arrowKey' => 'lantern',
-                'invertArrow' => true,
+                'invertArrow' => RankingType::Lantern->invertedMovement(),
                 'rankField' => 'lanternPoints',
                 'max_now_kind' => 'triple-finished',
                 'max_tour_kind' => 'triple-total',
                 'mode' => 'lantern',
             ],
             'inconsistent' => [
-                'entries' => $this->sortedBy($entries, static fn (LeaderboardEntry $e): int => $e->inconsistentCount),
+                'entries' => $this->sortedByType($entries, RankingType::Inconsistent),
                 'intro' => 'lb.inconsistent_intro',
                 'showArrow' => true,
                 'arrowKey' => 'inconsistent',
-                'invertArrow' => false,
+                'invertArrow' => RankingType::Inconsistent->invertedMovement(),
                 'rankField' => 'inconsistentCount',
                 'max_now_kind' => 'finished',
                 'max_tour_kind' => 'total',
@@ -115,13 +116,11 @@ class LeaderboardController extends AbstractController
 
     /**
      * @param list<LeaderboardEntry> $entries
-     * @param \Closure(LeaderboardEntry): int $value
      * @return list<LeaderboardEntry>
      */
-    private function sortedBy(array $entries, \Closure $value): array
+    private function sortedByType(array $entries, RankingType $type): array
     {
-        usort($entries, static fn (LeaderboardEntry $a, LeaderboardEntry $b): int =>
-            [$value($b), $a->user->getDisplayName()] <=> [$value($a), $b->user->getDisplayName()]);
+        usort($entries, $type->compare(...));
 
         return $entries;
     }

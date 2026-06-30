@@ -202,14 +202,9 @@ class ScoringService
                 <=> [$a->weightedTotal, $a->rawTotal, $b->user->getDisplayName()];
         });
 
-        $rank = 0;
-        $prevTotal = null;
+        $ranks = Ranker::assign($list, static fn (LeaderboardEntry $e): float => $e->weightedTotal);
         foreach ($list as $i => $entry) {
-            if ($prevTotal === null || abs($entry->weightedTotal - $prevTotal) > 0.0001) {
-                $rank = $i + 1;
-                $prevTotal = $entry->weightedTotal;
-            }
-            $entry->rank = $rank;
+            $entry->rank = $ranks[$i];
         }
 
         return $this->leaderboardCache[$cacheKey] = $list;
@@ -297,16 +292,11 @@ class ScoringService
             return [...$metric($b), $a->user->getDisplayName()] <=> [...$metric($a), $b->user->getDisplayName()];
         });
 
+        $ranks = Ranker::assign($list, static fn (LeaderboardEntry $e): float => (float) $metric($e)[0]);
+
         $map = [];
-        $rank = 0;
-        $prevPrimary = null;
         foreach ($list as $i => $entry) {
-            $primary = (float) $metric($entry)[0];
-            if ($prevPrimary === null || abs($primary - $prevPrimary) > 0.0001) {
-                $rank = $i + 1;
-                $prevPrimary = $primary;
-            }
-            $map[$entry->user->getId()] = $rank;
+            $map[$entry->user->getId()] = $ranks[$i];
         }
 
         return $map;

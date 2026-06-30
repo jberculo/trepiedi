@@ -6,7 +6,10 @@
 {# Positieverandering t.o.v. de vorige stand: omhoog, omlaag, of gelijk. De pijl
    wijst de werkelijke positieverandering aan; met invert=true (straf-klassementen)
    zijn de kleuren omgedraaid: stijgen = rood (slechter), dalen = groen (beter). #}
-{% macro arrow(change, invert = false) %}{% if change is not null %}{% if change > 0 %}<span class="small {{ invert ? 'text-danger' : 'rise' }}" title="{{ 'lb.rose'|trans }}">&#9650;{{ change }}</span>{% elseif change < 0 %}<span class="small {{ invert ? 'rise' : 'text-danger' }}" title="{{ 'lb.fell'|trans }}">&#9660;{{ -change }}</span>{% else %}<span class="text-muted small" title="{{ 'lb.equal'|trans }}">=</span>{% endif %}{% endif %}{% endmacro %}
+{% macro arrow(change, invert = false) %}{% if change is not null %}{% if change > 0 %}<span class="small {{ invert ? 'text-danger' : 'rise' }}" title="{{ 'lb.rose'|trans }}">▲{{ change }}</span>{% elseif change < 0 %}<span class="small {{ invert ? 'rise' : 'text-danger' }}" title="{{ 'lb.fell'|trans }}">▼{{ -change }}</span>{% else %}<span class="text-muted small" title="{{ 'lb.equal'|trans }}">=</span>{% endif %}{% endif %}{% endmacro %}
+
+{# Legenda-pijlen met dezelfde invert-kleurlogica als arrow(): omhoog / omlaag. #}
+{% macro legend(invert = false) %}<span class="{{ invert ? 'text-danger' : 'rise' }}">▲</span>/<span class="{{ invert ? 'rise' : 'text-danger' }}">▼</span>{% endmacro %}
 
 {# Score-onderdelen van een ronde: thuis / uit / exact / winnaar. #}
 {% macro stat(home, away, exact, winner) %}{{ home }}&times; {{ 'lb.home'|trans }} &middot; {{ away }}&times; {{ 'lb.away'|trans }} &middot; {{ exact }}&times; {{ 'lb.exact'|trans }} &middot; {{ winner }}&times; {{ 'lb.winner'|trans }}{% endmacro %}
