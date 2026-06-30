@@ -53,7 +53,7 @@ Env: `TREPIEDI_API_URL` (default `https://trepiedi.online`), `TREPIEDI_API_KEY` 
 
 | Tool | Sleutel nodig? | Wat |
 |------|----------------|-----|
-| `get_standings(poolCode?)` | nee | Stand van een poule (met movement + types/emoji) |
+| `get_standings(poolCode?)` | nee | Stand van een poule, per klassement een gesorteerde lijst met rang, waarde en movement (+ types/emoji) |
 | `list_matches()` | nee | Alle wedstrijden + open/te voorspellen (met id) |
 | `get_match(matchId)` | nee | Eén wedstrijd met detail |
 | `get_rounds()` | nee | Ronden met gewicht en aantal wedstrijden |

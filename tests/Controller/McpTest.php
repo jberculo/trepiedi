@@ -49,6 +49,9 @@ class McpTest extends FixturesWebTestCase
         $this->assertArrayNotHasKey('isError', $res['result']);
         $payload = json_decode($res['result']['content'][0]['text'], true);
         $this->assertSame('algemeen', $payload['pool']['code']);
+        // MCP deelt dezelfde ReadApi, dus get_standings geeft de stand per klassement.
+        $this->assertArrayHasKey('rankings', $payload);
+        $this->assertArrayHasKey('points', $payload['rankings']);
     }
 
     public function testCallGetTimelineWithoutKey(): void

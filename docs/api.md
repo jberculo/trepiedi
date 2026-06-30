@@ -41,25 +41,28 @@ curl "https://trepiedi.online/api/standings?pool=kantoor"
     { "key": "lantern", "emoji": "🔴", "label": "Ronde lantaarn", "field": "lanternPoints" },
     { "key": "inconsistent", "emoji": "🤔", "label": "Tegenstrijdig", "field": "inconsistent" }
   ],
-  "standings": [
-    {
-      "rank": 1,
-      "movement": 2,
-      "player": "Anne",
-      "slug": "anne",
-      "weightedTotal": 84,
-      "rawTotal": 30,
-      "scorePoints": 12,
-      "winners": 9,
-      "lanternPoints": 0,
-      "inconsistent": 0
-    }
-  ]
+  "rankings": {
+    "points": {
+      "field": "weightedTotal",
+      "entries": [
+        { "rank": 1, "movement": 2, "player": "Anne", "slug": "anne", "value": 84 },
+        { "rank": 2, "movement": -1, "player": "Bram", "slug": "bram", "value": 70 }
+      ]
+    },
+    "score":        { "field": "scorePoints",   "entries": [] },
+    "winners":      { "field": "winners",        "entries": [] },
+    "lantern":      { "field": "lanternPoints",  "entries": [] },
+    "inconsistent": { "field": "inconsistent",   "entries": [] }
+  }
 }
 ```
 
-- `movement`: positieverandering sinds de vorige speeldag (`+` = gestegen, `null` = nieuw of geen vergelijking)
-- `types`: de klassement-types met hun emoji en het veld waarop ze sorteren
+- `rankings`: per klassement-type (de sleutels uit `types`) een **eigen, al gesorteerde** lijst. Elk item heeft:
+  - `rank`: de rang in dát klassement (tie-aware: gelijke `value` = gedeelde rang);
+  - `value`: de waarde van dat klassement (het veld uit `types[].field`);
+  - `movement`: positieverandering t.o.v. de vorige speeldag (`+` = gestegen, `-` = gezakt, `null` = nieuw of geen vergelijking).
+- Voor de straf-klassementen (`lantern`, `inconsistent`) staat de **meeste** strafpunten/tegenstrijdigheden op plek 1; een positieve `movement` betekent dus dat de speler richting die "winnaar"-plek is geschoven.
+- `types`: de klassement-types met hun emoji, label en het bijbehorende `field`.
 
 ### `GET /api/timeline`
 

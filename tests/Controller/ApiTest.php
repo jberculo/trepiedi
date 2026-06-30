@@ -20,16 +20,36 @@ class ApiTest extends FixturesWebTestCase
         $data = json_decode((string) $this->client->getResponse()->getContent(), true);
 
         $this->assertSame('algemeen', $data['pool']['code']);
-        $players = array_column($data['standings'], 'player');
+        // Per klassement een eigen, gesorteerde lijst.
+        $this->assertSame(['points', 'score', 'winners', 'lantern', 'inconsistent'], array_keys($data['rankings']));
+        $points = $data['rankings']['points'];
+        $this->assertSame('weightedTotal', $points['field']);
+        $players = array_column($points['entries'], 'player');
         $this->assertContains('Anne', $players);
         $this->assertContains('Bram', $players);
-        $this->assertArrayHasKey('rank', $data['standings'][0]);
-        $this->assertArrayHasKey('weightedTotal', $data['standings'][0]);
-        $this->assertArrayHasKey('movement', $data['standings'][0], 'Stand toont ook recente positieverandering.');
+        $this->assertArrayHasKey('rank', $points['entries'][0]);
+        $this->assertArrayHasKey('value', $points['entries'][0]);
+        $this->assertArrayHasKey('movement', $points['entries'][0], 'Elke ranglijst toont de positieverandering per klassement.');
         // Klassement-types met emoji.
         $emoji = array_column($data['types'], 'emoji', 'key');
         $this->assertSame('🟡', $emoji['points']);
         $this->assertSame('🔴', $emoji['lantern']);
+    }
+
+    public function testStandingsExposeEachRankingSortedIncludingPenaltyRankings(): void
+    {
+        $this->client->request('GET', '/api/standings');
+
+        $this->assertResponseIsSuccessful();
+        $data = json_decode((string) $this->client->getResponse()->getContent(), true);
+
+        // De ronde lantaarn komt ook door de API, met de meeste strafpunten eerst.
+        $lantern = $data['rankings']['lantern'];
+        $this->assertSame('lanternPoints', $lantern['field']);
+        $this->assertSame(['Chris', 'Diana', 'Bram', 'Anne'], array_column($lantern['entries'], 'player'));
+        $this->assertSame([12, 8, 5, 0], array_column($lantern['entries'], 'value'));
+        $this->assertSame([1, 2, 3, 4], array_column($lantern['entries'], 'rank'));
+        $this->assertArrayHasKey('movement', $lantern['entries'][0]);
     }
 
     public function testTimelineExposesScoredPredictionsPerMatch(): void
@@ -96,7 +116,7 @@ class ApiTest extends FixturesWebTestCase
 
         $this->assertResponseIsSuccessful();
         $data = json_decode((string) $this->client->getResponse()->getContent(), true);
-        $players = array_column($data['standings'], 'player');
+        $players = array_column($data['rankings']['points']['entries'], 'player');
 
         $this->assertContains('Anne', $players);
         $this->assertContains('Chris', $players);
@@ -110,7 +130,7 @@ class ApiTest extends FixturesWebTestCase
         $this->assertResponseIsSuccessful();
         $data = json_decode((string) $this->client->getResponse()->getContent(), true);
         $this->assertSame('kantoor', $data['pool']['code']);
-        $players = array_column($data['standings'], 'player');
+        $players = array_column($data['rankings']['points']['entries'], 'player');
         $this->assertContains('Chris', $players);
         $this->assertNotContains('Bram', $players);
     }

@@ -108,36 +108,58 @@ class ApiNormalizerTest extends TestCase
         $this->assertSame('lanternPoints', $field['lantern']);
     }
 
-    public function testStandingsMapEntryIncludingMovement(): void
+    public function testRankingsReturnsOneSortedListPerKlassement(): void
     {
-        $user = $this->createStub(User::class);
-        $user->method('getDisplayName')->willReturn('Anne');
-        $user->method('getSlug')->willReturn('anne');
+        $anne = $this->entry('Anne', 12.0, 5, 3, 0, 0, ['points' => 1, 'score' => 0]);
+        $bram = $this->entry('Bram', 12.0, 8, 2, 4, 1, ['points' => -1]);
+        $chris = $this->entry('Chris', 3.0, 2, 0, 6, 2);
 
-        $entry = new LeaderboardEntry($user);
-        $entry->rank = 2;
-        $entry->rankChange = ['points' => 1];
-        $entry->weightedTotal = 12.5;
-        $entry->lanternPoints = 3;
+        $rankings = $this->normalizer->rankings([$anne, $bram, $chris]);
 
-        $rows = $this->normalizer->standings([$entry]);
+        $this->assertSame(['points', 'score', 'winners', 'lantern', 'inconsistent'], array_keys($rankings));
 
-        $this->assertCount(1, $rows);
-        $this->assertSame(2, $rows[0]['rank']);
-        $this->assertSame('Anne', $rows[0]['player']);
-        $this->assertSame(1, $rows[0]['movement'], 'movement komt uit rankChange[points].');
-        $this->assertSame(12.5, $rows[0]['weightedTotal']);
-        $this->assertSame(3, $rows[0]['lanternPoints']);
+        // Punten: gesorteerd op weightedTotal (desc), tie-aware rang, movement per speler.
+        $points = $rankings['points'];
+        $this->assertSame('weightedTotal', $points['field']);
+        $this->assertSame(['Anne', 'Bram', 'Chris'], array_column($points['entries'], 'player'));
+        $this->assertSame([1, 1, 3], array_column($points['entries'], 'rank'), 'Gelijke waarde => gedeelde rang.');
+        $this->assertSame([12.0, 12.0, 3.0], array_column($points['entries'], 'value'));
+        $this->assertSame([1, -1, null], array_column($points['entries'], 'movement'));
+
+        // Balletjestrui sorteert anders (op scorePoints): Bram bovenaan.
+        $this->assertSame(['Bram', 'Anne', 'Chris'], array_column($rankings['score']['entries'], 'player'));
+        $this->assertSame(0, $rankings['score']['entries'][1]['movement'], 'Annes score-movement uit rankChange[score].');
     }
 
-    public function testStandingsMovementNullWhenNoChange(): void
+    public function testRankingsLanternRanksMostPenaltiesFirst(): void
+    {
+        $anne = $this->entry('Anne', 12.0, 5, 3, 0, 0);
+        $bram = $this->entry('Bram', 12.0, 8, 2, 4, 1);
+        $chris = $this->entry('Chris', 3.0, 2, 0, 6, 2);
+
+        $lantern = $this->normalizer->rankings([$anne, $bram, $chris])['lantern'];
+
+        $this->assertSame('lanternPoints', $lantern['field']);
+        $this->assertSame(['Chris', 'Bram', 'Anne'], array_column($lantern['entries'], 'player'));
+        $this->assertSame([6, 4, 0], array_column($lantern['entries'], 'value'));
+        // Geen historie meegegeven => movement overal null.
+        $this->assertSame([null, null, null], array_column($lantern['entries'], 'movement'));
+    }
+
+    private function entry(string $name, float $weighted, int $score, int $advance, int $lantern, int $inconsistent, array $rankChange = []): LeaderboardEntry
     {
         $user = $this->createStub(User::class);
-        $user->method('getDisplayName')->willReturn('Bram');
-        $user->method('getSlug')->willReturn('bram');
+        $user->method('getDisplayName')->willReturn($name);
+        $user->method('getSlug')->willReturn(strtolower($name));
 
         $entry = new LeaderboardEntry($user);
+        $entry->weightedTotal = $weighted;
+        $entry->scorePoints = $score;
+        $entry->advanceCount = $advance;
+        $entry->lanternPoints = $lantern;
+        $entry->inconsistentCount = $inconsistent;
+        $entry->rankChange = $rankChange;
 
-        $this->assertNull($this->normalizer->standings([$entry])[0]['movement']);
+        return $entry;
     }
 }

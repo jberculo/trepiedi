@@ -40,7 +40,7 @@ class ReadApi
         return [
             'pool' => ['name' => $pool->getName(), 'code' => $pool->getCode()],
             'types' => $this->normalizer->rankingTypes(),
-            'standings' => $this->normalizer->standings($entries),
+            'rankings' => $this->normalizer->rankings($entries),
         ];
     }
 
