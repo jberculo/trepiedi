@@ -28,6 +28,7 @@ Symfony-console draait via `php bin/console …` (op Windows; `bin/console` is h
 
 - **dev/prod**: PostgreSQL 16 (`DATABASE_URL` in `.env` / `.env.local`). Docker Compose start een Postgres-container.
 - **test**: MariaDB/MySQL (`.env.test`), database krijgt automatisch het `_test`-suffix. De testschema-reset (`tests/DatabaseBootstrap`) heeft daarom MySQL-specifieke foreign-key-handling. Houd er rekening mee dat de twee omgevingen op verschillende DBMS draaien.
+- **Draai niet twee testsuites tegelijk.** Alle functional tests delen één testdatabase en `DatabaseBootstrap::resetSchema()` dropt + herbouwt het schema in `setUp()`. Twee gelijktijdige `phpunit`-runs botsen daardoor op elkaars schema → schijnbare "errors" in de fixtures-setup (geen codefout). Laat een lopende run eerst afronden voordat je een nieuwe start.
 
 ## Architectuur
 
