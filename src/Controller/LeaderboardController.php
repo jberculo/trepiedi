@@ -104,7 +104,7 @@ class LeaderboardController extends AbstractController
                 'intro' => 'lb.inconsistent_intro',
                 'showArrow' => true,
                 'arrowKey' => 'inconsistent',
-                'invertArrow' => true,
+                'invertArrow' => false,
                 'rankField' => 'inconsistentCount',
                 'max_now_kind' => 'finished',
                 'max_tour_kind' => 'total',

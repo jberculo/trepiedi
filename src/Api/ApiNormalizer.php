@@ -128,7 +128,7 @@ class ApiNormalizer
      * De klassement-types met hun emoji en het bijbehorende veld in de stand
      * (presentatie-metadata bij `rankings`).
      *
-     * @return list<array{key: string, emoji: string, label: string, field: string}>
+     * @return list<array{key: string, emoji: string, label: string, field: string, invertedMovement: bool}>
      */
     public function rankingTypes(): array
     {
@@ -138,6 +138,7 @@ class ApiNormalizer
                 'emoji' => $def['emoji'],
                 'label' => $def['label'],
                 'field' => $def['field'],
+                'invertedMovement' => $def['invertedMovement'],
             ],
             $this->rankingDefinitions(),
         );
@@ -148,16 +149,20 @@ class ApiNormalizer
      * van dat klassement uit een stand-entry haalt. Gedeeld door `rankingTypes()`
      * (metadata) en `rankings()` (sorteren + waarde per speler).
      *
-     * @return list<array{key: string, emoji: string, label: string, field: string, value: callable(LeaderboardEntry): (int|float)}>
+     * `invertedMovement` = true bij een straf-klassement waar een hogere positie
+     * ongunstig is: een positieve `movement` (richting plek 1) is dan "slechter".
+     * Moet gelijklopen met `invertArrow` in LeaderboardController (de web-weergave).
+     *
+     * @return list<array{key: string, emoji: string, label: string, field: string, invertedMovement: bool, value: callable(LeaderboardEntry): (int|float)}>
      */
     private function rankingDefinitions(): array
     {
         return [
-            ['key' => 'points', 'emoji' => '🟡', 'label' => 'Algemeen', 'field' => 'weightedTotal', 'value' => static fn (LeaderboardEntry $e): float => $e->weightedTotal],
-            ['key' => 'score', 'emoji' => '⚽', 'label' => 'Balletjestrui', 'field' => 'scorePoints', 'value' => static fn (LeaderboardEntry $e): int => $e->scorePoints],
-            ['key' => 'winners', 'emoji' => '🔮', 'label' => 'Glazen bal', 'field' => 'winners', 'value' => static fn (LeaderboardEntry $e): int => $e->advanceCount],
-            ['key' => 'lantern', 'emoji' => '🔴', 'label' => 'Ronde lantaarn', 'field' => 'lanternPoints', 'value' => static fn (LeaderboardEntry $e): int => $e->lanternPoints],
-            ['key' => 'inconsistent', 'emoji' => '🤔', 'label' => 'Tegenstrijdig', 'field' => 'inconsistent', 'value' => static fn (LeaderboardEntry $e): int => $e->inconsistentCount],
+            ['key' => 'points', 'emoji' => '🟡', 'label' => 'Algemeen', 'field' => 'weightedTotal', 'invertedMovement' => false, 'value' => static fn (LeaderboardEntry $e): float => $e->weightedTotal],
+            ['key' => 'score', 'emoji' => '⚽', 'label' => 'Balletjestrui', 'field' => 'scorePoints', 'invertedMovement' => false, 'value' => static fn (LeaderboardEntry $e): int => $e->scorePoints],
+            ['key' => 'winners', 'emoji' => '🔮', 'label' => 'Glazen bal', 'field' => 'winners', 'invertedMovement' => false, 'value' => static fn (LeaderboardEntry $e): int => $e->advanceCount],
+            ['key' => 'lantern', 'emoji' => '🔴', 'label' => 'Ronde lantaarn', 'field' => 'lanternPoints', 'invertedMovement' => true, 'value' => static fn (LeaderboardEntry $e): int => $e->lanternPoints],
+            ['key' => 'inconsistent', 'emoji' => '🤔', 'label' => 'Tegenstrijdig', 'field' => 'inconsistent', 'invertedMovement' => false, 'value' => static fn (LeaderboardEntry $e): int => $e->inconsistentCount],
         ];
     }
 }

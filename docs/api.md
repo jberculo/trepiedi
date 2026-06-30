@@ -35,11 +35,11 @@ curl "https://trepiedi.online/api/standings?pool=kantoor"
 {
   "pool": { "name": "Tremani", "code": "algemeen" },
   "types": [
-    { "key": "points", "emoji": "🟡", "label": "Algemeen", "field": "weightedTotal" },
-    { "key": "score", "emoji": "⚽", "label": "Balletjestrui", "field": "scorePoints" },
-    { "key": "winners", "emoji": "🔮", "label": "Glazen bal", "field": "winners" },
-    { "key": "lantern", "emoji": "🔴", "label": "Ronde lantaarn", "field": "lanternPoints" },
-    { "key": "inconsistent", "emoji": "🤔", "label": "Tegenstrijdig", "field": "inconsistent" }
+    { "key": "points", "emoji": "🟡", "label": "Algemeen", "field": "weightedTotal", "invertedMovement": false },
+    { "key": "score", "emoji": "⚽", "label": "Balletjestrui", "field": "scorePoints", "invertedMovement": false },
+    { "key": "winners", "emoji": "🔮", "label": "Glazen bal", "field": "winners", "invertedMovement": false },
+    { "key": "lantern", "emoji": "🔴", "label": "Ronde lantaarn", "field": "lanternPoints", "invertedMovement": true },
+    { "key": "inconsistent", "emoji": "🤔", "label": "Tegenstrijdig", "field": "inconsistent", "invertedMovement": false }
   ],
   "rankings": {
     "points": {
@@ -61,8 +61,8 @@ curl "https://trepiedi.online/api/standings?pool=kantoor"
   - `rank`: de rang in dát klassement (tie-aware: gelijke `value` = gedeelde rang);
   - `value`: de waarde van dat klassement (het veld uit `types[].field`);
   - `movement`: positieverandering t.o.v. de vorige speeldag (`+` = gestegen, `-` = gezakt, `null` = nieuw of geen vergelijking).
-- Voor de straf-klassementen (`lantern`, `inconsistent`) staat de **meeste** strafpunten/tegenstrijdigheden op plek 1; een positieve `movement` betekent dus dat de speler richting die "winnaar"-plek is geschoven.
-- `types`: de klassement-types met hun emoji, label en het bijbehorende `field`.
+- Bij `lantern` en `inconsistent` staat de **meeste** strafpunten/tegenstrijdigheden op plek 1; een positieve `movement` betekent dus dat de speler richting die "winnaar"-plek is geschoven.
+- `types`: de klassement-types met hun emoji, label, het bijbehorende `field` en `invertedMovement`. Die laatste is `true` als een hogere positie **ongunstig** is (alleen `lantern`): een positieve `movement` is dan "slechter" — een client kan op basis hiervan de kleur omdraaien (stijgen = rood i.p.v. groen).
 
 ### `GET /api/timeline`
 

@@ -70,6 +70,28 @@ class LeaderboardPageTest extends FixturesWebTestCase
         $this->assertStringContainsString('9', $top->text());
     }
 
+    public function testPenaltyRankingsColourTheMovementArrowDifferently(): void
+    {
+        // Ronde lantaarn = straf-klassement: stijgen (richting plek 1) is rood,
+        // dus de omhoog-pijl in de legenda is text-danger.
+        $this->client->request('GET', '/ronde-lantaarn');
+        $this->assertResponseIsSuccessful();
+        $this->assertStringContainsString(
+            '<span class="text-danger">&#9650;</span>/<span class="rise">&#9660;</span>',
+            (string) $this->client->getResponse()->getContent(),
+            'Lantaarn: omhoog = rood (omgekeerd).'
+        );
+
+        // Tegenstrijdig: stijgen is juist groen, dus de omhoog-pijl is rise.
+        $this->client->request('GET', '/tegenstrijdig');
+        $this->assertResponseIsSuccessful();
+        $this->assertStringContainsString(
+            '<span class="rise">&#9650;</span>/<span class="text-danger">&#9660;</span>',
+            (string) $this->client->getResponse()->getContent(),
+            'Tegenstrijdig: omhoog = groen (normaal).'
+        );
+    }
+
     /**
      * Alle vijf ranglijst-tabbladen delen hetzelfde tabel-skelet (de embed):
      * een lb-table met #/speler/totaal-koppen en minstens één spelersrij.

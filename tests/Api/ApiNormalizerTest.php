@@ -106,6 +106,12 @@ class ApiNormalizerTest extends TestCase
         // Het veld verwijst naar de bijbehorende kolom in de stand.
         $this->assertSame('weightedTotal', $field['points']);
         $this->assertSame('lanternPoints', $field['lantern']);
+
+        // invertedMovement: alleen de lantaarn keert de kleur om (stijgen = ongunstig).
+        $inverted = array_column($types, 'invertedMovement', 'key');
+        $this->assertTrue($inverted['lantern']);
+        $this->assertFalse($inverted['inconsistent']);
+        $this->assertFalse($inverted['points']);
     }
 
     public function testRankingsReturnsOneSortedListPerKlassement(): void
