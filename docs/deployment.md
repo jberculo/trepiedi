@@ -62,3 +62,13 @@ ingevoerde "21:00" als 21:00 UTC (23:00 NL). Dan geldt een wedstrijd pas twee uu
 te laat als "begonnen" en blijven de voorspellingen onterecht verborgen. Wijzig de
 vastgepinde zone dus niet zonder reden; een afwijkende `date.timezone` in `php.ini`
 heeft geen effect (de app overschrijft die bewust).
+
+## Speeldag-grens voor de movement-pijlen
+
+De positieverandering ("movement") in de klassementen wordt afgezet tegen het begin
+van de laatste speeldag. Dat referentiepunt is een grensuur in NL wandtijd, instelbaar
+via `MATCHDAY_BOUNDARY_HOUR` (standaard `9`). Het toernooi speelt in de VS, dus een
+speeldag loopt in NL-tijd over middernacht heen (avond → vroege ochtend); rond 09:00
+wordt geen wedstrijd meer gespeeld. Door daar de grens te leggen blijven wedstrijden
+van dezelfde speeldag bij elkaar, in plaats van dat een middernacht-grens (`0`) de late
+wedstrijden als een aparte, latere speeldag telt. Zet op `0` voor het oude gedrag.

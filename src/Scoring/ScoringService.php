@@ -70,6 +70,7 @@ class ScoringService
         private FootballMatchRepository $footballMatchRepository,
         private RoundRepository $roundRepository,
         private UserRepository $userRepository,
+        private int $matchdayBoundaryHour = 9,
     ) {
     }
 
@@ -436,9 +437,27 @@ class ScoringService
         return $matches;
     }
 
+    /**
+     * Begin van de laatste speeldag: het referentiepunt voor de movement-pijlen.
+     * Niet middernacht, maar het configureerbare grensuur (NL wandtijd) dat een
+     * speeldag afbakent — standaard 09:00. Het toernooi speelt in de VS, dus een
+     * speeldag loopt in NL-tijd over middernacht heen (avond → vroege ochtend);
+     * rond 09:00 wordt geen wedstrijd meer gespeeld. Zo blijven wedstrijden van
+     * dezelfde speeldag samen i.p.v. dat een middernacht-grens ze uit elkaar trekt.
+     */
     public function lastMatchdayStart(): ?\DateTimeImmutable
     {
-        return $this->finishedSummary()['latest']?->setTime(0, 0, 0);
+        $latest = $this->finishedSummary()['latest'];
+        if ($latest === null) {
+            return null;
+        }
+
+        $boundary = $latest->setTime($this->matchdayBoundaryHour, 0, 0);
+        if ($boundary > $latest) {
+            $boundary = $boundary->modify('-1 day');
+        }
+
+        return $boundary;
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Tests\Scoring;
 
 use App\DataFixtures\AppFixtures;
+use App\Entity\FootballMatch;
 use App\Entity\Prediction;
 use App\Repository\RoundRepository;
 use App\Scoring\ScoringService;
@@ -112,6 +113,33 @@ class LeaderboardIntegrationTest extends KernelTestCase
         // Diana stijgt één plek in het algemeen klassement, Bram daalt één plek.
         $this->assertSame(1, $diana->change('points'));
         $this->assertSame(-1, $bram->change('points'));
+    }
+
+    public function testMatchdaySpanningMidnightStaysOneMatchday(): void
+    {
+        // Zelfde uitkomst als testPositionChangeSinceLastMatchday (kwart ×2 laat Diana
+        // Bram inhalen), maar de kwartfinales spelen nu over NL-middernacht heen: het
+        // toernooi is in de VS, dus een speeldag valt 's nachts NL-tijd. Met de
+        // 09:00-grens blijven ze één speeldag; een middernacht-grens zou de wedstrijden
+        // van ná 00:00 als losse, latere speeldag zien en de movement verkeerd bepalen.
+        $rounds = static::getContainer()->get(RoundRepository::class);
+        $kwart = $rounds->findOneBy(['name' => 'Kwartfinales']);
+        $kwart->setWeight(2.0);
+
+        $matches = $this->em->getRepository(FootballMatch::class)->findBy(['round' => $kwart]);
+        $base = (new \DateTimeImmutable('today'))->modify('-5 days')->setTime(23, 0);
+        // 23:00, 23:30 (dag D) en 00:30, 01:00 (dag D+1) — allemaal binnen [D 09:00, D+1 09:00).
+        $offsets = [0, 30, 90, 120];
+        foreach ($matches as $i => $match) {
+            $match->setKickoffAt($base->modify(sprintf('+%d minutes', $offsets[$i] ?? 0)));
+        }
+        $this->em->flush();
+
+        $scoring = static::getContainer()->get(ScoringService::class);
+        $board = $scoring->leaderboardWithMovement();
+
+        $this->assertSame(1, $this->entryFor($board, 'Diana')->change('points'));
+        $this->assertSame(-1, $this->entryFor($board, 'Bram')->change('points'));
     }
 
     public function testInconsistentCountsContradictoryPredictions(): void

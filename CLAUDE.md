@@ -48,7 +48,7 @@ Wanneer je gedrag van een schrijf-/leesactie wijzigt, raak je doorgaans `ReadApi
 
 Naast het gewone klassement berekent de service afgeleide klassementen ("truien"): `scorePoints` (balletjestrui), `winners` (glazen bal / doorgaande ploeg goed), `lanternPoints` (ronde lantaarn — strafpunten, zie `lanternPenalty()`) en `inconsistentCount` (tegenstrijdige voorspelling). De service is request-scoped en **memoïseert** alle dure lookups (zie de `*Cache`-velden); ga ervan uit dat data binnen één request read-only is.
 
-`buildLeaderboard()` kent tie-aware rangen toe (gelijke `weightedTotal` ⇒ zelfde rang). `leaderboardWithMovement()` berekent positiewijziging t.o.v. de vorige speeldag via `positionMap()`.
+`buildLeaderboard()` kent tie-aware rangen toe (gelijke `weightedTotal` ⇒ zelfde rang). `leaderboardWithMovement()` berekent positiewijziging t.o.v. de vorige speeldag via `positionMap()`. Het referentiepunt (`lastMatchdayStart()`) is niet middernacht maar een instelbaar grensuur in NL wandtijd (`MATCHDAY_BOUNDARY_HOUR`, standaard 09:00): het toernooi speelt in de VS, dus een speeldag loopt in NL-tijd over middernacht heen en rond 09:00 is het rustpunt tussen twee speeldagen.
 
 ### Pool-context (`src/Pool/`)
 
