@@ -25,6 +25,7 @@ common:
     confirm: Bevestigen
     error: Er ging iets mis.
     saved: Opgeslagen
+    close: Sluiten
 account:
     title: Mijn account
     heading: Account-instellingen
@@ -271,3 +272,9 @@ admin:
     password_reset_help: Laat leeg om het wachtwoord ongewijzigd te laten.
     confirm_delete_participant: 'Deelnemer en al diens voorspellingen verwijderen?'
     cannot_delete_self: Je kunt jezelf niet verwijderen.
+    notice: Melding
+    notice_help: 'Vrije tekst die deze deelnemer na inloggen bovenaan ziet. Leeg = geen melding.'
+    notice_type: Type melding
+    notice_type_info: 'Info (groen)'
+    notice_type_warning: 'Waarschuwing (oranje)'
+    notice_type_error: 'Fout (rood)'

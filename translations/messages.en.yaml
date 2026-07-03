@@ -25,6 +25,7 @@ common:
     confirm: Confirm
     error: Something went wrong.
     saved: Saved
+    close: Close
 account:
     title: My account
     heading: Account settings
@@ -271,3 +272,9 @@ admin:
     password_reset_help: Leave blank to keep the current password.
     confirm_delete_participant: 'Delete participant and all their predictions?'
     cannot_delete_self: You cannot delete yourself.
+    notice: Notice
+    notice_help: 'Free text this participant sees at the top after logging in. Empty = no notice.'
+    notice_type: Notice type
+    notice_type_info: 'Info (green)'
+    notice_type_warning: 'Warning (orange)'
+    notice_type_error: 'Error (red)'

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Wat dit is
 
-Trepiedi is een voetbalpoule (knock-outfase, vanaf de 16e finales): deelnemers voorspellen uitslagen, een scoringsmodel kent punten toe en er zijn klassementen ("truien") per poule. Symfony 8.1 op PHP 8.4, Doctrine ORM, Twig, PostgreSQL (dev/prod). Daarnaast een REST-API en een MCP-server die dezelfde domeinlogica ontsluiten.
+Trepiedi is een voetbalpoule (knock-outfase, vanaf de 16e finales): deelnemers voorspellen uitslagen, een scoringsmodel kent punten toe en er zijn klassementen ("truien") per poule. Symfony 8.1 op PHP 8.4, Doctrine ORM, Twig, MySQL/MariaDB. Daarnaast een REST-API en een MCP-server die dezelfde domeinlogica ontsluiten.
 
 ## Commando's
 
@@ -26,8 +26,8 @@ Symfony-console draait via `php bin/console …` (op Windows; `bin/console` is h
 
 ### Database per omgeving (let op)
 
-- **dev/prod**: PostgreSQL 16 (`DATABASE_URL` in `.env` / `.env.local`). Docker Compose start een Postgres-container.
-- **test**: MariaDB/MySQL (`.env.test`), database krijgt automatisch het `_test`-suffix. De testschema-reset (`tests/DatabaseBootstrap`) heeft daarom MySQL-specifieke foreign-key-handling. Houd er rekening mee dat de twee omgevingen op verschillende DBMS draaien.
+- **Alle omgevingen draaien MySQL/MariaDB.** De committte `.env`-default (`postgresql://…`) wordt overal overschreven door `DATABASE_URL` in `.env.local` (dev = MariaDB) resp. `.env.test` (test = MariaDB). Prod is MySQL 8.0.46 (zie de deploy-doc). De migraties in `migrations/` zijn dus MySQL-syntax (`TINYINT`, `LONGTEXT`, backticks rond `` `user` ``).
+- **test**: database krijgt automatisch het `_test`-suffix; de testschema-reset (`tests/DatabaseBootstrap`) heeft MySQL-specifieke foreign-key-handling. Het testschema komt uit entity-metadata (`SchemaTool`), dus nieuwe kolommen zitten er automatisch in — een migratie is alleen voor dev/prod nodig.
 - **Draai niet twee testsuites tegelijk.** Alle functional tests delen één testdatabase en `DatabaseBootstrap::resetSchema()` dropt + herbouwt het schema in `setUp()`. Twee gelijktijdige `phpunit`-runs botsen daardoor op elkaars schema → schijnbare "errors" in de fixtures-setup (geen codefout). Laat een lopende run eerst afronden voordat je een nieuwe start.
 
 ## Architectuur

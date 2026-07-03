@@ -82,6 +82,14 @@
                 <div class="alert alert-warning" role="alert">{{ 'pool.orphan_notice'|trans }}</div>
             {% endif %}
 
+            {% if app.user and app.user.hasNotice %}
+                <div class="alert alert-{{ app.user.noticeType.bootstrapClass }} alert-dismissible fade show" role="alert"
+                     data-account-notice data-notice-key="{{ app.user.noticeSignature }}-{{ 'now'|date('Y-m-d') }}">
+                    {{ app.user.notice|nl2br }}
+                    <button type="button" class="btn-close" data-notice-dismiss aria-label="{{ 'common.close'|trans }}"></button>
+                </div>
+            {% endif %}
+
             {% block body %}{% endblock %}
         </main>
 

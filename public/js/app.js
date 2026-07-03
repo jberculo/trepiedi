@@ -40,6 +40,34 @@
         el.style.width = el.dataset.width + '%';
     });
 
+    // Per-account beheer-melding: wegklikbaar, maar komt minstens 1x per dag terug.
+    // De sleutel bevat de datum + een hash van de inhoud, dus na een nieuwe dag of
+    // een gewijzigde melding verschijnt hij weer.
+    var NOTICE_KEY = 'trepiedi:notice-dismissed';
+    document.querySelectorAll('[data-account-notice]').forEach(function (el) {
+        var key = el.dataset.noticeKey;
+        try {
+            if (localStorage.getItem(NOTICE_KEY) === key) {
+                el.remove();
+                return;
+            }
+        } catch (e) {
+            // localStorage niet beschikbaar; dan tonen we de melding gewoon.
+        }
+
+        var btn = el.querySelector('[data-notice-dismiss]');
+        if (btn) {
+            btn.addEventListener('click', function () {
+                try {
+                    localStorage.setItem(NOTICE_KEY, key);
+                } catch (e) {
+                    // negeren
+                }
+                el.remove();
+            });
+        }
+    });
+
     // Scrollpositie bewaren rond een actie die de pagina herlaadt (taal/poule wisselen
     // in het profiel). Zonder dit springt de pagina na de redirect naar boven.
     var SCROLL_KEY = 'trepiedi:keep-scroll';

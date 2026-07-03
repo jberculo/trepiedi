@@ -2,9 +2,11 @@
 
 namespace App\Entity;
 
+use App\Notice\NoticeType;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -90,6 +92,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 64, nullable: true)]
     private ?string $apiTokenHash = null;
 
+    /**
+     * Vrije beheer-melding die na inloggen bovenaan wordt getoond (null/leeg = geen melding).
+     */
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $notice = null;
+
+    /**
+     * Type (en daarmee kleur) van de melding.
+     */
+    #[ORM\Column(length: 10, enumType: NoticeType::class, options: ['default' => 'info'])]
+    private NoticeType $noticeType = NoticeType::Info;
+
     public function __construct()
     {
         $this->pools = new ArrayCollection();
@@ -168,6 +182,46 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function hasApiToken(): bool
     {
         return $this->apiTokenId !== null && $this->apiTokenHash !== null;
+    }
+
+    public function getNotice(): ?string
+    {
+        return $this->notice;
+    }
+
+    public function setNotice(?string $notice): static
+    {
+        $notice = $notice !== null ? trim($notice) : null;
+        $this->notice = $notice === '' ? null : $notice;
+
+        return $this;
+    }
+
+    public function hasNotice(): bool
+    {
+        return $this->notice !== null;
+    }
+
+    public function getNoticeType(): NoticeType
+    {
+        return $this->noticeType;
+    }
+
+    public function setNoticeType(NoticeType $noticeType): static
+    {
+        $this->noticeType = $noticeType;
+
+        return $this;
+    }
+
+    /**
+     * Korte, stabiele vingerafdruk van de meldinginhoud. Samen met de datum vormt
+     * dit de wegklik-sleutel: de melding komt elke dag terug en opnieuw zodra de
+     * beheerder de tekst of het type wijzigt.
+     */
+    public function getNoticeSignature(): string
+    {
+        return substr(hash('sha256', $this->noticeType->value . '|' . (string) $this->notice), 0, 10);
     }
 
     public function getLocale(): string
