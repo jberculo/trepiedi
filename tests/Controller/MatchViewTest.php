@@ -29,7 +29,8 @@ class MatchViewTest extends FixturesWebTestCase
         $this->client->request('GET', '/wedstrijd/' . $open->getId());
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('.alert-info', 'zichtbaar zodra de wedstrijd is begonnen');
+        // De verborgen-melding is een niet-wegklikbare alert; niet de dismissible reminder-banner.
+        $this->assertSelectorTextContains('.alert-info:not(.alert-dismissible)', 'zichtbaar zodra de wedstrijd is begonnen');
         // De consensus mag vóór de aftrap niet lekken.
         $this->assertSelectorNotExists('.progress-bar');
     }

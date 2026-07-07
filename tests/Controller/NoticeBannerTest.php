@@ -18,11 +18,11 @@ class NoticeBannerTest extends FixturesWebTestCase
         $crawler = $this->client->request('GET', '/');
         $this->assertResponseIsSuccessful();
 
-        $alert = $crawler->filter('[data-account-notice]');
+        $alert = $crawler->filter('[data-dismiss-store="trepiedi:notice-dismissed"]');
         $this->assertCount(1, $alert, 'De melding hoort als banner te verschijnen.');
         $this->assertStringContainsString('alert-warning', $alert->attr('class'), 'Waarschuwing = oranje.');
         $this->assertStringContainsString('Let op: je inleg is nog niet binnen.', $alert->text());
-        $this->assertStringStartsWith($anne->getNoticeSignature() . '-', $alert->attr('data-notice-key'));
+        $this->assertStringStartsWith($anne->getNoticeSignature() . '-', $alert->attr('data-dismiss-token'));
     }
 
     public function testInfoNoticeIsGreenAndErrorIsRed(): void
@@ -33,12 +33,12 @@ class NoticeBannerTest extends FixturesWebTestCase
         $this->em->flush();
         $this->client->loginUser($anne);
         $crawler = $this->client->request('GET', '/');
-        $this->assertStringContainsString('alert-success', $crawler->filter('[data-account-notice]')->attr('class'), 'Info = groen.');
+        $this->assertStringContainsString('alert-success', $crawler->filter('[data-dismiss-store="trepiedi:notice-dismissed"]')->attr('class'), 'Info = groen.');
 
         $anne->setNoticeType(NoticeType::Error);
         $this->em->flush();
         $crawler = $this->client->request('GET', '/');
-        $this->assertStringContainsString('alert-danger', $crawler->filter('[data-account-notice]')->attr('class'), 'Fout = rood.');
+        $this->assertStringContainsString('alert-danger', $crawler->filter('[data-dismiss-store="trepiedi:notice-dismissed"]')->attr('class'), 'Fout = rood.');
     }
 
     public function testNoBannerWhenNoticeEmpty(): void
@@ -46,7 +46,7 @@ class NoticeBannerTest extends FixturesWebTestCase
         $this->client->loginUser($this->user('anne@trepiedi.test'));
         $crawler = $this->client->request('GET', '/');
 
-        $this->assertCount(0, $crawler->filter('[data-account-notice]'), 'Zonder tekst geen banner.');
+        $this->assertCount(0, $crawler->filter('[data-dismiss-store="trepiedi:notice-dismissed"]'), 'Zonder tekst geen banner.');
     }
 
     public function testBlankNoticeIsStoredAsNull(): void

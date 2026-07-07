@@ -93,6 +93,8 @@ dash:
     title: Voorspellen
     heading: Mijn voorspellingen
     autosave_hint: 'Je wijzigingen worden automatisch opgeslagen zodra je een uitslag én winnaar hebt ingevuld.'
+    predict_reminder: 'Je hebt nog %count% wedstrijd(en) niet voorspeld.'
+    predict_reminder_link: Nu voorspellen
     invalid_number: 'Vul een getal in van 0 tot 99.'
     incomplete: 'Nog niet opgeslagen: vul beide scores en de winnaar in.'
     filter_label: Filter wedstrijden

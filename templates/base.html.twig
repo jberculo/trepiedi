@@ -85,10 +85,22 @@
 
             {% if app.user and app.user.hasNotice %}
                 <div class="alert alert-{{ app.user.noticeType.bootstrapClass }} alert-dismissible fade show" role="alert"
-                     data-account-notice data-notice-key="{{ app.user.noticeSignature }}-{{ 'now'|date('Y-m-d') }}">
+                     data-dismiss-store="trepiedi:notice-dismissed" data-dismiss-token="{{ app.user.noticeSignature }}-{{ 'now'|date('Y-m-d') }}">
                     {{ app.user.notice|nl2br }}
-                    <button type="button" class="btn-close" data-notice-dismiss aria-label="{{ 'common.close'|trans }}"></button>
+                    <button type="button" class="btn-close" data-dismiss-close aria-label="{{ 'common.close'|trans }}"></button>
                 </div>
+            {% endif %}
+
+            {% if app.user %}
+                {% set open_unpredicted = open_unpredicted_count() %}
+                {% if open_unpredicted > 0 %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert"
+                         data-dismiss-store="trepiedi:predict-reminder-dismissed" data-dismiss-token="{{ 'now'|date('Y-m-d') }}">
+                        {{ 'dash.predict_reminder'|trans({'%count%': open_unpredicted}) }}
+                        <a href="{{ path('app_dashboard') }}" class="alert-link">{{ 'dash.predict_reminder_link'|trans }}</a>
+                        <button type="button" class="btn-close" data-dismiss-close aria-label="{{ 'common.close'|trans }}"></button>
+                    </div>
+                {% endif %}
             {% endif %}
 
             {% block body %}{% endblock %}

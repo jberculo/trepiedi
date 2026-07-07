@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\FootballMatch;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,6 +15,27 @@ class FootballMatchRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, FootballMatch::class);
+    }
+
+    /**
+     * Aantal nog te voorspellen wedstrijden voor een speler: actief, nog niet begonnen
+     * (aftrap in de toekomst) en zonder voorspelling van deze speler.
+     */
+    public function countOpenWithoutPredictionForUser(User $user, \DateTimeImmutable $now): int
+    {
+        $qb = $this->createQueryBuilder('m');
+
+        return (int) $qb
+            ->select('COUNT(m.id)')
+            ->where('m.active = true')
+            ->andWhere('m.kickoffAt > :now')
+            ->andWhere($qb->expr()->not(
+                $qb->expr()->exists('SELECT p2.id FROM App\Entity\Prediction p2 WHERE p2.footballMatch = m AND p2.user = :user')
+            ))
+            ->setParameter('now', $now)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**

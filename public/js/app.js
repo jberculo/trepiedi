@@ -40,26 +40,27 @@
         el.style.width = el.dataset.width + '%';
     });
 
-    // Per-account beheer-melding: wegklikbaar, maar komt minstens 1x per dag terug.
-    // De sleutel bevat de datum + een hash van de inhoud, dus na een nieuwe dag of
-    // een gewijzigde melding verschijnt hij weer.
-    var NOTICE_KEY = 'trepiedi:notice-dismissed';
-    document.querySelectorAll('[data-account-notice]').forEach(function (el) {
-        var key = el.dataset.noticeKey;
+    // Wegklikbare banners die per periode terugkomen. In localStorage[store] bewaren we
+    // de token; is die al gelijk, dan is de banner voor die periode weggeklikt en tonen
+    // we 'm niet. De token bepaalt de terugkeer: een datum (elke dag opnieuw) of een
+    // datum + inhoud-hash (opnieuw bij een nieuwe dag óf gewijzigde inhoud).
+    document.querySelectorAll('[data-dismiss-store]').forEach(function (el) {
+        var store = el.dataset.dismissStore;
+        var token = el.dataset.dismissToken || '';
         try {
-            if (localStorage.getItem(NOTICE_KEY) === key) {
+            if (localStorage.getItem(store) === token) {
                 el.remove();
                 return;
             }
         } catch (e) {
-            // localStorage niet beschikbaar; dan tonen we de melding gewoon.
+            // localStorage niet beschikbaar; dan tonen we de banner gewoon.
         }
 
-        var btn = el.querySelector('[data-notice-dismiss]');
+        var btn = el.querySelector('[data-dismiss-close]');
         if (btn) {
             btn.addEventListener('click', function () {
                 try {
-                    localStorage.setItem(NOTICE_KEY, key);
+                    localStorage.setItem(store, token);
                 } catch (e) {
                     // negeren
                 }

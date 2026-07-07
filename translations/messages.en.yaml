@@ -93,6 +93,8 @@ dash:
     title: Predictions
     heading: My predictions
     autosave_hint: 'Your changes are saved automatically once you fill in a score and a winner.'
+    predict_reminder: 'You still have %count% match(es) left to predict.'
+    predict_reminder_link: Predict now
     invalid_number: 'Enter a number from 0 to 99.'
     incomplete: 'Not saved yet: fill in both scores and the winner.'
     filter_label: Filter matches
