@@ -91,6 +91,11 @@ lb:
 dash:
     title: Voorspellen
     heading: Mijn voorspellingen
+    autosave_hint: 'Je wijzigingen worden automatisch opgeslagen zodra je een uitslag én winnaar hebt ingevuld.'
+    filter_label: Filter wedstrijden
+    filter_current: Nog te voorspellen en actief
+    filter_finished: Uitslagen bekend
+    filter_soon: Nog niet te voorspellen
     no_matches_round: Nog geen wedstrijden in deze ronde.
     status_soon: Binnenkort
     status_finished: Afgelopen

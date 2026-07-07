@@ -25,7 +25,9 @@
         return fetch(form.action, {
             method: 'POST',
             body: body,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            // Laat een autosave die net vóór het wegnavigeren start alsnog afronden.
+            keepalive: true
         }).then(function (response) {
             return response.json().then(function (data) {
                 return { ok: response.ok, data: data };
@@ -81,14 +83,41 @@
         });
     }
 
+    // Een voorspelling is compleet zodra beide scores én de winnaar zijn ingevuld.
+    // Alleen dan wordt automatisch opgeslagen: onvolledige invoer zou de server
+    // afwijzen (winnaar is verplicht) en tijdens het typen foutmeldingen geven.
+    function fieldValue(form, name) {
+        var el = form.querySelector('[name$="[' + name + ']"]');
+        return el ? el.value.trim() : '';
+    }
+
+    function isComplete(form) {
+        return fieldValue(form, 'homeScore') !== ''
+            && fieldValue(form, 'awayScore') !== ''
+            && fieldValue(form, 'advancingSide') !== '';
+    }
+
     document.querySelectorAll('.js-prediction-form').forEach(function (form) {
+        var ctx = {
+            form: form,
+            status: form.querySelector('.save-status'),
+            btn: form.querySelector('button')
+        };
+
+        // Expliciet opslaan blijft mogelijk (Enter in een veld verstuurt het formulier).
         form.addEventListener('submit', function (e) {
             e.preventDefault();
-            save({
-                form: form,
-                status: form.querySelector('.save-status'),
-                btn: form.querySelector('button')
-            }, false);
+            save(ctx, false);
+        });
+
+        // Automatisch opslaan zodra de voorspelling compleet is, zodat niemand het
+        // opslaan kan vergeten.
+        form.querySelectorAll('input, select').forEach(function (field) {
+            field.addEventListener('change', function () {
+                if (isComplete(form)) {
+                    save(ctx, false);
+                }
+            });
         });
     });
 

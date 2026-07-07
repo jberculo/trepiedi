@@ -91,6 +91,11 @@ lb:
 dash:
     title: Predictions
     heading: My predictions
+    autosave_hint: 'Your changes are saved automatically once you fill in a score and a winner.'
+    filter_label: Filter matches
+    filter_current: To predict and in progress
+    filter_finished: Results known
+    filter_soon: Not yet predictable
     no_matches_round: No matches in this round yet.
     status_soon: Soon
     status_finished: Finished
