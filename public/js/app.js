@@ -47,14 +47,22 @@
     document.querySelectorAll('[data-dismiss-store]').forEach(function (el) {
         var store = el.dataset.dismissStore;
         var token = el.dataset.dismissToken || '';
+
+        var dismissed = false;
         try {
-            if (localStorage.getItem(store) === token) {
-                el.remove();
-                return;
-            }
+            dismissed = localStorage.getItem(store) === token;
         } catch (e) {
             // localStorage niet beschikbaar; dan tonen we de banner gewoon.
         }
+
+        if (dismissed) {
+            // Voor deze periode weggeklikt: verwijderen zonder 'm ooit te tonen (geen flits).
+            el.remove();
+            return;
+        }
+
+        // Nog niet weggeklikt: de (verborgen gerenderde) banner tonen.
+        el.classList.remove('d-none');
 
         var btn = el.querySelector('[data-dismiss-close]');
         if (btn) {

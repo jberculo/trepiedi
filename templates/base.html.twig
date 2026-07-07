@@ -84,7 +84,8 @@
             {% endif %}
 
             {% if app.user and app.user.hasNotice %}
-                <div class="alert alert-{{ app.user.noticeType.bootstrapClass }} alert-dismissible fade show" role="alert"
+                {# Start verborgen; app.js toont 'm alleen als hij niet is weggeklikt (voorkomt een flits). #}
+                <div class="alert alert-{{ app.user.noticeType.bootstrapClass }} alert-dismissible fade show d-none" role="alert"
                      data-dismiss-store="trepiedi:notice-dismissed" data-dismiss-token="{{ app.user.noticeSignature }}-{{ 'now'|date('Y-m-d') }}">
                     {{ app.user.notice|nl2br }}
                     <button type="button" class="btn-close" data-dismiss-close aria-label="{{ 'common.close'|trans }}"></button>
@@ -94,7 +95,7 @@
             {% if app.user %}
                 {% set open_unpredicted = open_unpredicted_count() %}
                 {% if open_unpredicted > 0 %}
-                    <div class="alert alert-info alert-dismissible fade show" role="alert"
+                    <div class="alert alert-info alert-dismissible fade show d-none" role="alert"
                          data-dismiss-store="trepiedi:predict-reminder-dismissed" data-dismiss-token="{{ 'now'|date('Y-m-d') }}">
                         {{ 'dash.predict_reminder'|trans({'%count%': open_unpredicted}) }}
                         <a href="{{ path('app_dashboard') }}" class="alert-link">{{ 'dash.predict_reminder_link'|trans }}</a>
