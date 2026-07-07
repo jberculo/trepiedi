@@ -140,19 +140,24 @@
             btn: form.querySelector('button')
         };
 
+        // Bepaalt op basis van de huidige invoer wat er moet gebeuren: melden bij een
+        // ongeldig getal, opslaan als de voorspelling compleet is, of als waarschuwing
+        // (oranje) melden dat er nog niets is opgeslagen omdat niet alles is ingevuld.
         function autosave() {
-            // Ongeldig getal: niet opslaan, wél melden wat er mis is.
             if (hasInvalidScore(form)) {
                 setStatus(ctx.status, invalidNumberText, 'text-danger');
                 return;
             }
             if (isComplete(form)) {
                 save(ctx, false);
+            } else if (isPartiallyFilled(form) && incompleteText !== '') {
+                setStatus(ctx.status, incompleteText, 'text-warning');
             }
         }
 
-        // Kort na het typen opslaan, óók als de speler het veld niet verlaat en niet
-        // wegnavigeert. Zo gaat een wijziging niet verloren als je gewoon blijft staan.
+        // Kort na het typen reageren, óók als de speler het veld niet verlaat en niet
+        // wegnavigeert. Zo gaat een wijziging niet verloren als je gewoon blijft staan,
+        // en verschijnt de "nog niet opgeslagen"-melding ook zonder focusverlies.
         var typedSave = debounce(autosave, 900);
 
         // Expliciet opslaan blijft mogelijk (Enter in een veld verstuurt het formulier).
@@ -164,7 +169,7 @@
 
         form.querySelectorAll('input, select').forEach(function (field) {
             field.addEventListener('input', function () {
-                // Direct melden bij een ongeldig getal; anders debounced automatisch opslaan.
+                // Ongeldig getal meteen melden; anders kort na het typen afhandelen.
                 if (hasInvalidScore(form)) {
                     typedSave.cancel();
                     setStatus(ctx.status, invalidNumberText, 'text-danger');
@@ -175,15 +180,7 @@
             // Veld verlaten of een keuze in de dropdown: meteen reageren (geen wachttijd).
             field.addEventListener('change', function () {
                 typedSave.cancel();
-                if (hasInvalidScore(form)) {
-                    setStatus(ctx.status, invalidNumberText, 'text-danger');
-                } else if (isComplete(form)) {
-                    save(ctx, false);
-                } else if (isPartiallyFilled(form) && incompleteText !== '') {
-                    // Deels ingevuld maar nog niet compleet: als waarschuwing (oranje) melden
-                    // dat er (nog) niets is opgeslagen.
-                    setStatus(ctx.status, incompleteText, 'text-warning');
-                }
+                autosave();
             });
         });
     });
