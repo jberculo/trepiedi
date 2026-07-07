@@ -34,6 +34,10 @@
             return;
         }
 
+        // Vorige object-URL vrijgeven om een geheugenlek bij herhaald kiezen te voorkomen.
+        if (img.src) {
+            URL.revokeObjectURL(img.src);
+        }
         img.src = URL.createObjectURL(file);
         holder.style.display = 'block';
         cropper = new Cropper(img, {

@@ -7,6 +7,7 @@
     'use strict';
 
     var ENDPOINT = '/api/landen';
+    var uid = 0;
 
     function debounce(fn, wait) {
         var t;
@@ -35,10 +36,19 @@
         wrap.appendChild(input);
         input.setAttribute('autocomplete', 'off');
 
+        var listId = 'country-ac-' + (++uid);
         var list = document.createElement('ul');
         list.className = 'country-autocomplete-list';
+        list.id = listId;
+        list.setAttribute('role', 'listbox');
         list.hidden = true;
         wrap.appendChild(list);
+
+        // Combobox-semantiek zodat schermlezers de suggesties aankondigen.
+        input.setAttribute('role', 'combobox');
+        input.setAttribute('aria-autocomplete', 'list');
+        input.setAttribute('aria-controls', listId);
+        input.setAttribute('aria-expanded', 'false');
 
         var items = [];
         var activeIndex = -1;
@@ -48,6 +58,8 @@
             list.innerHTML = '';
             items = [];
             activeIndex = -1;
+            input.setAttribute('aria-expanded', 'false');
+            input.removeAttribute('aria-activedescendant');
         }
 
         function choose(name) {
@@ -66,6 +78,9 @@
             }
             results.forEach(function (item, i) {
                 var li = document.createElement('li');
+                li.id = listId + '-opt-' + i;
+                li.setAttribute('role', 'option');
+                li.setAttribute('aria-selected', 'false');
                 li.appendChild(flagSpan(item));
                 var label = document.createElement('span');
                 label.textContent = item.name;
@@ -78,14 +93,22 @@
                 list.appendChild(li);
             });
             list.hidden = false;
+            input.setAttribute('aria-expanded', 'true');
         }
 
         function setActive(i) {
             var lis = list.querySelectorAll('li');
-            lis.forEach(function (li) { li.classList.remove('active'); });
+            lis.forEach(function (li) {
+                li.classList.remove('active');
+                li.setAttribute('aria-selected', 'false');
+            });
             activeIndex = i;
             if (i >= 0 && lis[i]) {
                 lis[i].classList.add('active');
+                lis[i].setAttribute('aria-selected', 'true');
+                input.setAttribute('aria-activedescendant', lis[i].id);
+            } else {
+                input.removeAttribute('aria-activedescendant');
             }
         }
 

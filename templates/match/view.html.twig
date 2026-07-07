@@ -41,7 +41,8 @@
                         <div class="d-flex justify-content-between small">
                             <span>{{ m.team(match.homeTeam) }}</span><span>{{ advanceHome }}</span>
                         </div>
-                        <div class="progress" role="progressbar">
+                        <div class="progress" role="progressbar" aria-label="{{ match.homeTeam }}"
+                             aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ total ? (advanceHome / total * 100)|round : 0 }}">
                             <div class="progress-bar bg-success" data-width="{{ total ? (advanceHome / total * 100)|round : 0 }}"></div>
                         </div>
                     </div>
@@ -49,7 +50,8 @@
                         <div class="d-flex justify-content-between small">
                             <span>{{ m.team(match.awayTeam) }}</span><span>{{ advanceAway }}</span>
                         </div>
-                        <div class="progress" role="progressbar">
+                        <div class="progress" role="progressbar" aria-label="{{ match.awayTeam }}"
+                             aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ total ? (advanceAway / total * 100)|round : 0 }}">
                             <div class="progress-bar bg-secondary" data-width="{{ total ? (advanceAway / total * 100)|round : 0 }}"></div>
                         </div>
                     </div>

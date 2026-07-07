@@ -1,6 +1,6 @@
 # Klassieke (sessie-gebaseerde) CSRF-bescherming. Rendert serverside een echte
 # token, zodat geen JavaScript uit een asset-pipeline nodig is. Past bij deze
-# server-rendered app (Bootstrap via CDN).
+# server-rendered app (assets zijn lokaal gebundeld; de strikte CSP staat geen CDN toe).
 framework:
     form:
         csrf_protection:

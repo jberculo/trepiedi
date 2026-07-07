@@ -9,7 +9,6 @@ use App\Form\UserAdminType;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -42,11 +41,7 @@ class ParticipantController extends AbstractController
         return $this->handleCrudForm($form, $request, $em, 'admin.participant_updated', 'admin_participant_index', 'admin.participant_edit', onValid: function (User $user) use ($form, $users, $avatars, $passwordHasher): void {
             $user->setRoles($form->get('isAdmin')->getData() ? ['ROLE_ADMIN'] : []);
             $user->setSlug($users->uniqueSlug($user->getDisplayName(), $user));
-
-            $avatar = $form->get('avatar')->getData();
-            if ($avatar instanceof UploadedFile) {
-                $avatars->store($user, $avatar, AvatarStorage::parseCrop($form->get('crop')->getData()));
-            }
+            $avatars->storeFromForm($user, $form);
 
             if ($form->has('newPassword')) {
                 $newPassword = $form->get('newPassword')->getData();

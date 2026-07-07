@@ -5,6 +5,7 @@ namespace App\Account;
 use App\Entity\User;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -31,6 +32,19 @@ final class AvatarStorage
     public function store(User $user, UploadedFile $file, ?array $crop = null): void
     {
         $this->storeFromPath($user, $file->getPathname(), $crop);
+    }
+
+    /**
+     * Slaat de geüploade avatar op als er een bestand in het (niet-gemapte) avatar-veld
+     * zit; met de door de crop-UI gekozen uitsnede. Gedeeld door het account- en het
+     * beheerformulier.
+     */
+    public function storeFromForm(User $user, FormInterface $form): void
+    {
+        $file = $form->get('avatar')->getData();
+        if ($file instanceof UploadedFile) {
+            $this->store($user, $file, self::parseCrop($form->get('crop')->getData()));
+        }
     }
 
     /**

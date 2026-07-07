@@ -37,9 +37,9 @@ curl "https://trepiedi.online/api/standings?pool=kantoor"
   "types": [
     { "key": "points", "emoji": "🟡", "label": "Algemeen", "field": "weightedTotal", "invertedMovement": false },
     { "key": "score", "emoji": "⚽", "label": "Balletjestrui", "field": "scorePoints", "invertedMovement": false },
-    { "key": "winners", "emoji": "🔮", "label": "Glazen bal", "field": "winners", "invertedMovement": false },
+    { "key": "winners", "emoji": "🔮", "label": "Glazen bal", "field": "advanceCount", "invertedMovement": false },
     { "key": "lantern", "emoji": "🔴", "label": "Ronde lantaarn", "field": "lanternPoints", "invertedMovement": true },
-    { "key": "inconsistent", "emoji": "🤔", "label": "Tegenstrijdig", "field": "inconsistent", "invertedMovement": false }
+    { "key": "inconsistent", "emoji": "🤔", "label": "Tegenstrijdig", "field": "inconsistentCount", "invertedMovement": false }
   ],
   "rankings": {
     "points": {
@@ -49,10 +49,10 @@ curl "https://trepiedi.online/api/standings?pool=kantoor"
         { "rank": 2, "movement": -1, "player": "Bram", "slug": "bram", "value": 70 }
       ]
     },
-    "score":        { "field": "scorePoints",   "entries": [] },
-    "winners":      { "field": "winners",        "entries": [] },
-    "lantern":      { "field": "lanternPoints",  "entries": [] },
-    "inconsistent": { "field": "inconsistent",   "entries": [] }
+    "score":        { "field": "scorePoints",     "entries": [] },
+    "winners":      { "field": "advanceCount",     "entries": [] },
+    "lantern":      { "field": "lanternPoints",    "entries": [] },
+    "inconsistent": { "field": "inconsistentCount", "entries": [] }
   }
 }
 ```

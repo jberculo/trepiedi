@@ -11,7 +11,6 @@ use App\Repository\UserRepository;
 use App\Security\ApiTokenService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -36,11 +35,7 @@ class AccountController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $user->setSlug($users->uniqueSlug($user->getDisplayName(), $user));
-
-            $file = $form->get('avatar')->getData();
-            if ($file instanceof UploadedFile) {
-                $avatars->store($user, $file, AvatarStorage::parseCrop($form->get('crop')->getData()));
-            }
+            $avatars->storeFromForm($user, $form);
 
             $em->flush();
             $localeManager->applyUserLocale($request->getSession(), $user);

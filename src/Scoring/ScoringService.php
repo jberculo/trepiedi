@@ -10,7 +10,6 @@ use App\Repository\FootballMatchRepository;
 use App\Repository\PredictionRepository;
 use App\Repository\RoundRepository;
 use App\Repository\UserRepository;
-use App\Util\MatchOutcome;
 
 /**
  * Berekent punten volgens de poule-regels (vanaf de 16e finales):
@@ -181,11 +180,7 @@ class ScoringService
                 $entry->rounds[$roundId]['advance'] = ($entry->rounds[$roundId]['advance'] ?? 0) + 1;
             }
 
-            $scoreWinner = $this->predictedWinnerSide($prediction);
-            if ($match->hasResult()
-                && $scoreWinner !== null
-                && $prediction->getAdvancingSide() !== null
-                && $prediction->getAdvancingSide() !== $scoreWinner) {
+            if ($match->hasResult() && $prediction->isInconsistent()) {
                 ++$entry->inconsistentCount;
                 $entry->rounds[$roundId]['inconsistent'] = ($entry->rounds[$roundId]['inconsistent'] ?? 0) + 1;
             }
@@ -225,19 +220,14 @@ class ScoringService
             return $current;
         }
 
-        $previous = $this->buildLeaderboard($cutoff, $userIds);
-
-        $hasHistory = false;
-        foreach ($previous as $entry) {
-            if ($entry->rawTotal > 0) {
-                $hasHistory = true;
-                break;
-            }
-        }
-
-        if (!$hasHistory) {
+        // Alleen movement tonen als er echt een vorige speeldag was (afgeronde
+        // wedstrijden vóór de cutoff). Niet afgaan op "iemand had punten": een
+        // speeldag waarop iedereen 0 haalde is ook historie.
+        if (!$this->hasFinishedMatchesBefore($cutoff)) {
             return $current;
         }
+
+        $previous = $this->buildLeaderboard($cutoff, $userIds);
 
         $rankings = [
             'points' => static fn (LeaderboardEntry $e): array => [$e->weightedTotal, $e->rawTotal],
@@ -344,10 +334,7 @@ class ScoringService
                 $winners[] = $ms->advancePoints > 0 ? 1 : 0;
                 $lantern[] = $this->lanternPenalty($prediction);
 
-                $scoreWinner = $this->predictedWinnerSide($prediction);
-                $inconsistent[] = ($scoreWinner !== null
-                    && $prediction->getAdvancingSide() !== null
-                    && $prediction->getAdvancingSide() !== $scoreWinner) ? 1 : 0;
+                $inconsistent[] = $prediction->isInconsistent() ? 1 : 0;
             }
 
             $steps[] = [
@@ -506,9 +493,12 @@ class ScoringService
             return $this->finishedMatchesCache;
         }
 
+        // Alleen wedstrijden met een echte uitslag (afgerond én beide scores) tellen
+        // als "gespeeld": zo lopen het maximum, de speeldag-referentie en de scoring
+        // niet uiteen bij een (theoretisch) afgeronde wedstrijd zonder scores.
         return $this->finishedMatchesCache = array_values(array_filter(
             $this->allMatches(),
-            static fn (FootballMatch $match): bool => $match->isFinished(),
+            static fn (FootballMatch $match): bool => $match->hasResult(),
         ));
     }
 
@@ -666,9 +656,16 @@ class ScoringService
         return ($before?->format(\DateTimeInterface::ATOM) ?? 'all') . '|' . json_encode($userIds);
     }
 
-    private function predictedWinnerSide(Prediction $prediction): ?string
+    private function hasFinishedMatchesBefore(\DateTimeImmutable $cutoff): bool
     {
-        return MatchOutcome::scoreWinner($prediction->getHomeScore(), $prediction->getAwayScore());
+        foreach ($this->finishedMatches() as $match) {
+            $kickoff = $match->getKickoffAt();
+            if ($kickoff !== null && $kickoff < $cutoff) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

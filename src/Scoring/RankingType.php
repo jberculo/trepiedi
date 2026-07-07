@@ -46,9 +46,9 @@ enum RankingType: string
         return match ($this) {
             self::Points => 'weightedTotal',
             self::Score => 'scorePoints',
-            self::Winners => 'winners',
+            self::Winners => 'advanceCount',
             self::Lantern => 'lanternPoints',
-            self::Inconsistent => 'inconsistent',
+            self::Inconsistent => 'inconsistentCount',
         };
     }
 

@@ -3,6 +3,7 @@ nav:
     leaderboard: Klassement
     matches: Wedstrijden
     admin: Beheer
+    toggle: Menu openen
 auth:
     login: Inloggen
     register: Registreren

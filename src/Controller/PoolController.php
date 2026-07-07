@@ -13,6 +13,8 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class PoolController extends AbstractController
 {
+    use SafeRedirectTrait;
+
     /**
      * Inschrijven via een uitnodigingscode. Ingelogd: meteen lid worden en de
      * poule activeren. Uitgelogd: code onthouden en naar registreren sturen
@@ -91,35 +93,5 @@ class PoolController extends AbstractController
         $referer = $this->safeRedirectTarget($request);
 
         return $this->redirect($referer ?: $this->generateUrl('app_leaderboard'));
-    }
-
-    private function safeRedirectTarget(Request $request): ?string
-    {
-        $referer = $request->headers->get('referer');
-        if (!is_string($referer) || $referer === '') {
-            return null;
-        }
-
-        $parts = parse_url($referer);
-        if ($parts === false) {
-            return null;
-        }
-
-        $host = $parts['host'] ?? null;
-        if ($host !== null && $host !== $request->getHost()) {
-            return null;
-        }
-
-        $path = $parts['path'] ?? '';
-        if (!is_string($path) || !str_starts_with($path, '/')) {
-            return null;
-        }
-
-        $target = $path;
-        if (isset($parts['query']) && is_string($parts['query']) && $parts['query'] !== '') {
-            $target .= '?' . $parts['query'];
-        }
-
-        return $target;
     }
 }

@@ -11,14 +11,14 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class LocaleController extends AbstractController
 {
+    use SafeRedirectTrait;
+
     #[Route('/taal/{_locale}', name: 'app_locale', requirements: ['_locale' => 'nl|en'])]
     public function switch(string $_locale, Request $request, LocaleManager $localeManager): Response
     {
         $user = $this->getUser();
         $localeManager->switchLocale($request->getSession(), $user instanceof User ? $user : null, $_locale);
 
-        $referer = $request->headers->get('referer');
-
-        return $this->redirect($referer ?: $this->generateUrl('app_leaderboard'));
+        return $this->redirect($this->safeRedirectTarget($request) ?? $this->generateUrl('app_leaderboard'));
     }
 }

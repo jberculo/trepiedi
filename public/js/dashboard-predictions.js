@@ -54,6 +54,15 @@
     }
 
     function save(ctx, confirmInconsistent) {
+        // Serialiseer per formulier: bij een al lopende save de nieuwste wijziging
+        // markeren en na afloop opnieuw opslaan. Zo kan een trage, oudere response
+        // nooit een nieuwere voorspelling overschrijven (out-of-order race).
+        if (ctx.saving) {
+            ctx.queued = true;
+            return;
+        }
+        ctx.saving = true;
+
         if (ctx.btn) {
             ctx.btn.disabled = true;
         }
@@ -62,14 +71,15 @@
         return post(ctx.form, confirmInconsistent).then(function (result) {
             // Tegenstrijdige voorspelling: eerst bevestigen via de modal.
             if (!confirmInconsistent && result.ok && result.data && result.data.needsConfirmation) {
-                if (modal) {
+                // Alleen tonen als er nog geen andere bevestiging openstaat, anders
+                // zou die verloren gaan; deze krijgt dan een inline melding.
+                if (modal && !pending) {
                     if (modalMessage) {
                         modalMessage.textContent = result.data.message;
                     }
                     pending = ctx;
                     modal.show();
                 } else {
-                    // Geen modal beschikbaar: niet opslaan, wel uitleggen waarom.
                     setStatus(ctx.status, result.data.message, 'text-danger');
                 }
                 return;
@@ -79,8 +89,14 @@
         }).catch(function () {
             setStatus(ctx.status, dashboardErrorText, 'text-danger');
         }).finally(function () {
+            ctx.saving = false;
             if (ctx.btn) {
                 ctx.btn.disabled = false;
+            }
+            // Kwam er tijdens deze save een nieuwere wijziging binnen? Sla die nu op.
+            if (ctx.queued) {
+                ctx.queued = false;
+                save(ctx, false);
             }
         });
     }

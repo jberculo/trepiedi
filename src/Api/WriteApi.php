@@ -167,11 +167,11 @@ class WriteApi
     {
         $home = $this->intOrNull($body['homeScore'] ?? null);
         $away = $this->intOrNull($body['awayScore'] ?? null);
-        if ($home === null || $home < 0) {
-            throw new ApiException(ApiError::Validation, 'homeScore is verplicht en moet 0 of hoger zijn.');
+        if ($home === null || $home < 0 || $home > 99) {
+            throw new ApiException(ApiError::Validation, 'homeScore is verplicht en moet tussen 0 en 99 liggen.');
         }
-        if ($away === null || $away < 0) {
-            throw new ApiException(ApiError::Validation, 'awayScore is verplicht en moet 0 of hoger zijn.');
+        if ($away === null || $away < 0 || $away > 99) {
+            throw new ApiException(ApiError::Validation, 'awayScore is verplicht en moet tussen 0 en 99 liggen.');
         }
 
         return [$home, $away];

@@ -119,7 +119,7 @@ class DashboardController extends AbstractController
             );
         }
 
-        $this->addFlash('error', $key);
+        $this->addFlash('error', $translator->trans($key));
 
         return $this->dashboardRedirect($match);
     }

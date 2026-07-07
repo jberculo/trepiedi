@@ -16,7 +16,8 @@
                 <a class="navbar-brand" href="{{ path('app_leaderboard') }}">
                     <img src="{{ asset('images/trepiedi-logo-white.svg') }}" alt="Trepiedi">
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+                        aria-controls="nav" aria-expanded="false" aria-label="{{ 'nav.toggle'|trans }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="nav">
