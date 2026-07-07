@@ -180,8 +180,9 @@
                 } else if (isComplete(form)) {
                     save(ctx, false);
                 } else if (isPartiallyFilled(form) && incompleteText !== '') {
-                    // Deels ingevuld maar nog niet compleet: melden dat er (nog) niets is opgeslagen.
-                    setStatus(ctx.status, incompleteText, 'text-muted');
+                    // Deels ingevuld maar nog niet compleet: als waarschuwing (oranje) melden
+                    // dat er (nog) niets is opgeslagen.
+                    setStatus(ctx.status, incompleteText, 'text-warning');
                 }
             });
         });
