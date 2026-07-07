@@ -92,6 +92,8 @@ dash:
     title: Predictions
     heading: My predictions
     autosave_hint: 'Your changes are saved automatically once you fill in a score and a winner.'
+    invalid_number: 'Enter a number from 0 to 99.'
+    incomplete: 'Not saved yet: fill in both scores and the winner.'
     filter_label: Filter matches
     filter_current: To predict and in progress
     filter_finished: Results known

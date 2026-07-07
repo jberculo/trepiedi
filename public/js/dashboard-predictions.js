@@ -7,6 +7,8 @@
     }
 
     var dashboardErrorText = config.dataset.errorText || 'Error';
+    var invalidNumberText = config.dataset.invalidNumber || dashboardErrorText;
+    var incompleteText = config.dataset.incomplete || '';
 
     var modalEl = document.getElementById('inconsistent-modal');
     var modalMessage = document.getElementById('inconsistent-modal-message');
@@ -97,6 +99,28 @@
             && fieldValue(form, 'advancingSide') !== '';
     }
 
+    function isPartiallyFilled(form) {
+        return fieldValue(form, 'homeScore') !== ''
+            || fieldValue(form, 'awayScore') !== ''
+            || fieldValue(form, 'advancingSide') !== '';
+    }
+
+    function scoreFields(form) {
+        return [
+            form.querySelector('[name$="[homeScore]"]'),
+            form.querySelector('[name$="[awayScore]"]')
+        ];
+    }
+
+    // Ongeldige score-invoer: geen getal (badInput; bij een number-veld wordt de
+    // waarde dan leeg) of buiten 0-99. checkValidity zou ook een leeg verplicht veld
+    // als ongeldig zien, dus daar kijken we hier bewust niet naar.
+    function hasInvalidScore(form) {
+        return scoreFields(form).some(function (field) {
+            return field && (field.validity.badInput || field.validity.rangeOverflow || field.validity.rangeUnderflow);
+        });
+    }
+
     function debounce(fn, wait) {
         var timer = null;
         function debounced() {
@@ -117,6 +141,11 @@
         };
 
         function autosave() {
+            // Ongeldig getal: niet opslaan, wél melden wat er mis is.
+            if (hasInvalidScore(form)) {
+                setStatus(ctx.status, invalidNumberText, 'text-danger');
+                return;
+            }
             if (isComplete(form)) {
                 save(ctx, false);
             }
@@ -130,15 +159,30 @@
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             typedSave.cancel();
-            save(ctx, false);
+            autosave();
         });
 
         form.querySelectorAll('input, select').forEach(function (field) {
-            field.addEventListener('input', typedSave);
-            // Veld verlaten of een keuze in de dropdown: meteen opslaan (geen wachttijd).
+            field.addEventListener('input', function () {
+                // Direct melden bij een ongeldig getal; anders debounced automatisch opslaan.
+                if (hasInvalidScore(form)) {
+                    typedSave.cancel();
+                    setStatus(ctx.status, invalidNumberText, 'text-danger');
+                    return;
+                }
+                typedSave();
+            });
+            // Veld verlaten of een keuze in de dropdown: meteen reageren (geen wachttijd).
             field.addEventListener('change', function () {
                 typedSave.cancel();
-                autosave();
+                if (hasInvalidScore(form)) {
+                    setStatus(ctx.status, invalidNumberText, 'text-danger');
+                } else if (isComplete(form)) {
+                    save(ctx, false);
+                } else if (isPartiallyFilled(form) && incompleteText !== '') {
+                    // Deels ingevuld maar nog niet compleet: melden dat er (nog) niets is opgeslagen.
+                    setStatus(ctx.status, incompleteText, 'text-muted');
+                }
             });
         });
     });
