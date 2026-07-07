@@ -97,6 +97,18 @@
             && fieldValue(form, 'advancingSide') !== '';
     }
 
+    function debounce(fn, wait) {
+        var timer = null;
+        function debounced() {
+            clearTimeout(timer);
+            timer = setTimeout(fn, wait);
+        }
+        debounced.cancel = function () {
+            clearTimeout(timer);
+        };
+        return debounced;
+    }
+
     document.querySelectorAll('.js-prediction-form').forEach(function (form) {
         var ctx = {
             form: form,
@@ -104,19 +116,29 @@
             btn: form.querySelector('button')
         };
 
+        function autosave() {
+            if (isComplete(form)) {
+                save(ctx, false);
+            }
+        }
+
+        // Kort na het typen opslaan, óók als de speler het veld niet verlaat en niet
+        // wegnavigeert. Zo gaat een wijziging niet verloren als je gewoon blijft staan.
+        var typedSave = debounce(autosave, 900);
+
         // Expliciet opslaan blijft mogelijk (Enter in een veld verstuurt het formulier).
         form.addEventListener('submit', function (e) {
             e.preventDefault();
+            typedSave.cancel();
             save(ctx, false);
         });
 
-        // Automatisch opslaan zodra de voorspelling compleet is, zodat niemand het
-        // opslaan kan vergeten.
         form.querySelectorAll('input, select').forEach(function (field) {
+            field.addEventListener('input', typedSave);
+            // Veld verlaten of een keuze in de dropdown: meteen opslaan (geen wachttijd).
             field.addEventListener('change', function () {
-                if (isComplete(form)) {
-                    save(ctx, false);
-                }
+                typedSave.cancel();
+                autosave();
             });
         });
     });
