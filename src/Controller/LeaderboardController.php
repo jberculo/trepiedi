@@ -14,6 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class LeaderboardController extends AbstractController
 {
     #[Route('/', name: 'app_leaderboard', defaults: ['tab' => 'points'])]
+    #[Route('/plattement', name: 'app_leaderboard_flat', defaults: ['tab' => 'flat'])]
     #[Route('/balletjestrui', name: 'app_leaderboard_score', defaults: ['tab' => 'score'])]
     #[Route('/glazen-bal', name: 'app_leaderboard_winners', defaults: ['tab' => 'winners'])]
     #[Route('/ronde-lantaarn', name: 'app_leaderboard_lantern', defaults: ['tab' => 'lantern'])]
@@ -38,6 +39,7 @@ class LeaderboardController extends AbstractController
             'totalMatches' => $scoringService->tournamentMatchCount(),
             'maxPossible' => $scoringService->maxAchievableTotal(),
             'maxTournament' => $scoringService->maxTournamentTotal(),
+            'maxRawPerMatch' => ScoringService::MAX_RAW_PER_MATCH,
             'timeline' => $tab === 'animation' ? $scoringService->matchTimeline($memberIds) : null,
             'activePool' => $poolContext->getActivePool(),
         ]);
@@ -66,6 +68,17 @@ class LeaderboardController extends AbstractController
                 'max_now_kind' => 'points',
                 'max_tour_kind' => 'points',
                 'mode' => 'points',
+            ],
+            'flat' => [
+                'entries' => $this->sortedByType($entries, RankingType::Flat),
+                'intro' => 'lb.flat_intro',
+                'showArrow' => true,
+                'arrowKey' => 'flat',
+                'invertArrow' => false,
+                'rankField' => 'rawTotal',
+                'max_now_kind' => 'raw-finished',
+                'max_tour_kind' => 'raw-total',
+                'mode' => 'flat',
             ],
             'score' => [
                 'entries' => $this->sortedByType($entries, RankingType::Score),

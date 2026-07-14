@@ -22,6 +22,34 @@ class LeaderboardPageTest extends FixturesWebTestCase
         $this->assertStringContainsString('72', $anneRow->text());
     }
 
+    public function testFlatTabIgnoresRoundWeight(): void
+    {
+        // Kwart × 3 in het gewone klassement; het Plattement negeert dat gewicht.
+        $this->em->getRepository(Round::class)->findOneBy(['name' => 'Kwartfinales'])->setWeight(3.0);
+        $this->em->flush();
+
+        $this->client->request('GET', '/');
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('.nav-tabs', 'Plattement');
+
+        $crawler = $this->client->request('GET', '/plattement');
+        $this->assertResponseIsSuccessful();
+
+        // Elke ronde weegt hier 1×, dus de kop toont overal × 1 (ook Kwart).
+        $this->assertSelectorTextContains('thead', '× 1');
+        $this->assertStringNotContainsString('× 3', $crawler->filter('thead')->text());
+
+        // Anne (perfect) houdt 12 × 6 = 72 punten, zonder het rondegewicht.
+        $anneRow = $crawler->filter('tbody tr')->reduce(
+            static fn ($node): bool => str_contains($node->text(), 'Anne')
+        );
+        $this->assertStringContainsString('72', $anneRow->text());
+
+        // Max nu = 12 gespeeld × 6 = 72; hele toernooi = 15 × 6 = 90.
+        $this->assertStringContainsString('nu mogelijk: 72', $this->client->getResponse()->getContent());
+        $this->assertStringContainsString('hele toernooi: 90', $this->client->getResponse()->getContent());
+    }
+
     public function testThreeRankingsHaveOwnUrl(): void
     {
         $this->client->request('GET', '/');
@@ -93,12 +121,12 @@ class LeaderboardPageTest extends FixturesWebTestCase
     }
 
     /**
-     * Alle vijf ranglijst-tabbladen delen hetzelfde tabel-skelet (de embed):
+     * Alle ranglijst-tabbladen delen hetzelfde tabel-skelet (de embed):
      * een lb-table met #/speler/totaal-koppen en minstens één spelersrij.
      */
     public function testEveryRankingTabRendersTheSharedTable(): void
     {
-        foreach (['/', '/balletjestrui', '/glazen-bal', '/ronde-lantaarn', '/tegenstrijdig'] as $url) {
+        foreach (['/', '/plattement', '/balletjestrui', '/glazen-bal', '/ronde-lantaarn', '/tegenstrijdig'] as $url) {
             $crawler = $this->client->request('GET', $url);
             $this->assertResponseIsSuccessful();
 
@@ -135,6 +163,7 @@ class LeaderboardPageTest extends FixturesWebTestCase
         $this->assertCount(12, $data['steps']);
         $this->assertNotEmpty($data['players']);
         $this->assertCount(count($data['players']), $data['steps'][0]['points']);
+        $this->assertArrayHasKey('flat', $data['steps'][0]);
         $this->assertArrayHasKey('score', $data['steps'][0]);
         $this->assertArrayHasKey('winners', $data['steps'][0]);
         $this->assertArrayHasKey('lantern', $data['steps'][0]);

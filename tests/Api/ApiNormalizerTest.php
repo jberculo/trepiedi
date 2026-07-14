@@ -99,12 +99,14 @@ class ApiNormalizerTest extends TestCase
         $field = array_column($types, 'field', 'key');
 
         $this->assertSame('🟡', $emoji['points']);
+        $this->assertSame('🥞', $emoji['flat']);
         $this->assertSame('⚽', $emoji['score']);
         $this->assertSame('🔮', $emoji['winners']);
         $this->assertSame('🔴', $emoji['lantern']);
         $this->assertSame('🤔', $emoji['inconsistent']);
         // Het veld verwijst naar de bijbehorende kolom in de stand.
         $this->assertSame('weightedTotal', $field['points']);
+        $this->assertSame('rawTotal', $field['flat']);
         $this->assertSame('lanternPoints', $field['lantern']);
 
         // invertedMovement: alleen de lantaarn keert de kleur om (stijgen = ongunstig).
@@ -122,7 +124,7 @@ class ApiNormalizerTest extends TestCase
 
         $rankings = $this->normalizer->rankings([$anne, $bram, $chris]);
 
-        $this->assertSame(['points', 'score', 'winners', 'lantern', 'inconsistent'], array_keys($rankings));
+        $this->assertSame(['points', 'flat', 'score', 'winners', 'lantern', 'inconsistent'], array_keys($rankings));
 
         // Punten: gesorteerd op weightedTotal (desc), tie-aware rang, movement per speler.
         $points = $rankings['points'];
@@ -165,6 +167,24 @@ class ApiNormalizerTest extends TestCase
         $this->assertSame([6, 4, 0], array_column($lantern['entries'], 'value'));
         // Geen historie meegegeven => movement overal null.
         $this->assertSame([null, null, null], array_column($lantern['entries'], 'movement'));
+    }
+
+    public function testFlatRankingSortsOnRawTotalIgnoringWeight(): void
+    {
+        // Gewogen stand omgekeerd aan de ruwe: het Plattement sorteert op rawTotal,
+        // dus het rondegewicht speelt hier geen rol.
+        $anne = $this->entry('Anne', 100.0, 0, 0, 0, 0, ['flat' => 2]);
+        $anne->rawTotal = 20;
+        $bram = $this->entry('Bram', 5.0, 0, 0, 0, 0);
+        $bram->rawTotal = 40;
+
+        $flat = $this->normalizer->rankings([$anne, $bram])['flat'];
+
+        $this->assertSame('rawTotal', $flat['field']);
+        $this->assertSame(['Bram', 'Anne'], array_column($flat['entries'], 'player'), 'Meer ruwe punten eerst.');
+        $this->assertSame([40, 20], array_column($flat['entries'], 'value'));
+        $this->assertSame([1, 2], array_column($flat['entries'], 'rank'));
+        $this->assertSame([null, 2], array_column($flat['entries'], 'movement'), 'Movement uit rankChange[flat].');
     }
 
     private function entry(string $name, float $weighted, int $score, int $advance, int $lantern, int $inconsistent, array $rankChange = []): LeaderboardEntry

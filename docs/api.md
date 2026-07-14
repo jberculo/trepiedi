@@ -36,6 +36,7 @@ curl "https://trepiedi.online/api/standings?pool=kantoor"
   "pool": { "name": "Tremani", "code": "algemeen" },
   "types": [
     { "key": "points", "emoji": "🟡", "label": "Algemeen", "field": "weightedTotal", "invertedMovement": false },
+    { "key": "flat", "emoji": "🥞", "label": "Plattement", "field": "rawTotal", "invertedMovement": false },
     { "key": "score", "emoji": "⚽", "label": "Balletjestrui", "field": "scorePoints", "invertedMovement": false },
     { "key": "winners", "emoji": "🔮", "label": "Glazen bal", "field": "advanceCount", "invertedMovement": false },
     { "key": "lantern", "emoji": "🔴", "label": "Ronde lantaarn", "field": "lanternPoints", "invertedMovement": true },
@@ -49,6 +50,7 @@ curl "https://trepiedi.online/api/standings?pool=kantoor"
         { "rank": 2, "movement": -1, "player": "Bram", "slug": "bram", "value": 70 }
       ]
     },
+    "flat":         { "field": "rawTotal",         "entries": [] },
     "score":        { "field": "scorePoints",     "entries": [] },
     "winners":      { "field": "advanceCount",     "entries": [] },
     "lantern":      { "field": "lanternPoints",    "entries": [] },
@@ -61,6 +63,7 @@ curl "https://trepiedi.online/api/standings?pool=kantoor"
   - `rank`: de rang in dát klassement (tie-aware: gelijke `value` = gedeelde rang);
   - `value`: de waarde van dat klassement (het veld uit `types[].field`);
   - `movement`: positieverandering t.o.v. de vorige speeldag (`+` = gestegen, `-` = gezakt, `null` = nieuw of geen vergelijking).
+- `points` telt met het rondegewicht mee (`weightedTotal`); `flat` (het "Plattement") is dezelfde stand maar ongewogen (`rawTotal`), waarin elke ronde 1× telt.
 - Bij `lantern` en `inconsistent` staat de **meeste** strafpunten/tegenstrijdigheden op plek 1; een positieve `movement` betekent dus dat de speler richting die "winnaar"-plek is geschoven.
 - `types`: de klassement-types met hun emoji, label, het bijbehorende `field` en `invertedMovement`. Die laatste is `true` als een hogere positie **ongunstig** is (alleen `lantern`): een positieve `movement` is dan "slechter" — een client kan op basis hiervan de kleur omdraaien (stijgen = rood i.p.v. groen).
 

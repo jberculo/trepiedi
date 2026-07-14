@@ -5,8 +5,12 @@
 {% block title %}{{ 'lb.title'|trans }} - Trepiedi{% endblock %}
 
 {% block body %}
-    {% set maxNow = activeTab in ['points', 'animation'] ? lb.pts(maxPossible) : (activeRanking.max_now_kind == 'triple-finished' ? totalFinished * 3 : totalFinished) %}
-    {% set maxTour = activeTab in ['points', 'animation'] ? lb.pts(maxTournament) : (activeRanking.max_tour_kind == 'triple-total' ? totalMatches * 3 : totalMatches) %}
+    {% set maxNow = activeTab in ['points', 'animation'] ? lb.pts(maxPossible)
+        : (activeRanking.max_now_kind == 'raw-finished' ? totalFinished * maxRawPerMatch
+        : (activeRanking.max_now_kind == 'triple-finished' ? totalFinished * 3 : totalFinished)) %}
+    {% set maxTour = activeTab in ['points', 'animation'] ? lb.pts(maxTournament)
+        : (activeRanking.max_tour_kind == 'raw-total' ? totalMatches * maxRawPerMatch
+        : (activeRanking.max_tour_kind == 'triple-total' ? totalMatches * 3 : totalMatches)) %}
     <div class="lb-hero mb-3">
         <h1 class="h3 mb-0">&#9917; {{ 'lb.title'|trans }}{% if activePool and not activePool.default %} - {{ activePool.name }}{% endif %}</h1>
         {% if activeTab != 'animation' %}
@@ -16,6 +20,7 @@
 
     {% set tabs = [
         {tab: 'points',       url: path('app_leaderboard'),              label: 'lb.tab_general'},
+        {tab: 'flat',         url: path('app_leaderboard_flat'),         label: 'lb.tab_flat'},
         {tab: 'score',        url: path('app_leaderboard_score'),        label: 'lb.tab_balls'},
         {tab: 'winners',      url: path('app_leaderboard_winners'),      label: 'lb.tab_oracle'},
         {tab: 'lantern',      url: path('app_leaderboard_lantern'),      label: 'lb.tab_lantern'},
@@ -57,6 +62,7 @@
             rounds: rounds,
             finishedPerRound: finishedPerRound,
             maxPossible: maxPossible,
+            maxRawPerMatch: maxRawPerMatch,
             totalFinished: totalFinished
         } only %}
     {% endif %}
@@ -65,6 +71,7 @@
         <p class="text-muted small">{{ 'lb.anim_intro'|trans }}</p>
         {% set metrics = [
             {key: 'points',       label: 'lb.anim_general'},
+            {key: 'flat',         label: 'lb.anim_flat'},
             {key: 'score',        label: 'lb.tab_balls'},
             {key: 'winners',      label: 'lb.tab_oracle'},
             {key: 'lantern',      label: 'lb.anim_lantern'},

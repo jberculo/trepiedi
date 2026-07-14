@@ -11,6 +11,7 @@ namespace App\Scoring;
 enum RankingType: string
 {
     case Points = 'points';
+    case Flat = 'flat';
     case Score = 'score';
     case Winners = 'winners';
     case Lantern = 'lantern';
@@ -20,6 +21,7 @@ enum RankingType: string
     {
         return match ($this) {
             self::Points => '🟡',
+            self::Flat => '🥞',
             self::Score => '⚽',
             self::Winners => '🔮',
             self::Lantern => '🔴',
@@ -31,6 +33,7 @@ enum RankingType: string
     {
         return match ($this) {
             self::Points => 'Algemeen',
+            self::Flat => 'Plattement',
             self::Score => 'Balletjestrui',
             self::Winners => 'Glazen bal',
             self::Lantern => 'Ronde lantaarn',
@@ -45,6 +48,7 @@ enum RankingType: string
     {
         return match ($this) {
             self::Points => 'weightedTotal',
+            self::Flat => 'rawTotal',
             self::Score => 'scorePoints',
             self::Winners => 'advanceCount',
             self::Lantern => 'lanternPoints',
@@ -65,6 +69,7 @@ enum RankingType: string
     {
         return match ($this) {
             self::Points => $entry->weightedTotal,
+            self::Flat => $entry->rawTotal,
             self::Score => $entry->scorePoints,
             self::Winners => $entry->advanceCount,
             self::Lantern => $entry->lanternPoints,

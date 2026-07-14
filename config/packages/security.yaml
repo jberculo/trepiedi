@@ -36,6 +36,7 @@ security:
         - { path: ^/taal, roles: PUBLIC_ACCESS }
         - { path: ^/$, roles: PUBLIC_ACCESS }
         - { path: ^/klassement, roles: PUBLIC_ACCESS }
+        - { path: ^/plattement, roles: PUBLIC_ACCESS }
         - { path: ^/balletjestrui, roles: PUBLIC_ACCESS }
         - { path: ^/glazen-bal, roles: PUBLIC_ACCESS }
         - { path: ^/animatie, roles: PUBLIC_ACCESS }

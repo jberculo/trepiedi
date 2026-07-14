@@ -7,8 +7,8 @@
      arrowKey         (sleutel voor entry.change(), bij showArrow)
      invertArrow      (kleuren omdraaien: stijgen = rood, bij straf-klassementen)
      rankField        (veld voor dense-rang; null = entry.rank gebruiken)
-     mode             (points|score|winners|lantern|inconsistent)
-     maxPossible, totalFinished #}
+     mode             (points|flat|score|winners|lantern|inconsistent)
+     maxPossible, maxRawPerMatch, totalFinished #}
 {% import '_macros.html.twig' as m %}
 {% import 'leaderboard/_lb.html.twig' as lb %}
 
@@ -25,6 +25,8 @@
                             {{ round.name }}
                             {% if mode == 'points' %}
                                 <br><span class="fw-normal text-muted">&times; {{ lb.pts(round.weight) }}</span>
+                            {% elseif mode == 'flat' %}
+                                <br><span class="fw-normal text-muted">&times; 1</span>
                             {% elseif mode == 'score' %}
                                 <br><span class="fw-normal text-muted">{{ 'lb.components'|trans }}</span>
                             {% endif %}
@@ -52,6 +54,8 @@
                                     &mdash;
                                 {% elseif mode == 'points' %}
                                     {{ lb.pts(entry.roundWeighted(round.id)) }}<br><small class="text-muted">{{ lb.stat(entry.roundHome(round.id), entry.roundAway(round.id), entry.roundExact(round.id), entry.roundAdvance(round.id)) }}</small>
+                                {% elseif mode == 'flat' %}
+                                    {{ entry.roundRaw(round.id) }}<br><small class="text-muted">{{ lb.stat(entry.roundHome(round.id), entry.roundAway(round.id), entry.roundExact(round.id), entry.roundAdvance(round.id)) }}</small>
                                 {% elseif mode == 'score' %}
                                     {{ entry.roundHome(round.id) }} - {{ entry.roundAway(round.id) }} - {{ entry.roundExact(round.id) }}
                                 {% elseif mode == 'winners' %}
@@ -67,6 +71,8 @@
                         <td class="text-end fw-bold">
                             {% if mode == 'points' %}
                                 {{ lb.total(entry.weightedTotal, maxPossible) }}
+                            {% elseif mode == 'flat' %}
+                                {{ lb.total(entry.rawTotal, totalFinished * maxRawPerMatch) }}
                             {% elseif mode == 'score' %}
                                 {{ lb.total(entry.scorePoints, totalFinished * 3) }}
                             {% elseif mode == 'winners' %}

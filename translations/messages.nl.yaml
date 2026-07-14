@@ -56,6 +56,7 @@ lb:
     title: Klassement
     max: 'Max. nu mogelijk: %now% - hele toernooi: %all%'
     tab_general: '🟡 Algemeen klassement'
+    tab_flat: '🥞 Plattement'
     tab_balls: '⚽ Balletjestrui'
     tab_oracle: '🔮 De glazen bal'
     tab_lantern: '🔴 De ronde lantaarn'
@@ -71,6 +72,7 @@ lb:
     winner: winnaar
     components: 'thuis - uit - compleet'
     general_intro: 'Totaalscore. Elke wedstrijd telt standaard even zwaar (max 6 punten: 1 thuis, 1 uit, 1 bonus, 3 winnaar). Het rondegewicht (x in de kop) bepaalt hoe zwaar een ronde meetelt: de score is punten x rondegewicht.'
+    flat_intro: 'Hetzelfde als het algemeen klassement, maar plat: het rondegewicht telt niet mee, elke ronde weegt 1x (max 6 punten per wedstrijd: 1 thuis, 1 uit, 1 bonus, 3 winnaar).'
     balls_intro: 'Goed voorspelde doelpunten en eindstanden: 1 punt per onderdeel (thuis, uit, exacte eindstand), max 3 per wedstrijd. Het rondegewicht telt hier niet mee. Per ronde: thuis - uit - compleet.'
     oracle_intro: 'Goed voorspelde winnaars: 1 punt per goede winnaar (zonder rondegewicht), dus maximaal het aantal gespeelde wedstrijden. Per ronde: aantal goed van de gespeelde wedstrijden, met percentage.'
     anim_intro: 'Speelt de stand wedstrijd-voor-wedstrijd af, 1 seconde per wedstrijd. De balk is t.o.v. de maximaal haalbare score tot dat moment (een perfecte speler staat dus op 100%).'
@@ -85,6 +87,7 @@ lb:
     anim_ready: 'Klaar om af te spelen (%count% wedstrijden)'
     anim_none: Nog geen gespeelde wedstrijden
     anim_general: '🟡 Algemeen'
+    anim_flat: '🥞 Plattement'
     anim_lantern: '🔴 Lantaarn'
     lantern_intro: 'De ronde lantaarn: strafpunten voor slechte voorspellingen op gespeelde wedstrijden. +1 als je een gelijkspel voorspelde en het werd iets anders, +1 als je winst/verlies voorspelde terwijl het een gelijkspel werd, +2 als je de uitslag omgekeerd voorspelde (bv. 3-1 terwijl het 1-2 werd) en +1 als je de verkeerde ploeg tot winnaar uitriep. Niet ingevulde wedstrijden tellen niet mee. Bovenaan staat wie er het meest naast zat. Per ronde: strafpunten.'
     inconsistent_intro: 'Tegenstrijdige voorspellingen: je voorspelde uitslag wijst de ene ploeg als winnaar aan, maar je laat de andere doorgaan (bv. 2-1 voor de thuisploeg, maar de uitploeg gaat door). Bovenaan staat wie de meeste tegenstrijdigheden heeft. Per ronde: aantal tegenstrijdig.'

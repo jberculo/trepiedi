@@ -231,6 +231,7 @@ class ScoringService
 
         $rankings = [
             'points' => static fn (LeaderboardEntry $e): array => [$e->weightedTotal, $e->rawTotal],
+            'flat' => static fn (LeaderboardEntry $e): array => [$e->rawTotal],
             'score' => static fn (LeaderboardEntry $e): array => [$e->scorePoints, $e->weightedTotal],
             'winners' => static fn (LeaderboardEntry $e): array => [$e->advanceCount, $e->weightedTotal],
             'lantern' => static fn (LeaderboardEntry $e): array => [$e->lanternPoints, $e->weightedTotal],
@@ -312,6 +313,7 @@ class ScoringService
                 : 1.0;
 
             $points = [];
+            $flat = [];
             $score = [];
             $winners = [];
             $lantern = [];
@@ -321,6 +323,7 @@ class ScoringService
                 $prediction = $byMatch[$match->getId()][$uid] ?? null;
                 if ($prediction === null) {
                     $points[] = 0.0;
+                    $flat[] = 0;
                     $score[] = 0;
                     $winners[] = 0;
                     $lantern[] = 0;
@@ -330,6 +333,7 @@ class ScoringService
 
                 $ms = $this->scorePrediction($prediction);
                 $points[] = $ms->total() * $weight;
+                $flat[] = $ms->total();
                 $score[] = $ms->homeGoalsPoint + $ms->awayGoalsPoint + $ms->exactBonusPoint;
                 $winners[] = $ms->advancePoints > 0 ? 1 : 0;
                 $lantern[] = $this->lanternPenalty($prediction);
@@ -342,6 +346,8 @@ class ScoringService
                 'round' => $match->getRound()?->getName(),
                 'points' => $points,
                 'pointsMax' => self::MAX_RAW_PER_MATCH * $weight,
+                'flat' => $flat,
+                'flatMax' => self::MAX_RAW_PER_MATCH,
                 'score' => $score,
                 'scoreMax' => self::POINTS_PER_GOAL_SIDE * 2 + self::EXACT_BONUS,
                 'winners' => $winners,

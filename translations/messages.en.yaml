@@ -56,6 +56,7 @@ lb:
     title: Standings
     max: 'Max. now possible: %now% - whole tournament: %all%'
     tab_general: '🟡 General standings'
+    tab_flat: '🥞 Flat standings'
     tab_balls: '⚽ Goals jersey'
     tab_oracle: '🔮 The crystal ball'
     tab_lantern: '🔴 The round lantern'
@@ -71,6 +72,7 @@ lb:
     winner: winner
     components: 'home - away - complete'
     general_intro: 'Total score. Every match counts equally by default (max 6 points: 1 home, 1 away, 1 bonus, 3 winner). The round weight (x in the header) determines how much a round counts: the score is points x round weight.'
+    flat_intro: 'The same as the general standings, but flat: the round weight does not count, every round weighs 1x (max 6 points per match: 1 home, 1 away, 1 bonus, 3 winner).'
     balls_intro: 'Correctly predicted goals and final scores: 1 point per part (home, away, exact final score), max 3 per match. The round weight does not count here. Per round: home - away - complete.'
     oracle_intro: 'Correctly predicted winners: 1 point per correct winner (no round weight), so at most the number of matches played. Per round: number correct out of matches played, with percentage.'
     anim_intro: 'Plays the standings match by match, 1 second per match. The bar is relative to the maximum achievable score so far (a perfect player is therefore at 100%).'
@@ -85,6 +87,7 @@ lb:
     anim_ready: 'Ready to play (%count% matches)'
     anim_none: No matches played yet
     anim_general: '🟡 General'
+    anim_flat: '🥞 Flat'
     anim_lantern: '🔴 Lantern'
     lantern_intro: 'The round lantern: penalty points for bad predictions on matches that have been played. +1 if you predicted a draw and it turned out otherwise, +1 if you predicted a win/loss while it ended in a draw, +2 if you predicted the result reversed (e.g. 3-1 while it became 1-2) and +1 if you named the wrong team as the winner. Matches you did not fill in do not count. Whoever was furthest off is on top. Per round: penalty points.'
     inconsistent_intro: 'Contradictory predictions: your predicted score points to one team as the winner, but you pick the other to advance (e.g. 2-1 for the home team, yet the away team goes through). Whoever has the most contradictions is on top. Per round: number contradictory.'

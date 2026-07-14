@@ -21,7 +21,7 @@ class ApiTest extends FixturesWebTestCase
 
         $this->assertSame('algemeen', $data['pool']['code']);
         // Per klassement een eigen, gesorteerde lijst.
-        $this->assertSame(['points', 'score', 'winners', 'lantern', 'inconsistent'], array_keys($data['rankings']));
+        $this->assertSame(['points', 'flat', 'score', 'winners', 'lantern', 'inconsistent'], array_keys($data['rankings']));
         $points = $data['rankings']['points'];
         $this->assertSame('weightedTotal', $points['field']);
         $players = array_column($points['entries'], 'player');
